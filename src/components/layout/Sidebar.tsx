@@ -13,7 +13,9 @@ import {
   HomeIcon,
   icons,
   FileText,
-  Ticket
+  Ticket,
+  FileSpreadsheet,
+  ClipboardList
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import LogoutButton from "../LogoutButton";
@@ -41,13 +43,13 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const getActiveStyle = (route: string) =>
     pathname === route
       ? {
-          backgroundColor: "var(--accent)",
-          color: "var(--color-black)",
-          borderRadius: "0.5rem",
-        }
+        backgroundColor: "var(--accent)",
+        color: "var(--color-black)",
+        borderRadius: "0.5rem",
+      }
       : {
-          color: "var(--sidebar-fg)",
-        };
+        color: "var(--sidebar-fg)",
+      };
 
   const menuItems = [
     {
@@ -91,6 +93,18 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       icon: Ticket,
       label: "Servicios",
       show: user?.i_rol === 1 || user?.i_rol === 2,
+    },
+    {
+      route: "/solicitudes",
+      icon: FileSpreadsheet,
+      label: "Solicitudes",
+      show: user?.i_rol === 1 || user?.i_rol === 2, // Admin and Super Admin
+    },
+    {
+      route: "/pedidos",
+      icon: ClipboardList,
+      label: "Pedidos",
+      show: user?.i_rol === 1 || user?.i_rol === 2, 
     },
   ];
 

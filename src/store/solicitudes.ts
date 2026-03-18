@@ -5,7 +5,7 @@ interface ProductoSeleccionado {
   id: string
   nombre: string
   imagenes: string[]
-  preguntas: { id: string; texto: string; precio: number }[]
+  preguntas: { id: string | number; texto: string; precio: number }[]
 }
 
 interface SolicitudState {

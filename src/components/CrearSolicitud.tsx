@@ -1,299 +1,431 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import React, { useState, useEffect } from 'react';
+// IMPORTANTE: Ajusta estas rutas dependiendo de la estructura de tus carpetas
+import { useAuthStore } from '../store/authStore';
+import { getProductsByClient } from '../Fetch/products'; 
+import { getCLientsList } from '../Fetch/clientes'; 
+// NUEVAS IMPORTACIONES: Usando la lógica que sí funciona de tu otro componente
+import { getQuestions, getClientsForQuestion } from '../Fetch/questions'; 
+import { Loader2 } from "lucide-react";
 
-import { useSolicitudStore } from "../store/solicitudes";
-import { useProductStore } from "../store/productStore";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
 
-import { Button } from "../components/ui/button";
-import { Card } from "../components/ui/card";
-import { Separator } from "../components/ui/separator";
+import { createRequest } from '../Fetch/solicitudes';
 
-import { Trash2 } from "lucide-react";
-
-// -------------------- Tipos --------------------
-interface Pregunta {
-  id: number;
-  texto: string;
-  precio: number; // 0 = gratuita
+// --- INTERFACES LOCALES ---
+interface ProductoSeleccionado {
+  id_product: number;
+  name: string;
+  preguntas: PreguntaSeleccionada[];
 }
 
-// Preguntas mock mientras no hay backend
-const mockPreguntas: Pregunta[] = [
-  { id: 1, texto: "¿Producto limpio?", precio: 0 },
-  { id: 2, texto: "¿Fecha de expiración visible?", precio: 10 },
-  { id: 3, texto: "¿Etiqueta visible?", precio: 5 },
-];
+interface PreguntaSeleccionada {
+  id_pregunta: number;
+  vc_pregunta: string;
+  dc_precio: number;
+}
 
-// Util: genera URL segura para File | string
-const toImgUrl = (img: File | string) =>
-  typeof img === "string" ? img : URL.createObjectURL(img);
+interface Client {
+  id_client: number;
+  name: string;
+}
 
-// -------------------- Subcomponentes --------------------
-function ProductoCard({
-  producto,
-  onSelect,
-}: {
-  producto: { id_producto: string; name: string; description?: string; images: (File | string)[] };
-  onSelect: () => void;
-}) {
-  const imgUrl = useMemo(() => (producto.images?.[0] ? toImgUrl(producto.images[0]) : ""), [producto.images]);
+export const CrearSolicitud = () => {
+  const { user } = useAuthStore();
+  
+  // Validamos si es super admin
+  const isSuperAdmin = user?.id_client === 0 || user?.i_rol === 1;
 
-  // Revoca el objectURL si aplica
+  // --- ESTADOS ---
+  const [nombre, setNombre] = useState('');
+  
+  // Estados para Clientes (Solo Super Admin)
+  const [clientes, setClientes] = useState<Client[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+  const [cargandoClientes, setCargandoClientes] = useState(false);
+
+  // Listas de la base de datos
+  const [listaProductos, setListaProductos] = useState<any[]>([]);
+  const [listaPreguntas, setListaPreguntas] = useState<any[]>([]); // Cambiado a any[] o a tu interface Question
+  
+  const [cargando, setCargando] = useState(false);
+  const [errorTexto, setErrorTexto] = useState<string | null>(null);
+
+  // Estado principal de la solicitud
+  const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoSeleccionado[]>([]);
+
+  // --- EFECTO 1: Cargar Clientes (Solo si es Super Admin) ---
   useEffect(() => {
-    return () => {
-      if (producto.images?.[0] && typeof producto.images[0] !== "string") {
-        URL.revokeObjectURL(imgUrl);
+    if (isSuperAdmin) {
+      const fetchClients = async () => {
+        setCargandoClientes(true);
+        try {
+          const response = await getCLientsList();
+          const clientsList = response.data || [];
+          setClientes(clientsList);
+          
+          if (clientsList.length > 0) {
+            setSelectedClientId(clientsList[0].id_client);
+          }
+        } catch (error) {
+          console.error("Error al cargar clientes:", error);
+          setErrorTexto("Error al cargar la lista de clientes.");
+        } finally {
+          setCargandoClientes(false);
+        }
+      };
+      fetchClients();
+    } else {
+      setSelectedClientId(user?.id_client || null);
+    }
+  }, [isSuperAdmin, user]);
+
+  // --- EFECTO 2: Cargar Productos y Preguntas (LÓGICA CORREGIDA) ---
+  useEffect(() => {
+    if (!selectedClientId) return;
+
+    const cargarDatos = async () => {
+      setCargando(true);
+      setErrorTexto(null);
+      setProductosSeleccionados([]);
+
+      try {
+        // 1. Llamamos a Productos y a TODAS las preguntas al mismo tiempo
+        const [resProductos, resPreguntas] = await Promise.all([
+          getProductsByClient(selectedClientId),
+          getQuestions()
+        ]);
+
+        // 2. Setear Productos
+        const productosData = resProductos.data || resProductos; 
+        setListaProductos(Array.isArray(productosData) ? productosData : []);
+
+        // 3. Procesar y Filtrar Preguntas (Igual que en PreguntasSuperAdmin)
+        if (resPreguntas.ok && resPreguntas.data) {
+          
+          // Traemos los clientes de cada pregunta
+          const preguntasConClientes = await Promise.all(
+            resPreguntas.data.map(async (pregunta: any) => {
+              try {
+                const clientesRes = await getClientsForQuestion(pregunta.id_question);
+                return {
+                  ...pregunta,
+                  assignedClients: clientesRes.ok ? clientesRes.data || [] : [],
+                };
+              } catch {
+                return { ...pregunta, assignedClients: [] };
+              }
+            })
+          );
+
+          // Filtramos para dejar SOLO las que pertenecen al cliente seleccionado
+          const preguntasDelCliente = preguntasConClientes.filter(p => 
+            p.assignedClients?.some((c: any) => c.id_client === selectedClientId)
+          );
+
+          setListaPreguntas(preguntasDelCliente);
+        } else {
+          throw new Error(resPreguntas.message || "Error al obtener las preguntas");
+        }
+
+      } catch (error) {
+        console.error("Error al cargar catálogos:", error);
+        setErrorTexto(error instanceof Error ? error.message : "Error al comunicarse con el servidor");
+      } finally {
+        setCargando(false);
       }
     };
-  }, [imgUrl, producto.images]);
 
-  return (
-    <Card
-      onClick={onSelect}
-      className="cursor-pointer hover:ring-2 ring-primary w-full max-w-xs flex items-center p-2 gap-3"
-    >
-      {imgUrl ? (
-        <img src={imgUrl} alt={producto.name} className="w-20 h-20 object-cover rounded border" />
-      ) : (
-        <div className="w-20 h-20 grid place-content-center border rounded text-xs text-muted-foreground">Sin imagen</div>
-      )}
+    cargarDatos();
+  }, [selectedClientId]);
 
-      <div className="flex-1">
-        <h3 className="font-semibold text-base line-clamp-1">{producto.name}</h3>
-        <p className="text-xs text-muted-foreground line-clamp-2">{producto.description || "Sin descripción"}</p>
-      </div>
-    </Card>
-  );
-}
-
-function PreguntaItem({ pregunta, selected, onToggle }: { pregunta: Pregunta; selected: boolean; onToggle: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className={`w-full text-left border p-2 rounded transition-colors ${
-        selected ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-      }`}
-    >
-      <div className="flex items-center justify-between">
-        <span>{pregunta.texto}</span>
-        {pregunta.precio > 0 && <span className="text-xs opacity-80">+${pregunta.precio} MXN</span>}
-      </div>
-    </button>
-  );
-}
-
-function ProductoSeleccionado({
-  p,
-  onRemove,
-  index,
-}: {
-  p: { id: string; nombre: string; imagenes: string[]; preguntas: Pregunta[] };
-  onRemove: () => void;
-  index: number;
-}) {
-  const costoPreguntas = p.preguntas.reduce((acc, q) => acc + q.precio, 0);
-  const costoExtraProducto = index >= 3 ? 15 : 0; // 4to en adelante
-  const totalExtra = costoPreguntas + costoExtraProducto;
-
-  return (
-    <div className="flex items-center border rounded-lg p-3 shadow-sm bg-background relative group w-full max-w-xs">
-      {p.imagenes?.[0] ? (
-        <img src={p.imagenes[0]} alt={p.nombre} className="w-20 h-20 object-cover rounded mr-4" />
-      ) : (
-        <div className="w-20 h-20 mr-4 grid place-content-center border rounded text-xs text-muted-foreground">Sin imagen</div>
-      )}
-
-      <div className="flex-1 min-w-0">
-        <h3 className="font-semibold mb-1 truncate">{p.nombre}</h3>
-        <ul className="text-xs text-muted-foreground list-disc list-inside space-y-0.5">
-          {p.preguntas.map((q) => (
-            <li key={q.id} className="truncate">{q.texto}</li>
-          ))}
-        </ul>
-        {totalExtra > 0 && <span className="text-sm text-green-600 font-semibold">+ ${totalExtra} MXN</span>}
-      </div>
-
-      <button
-        onClick={onRemove}
-        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-destructive text-destructive-foreground p-1 rounded"
-        aria-label="Eliminar producto"
-      >
-        <Trash2 size={16} />
-      </button>
-    </div>
-  );
-}
-
-// -------------------- Página --------------------
-export default function CrearSolicitud() {
-  const navigate = useNavigate();
-
-  const { products } = useProductStore();
-
-  const { agregarProducto, eliminarProducto, calcularPrecioTotal, productos, limpiarSolicitud } = useSolicitudStore();
-
-  const [productoActual, setProductoActual] = useState<(typeof products)[number] | null>(null);
-  const [preguntasSeleccionadas, setPreguntasSeleccionadas] = useState<Pregunta[]>([]);
-
-  // Filtra productos que aún no han sido agregados a la solicitud
-  const productosDisponibles = useMemo(
-    () => products.filter((p) => !productos.some((sel) => sel.id === p.id_producto)),
-    [products, productos]
-  );
-
-  // Selección de producto del catálogo
-  const handleSeleccionarProducto = (producto: (typeof products)[number]) => {
-    setProductoActual(producto);
-    setPreguntasSeleccionadas([]);
+  // --- MANEJADORES DE EVENTOS ---
+  const handleClientChange = (value: string) => {
+    setSelectedClientId(Number(value));
   };
 
-  // Toggle de preguntas con 1 gratis por producto
-  const handleTogglePregunta = (pregunta: Pregunta) => {
-    const exists = preguntasSeleccionadas.some((p) => p.id === pregunta.id);
-    if (exists) {
-      setPreguntasSeleccionadas((prev) => prev.filter((p) => p.id !== pregunta.id));
-      return;
-    }
-
-    const yaHayGratis = preguntasSeleccionadas.some((p) => p.precio === 0);
-    if (pregunta.precio === 0 && yaHayGratis) {
-      toast("Solo puedes seleccionar una pregunta gratuita por producto");
-      return;
-    }
-
-    setPreguntasSeleccionadas((prev) => [...prev, pregunta]);
-  };
-
-  // Confirma producto + preguntas
-  const handleConfirmarProducto = () => {
-    if (!productoActual) return;
-    if (preguntasSeleccionadas.length === 0) {
-      toast("Debes seleccionar al menos una pregunta");
-      return;
-    }
-
-    agregarProducto({
-      id: productoActual.id_producto,
-      nombre: productoActual.name,
-      imagenes: (productoActual.images || []).map((img) => toImgUrl(img)),
-      preguntas: preguntasSeleccionadas,
+  const toggleProducto = (productoDB: any) => {
+    setProductosSeleccionados(prev => {
+      const idProducto = productoDB.id_product || productoDB.id; 
+      const existe = prev.find(p => p.id_product === idProducto);
+      
+      if (existe) {
+        return prev.filter(p => p.id_product !== idProducto);
+      } else {
+        return [...prev, { 
+          id_product: idProducto, 
+          name: productoDB.name, 
+          preguntas: [] 
+        }];
+      }
     });
-
-    setProductoActual(null);
-    setPreguntasSeleccionadas([]);
   };
 
-  // Guarda solicitud (mock): limpia el store y vuelve a listado
-  const handleGuardarSolicitud = () => {
-    if (productoActual) {
-      toast("Termina de confirmar el producto en edición antes de guardar");
+  // ATENCIÓN: Adaptado a los nombres de la base de datos de "Question"
+  const togglePregunta = (id_product: number, preguntaDB: any) => {
+    setProductosSeleccionados(prev => 
+      prev.map(prod => {
+        if (prod.id_product === id_product) {
+          const preguntaExiste = prod.preguntas.find(q => q.id_pregunta === preguntaDB.id_question);
+          
+          let nuevasPreguntas;
+          if (preguntaExiste) {
+            nuevasPreguntas = prod.preguntas.filter(q => q.id_pregunta !== preguntaDB.id_question);
+          } else {
+            // Transformamos los datos a la interfaz que necesitas para armar el JSON
+            nuevasPreguntas = [...prod.preguntas, {
+              id_pregunta: preguntaDB.id_question,
+              vc_pregunta: preguntaDB.question,
+              dc_precio: Number(preguntaDB.base_price) 
+            }];
+          }
+          return { ...prod, preguntas: nuevasPreguntas };
+        }
+        return prod;
+      })
+    );
+  };
+
+  // --- CÁLCULOS DINÁMICOS ---
+  const calcularSubtotal = (preguntas: PreguntaSeleccionada[]) => {
+    return preguntas.reduce((sum, q) => sum + q.dc_precio, 0);
+  };
+
+  const granTotal = productosSeleccionados.reduce((sum, prod) => {
+    return sum + calcularSubtotal(prod.preguntas);
+  }, 0);
+
+  // --- GUARDAR ---
+  const handleGuardar = async () => {
+    if (!nombre.trim()) {
+      alert("Por favor ingresa un nombre para la solicitud.");
+      return;
+    }
+    if (productosSeleccionados.length === 0) {
+      alert("Selecciona al menos un producto.");
+      return;
+    }
+    if (!selectedClientId) {
+      alert("No hay un cliente seleccionado.");
+      return;
+    }
+    
+    // Validamos que exista un usuario en el store para mandar su ID
+    if (!user || !user.id_user) {
+      alert("Error de sesión: No se encontró el ID de usuario.");
       return;
     }
 
-    if (productos.length === 0) {
-      toast("Agrega al menos un producto a la solicitud");
-      return;
-    }
+    // Usamos disabled o un estado de "guardando" para evitar doble click
+    setCargando(true);
 
-    // Aquí iría la llamada al backend para persistir la solicitud
-    limpiarSolicitud();
-    navigate("/solicitudes");
+    const payload = {
+      id_user: user.id_user, // ¡AQUÍ MANDAMOS EL ID DEL USUARIO DESDE EL STORE!
+      id_cliente: selectedClientId,
+      nombre_solicitud: nombre.trim(),
+      costo_total: granTotal,
+      productos: productosSeleccionados.map(prod => ({
+        id_product: prod.id_product,
+        subtotal: calcularSubtotal(prod.preguntas),
+        preguntas: prod.preguntas.map(q => ({
+          id_pregunta: q.id_pregunta,
+          precio_aplicado: q.dc_precio
+        }))
+      }))
+    };
+
+    try {
+      console.log("Enviando al Backend:", payload);
+      const respuesta = await createRequest(payload);
+      
+      if (respuesta.ok) {
+        alert("¡Solicitud guardada con éxito!");
+        // Aquí podrías limpiar el formulario o redireccionar al usuario
+        setNombre('');
+        setProductosSeleccionados([]);
+      }
+    } catch (error: any) {
+      console.error("Error al guardar:", error);
+      alert(error.message || "Ocurrió un error al guardar la solicitud.");
+    } finally {
+      setCargando(false);
+    }
   };
 
-  // -------------------- Render --------------------
+  // --- RENDERIZADO ---
+  if (isSuperAdmin && cargandoClientes) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <Loader2 size={32} className="animate-spin text-blue-500 mb-2" />
+        <p className="text-gray-500 font-medium">Cargando lista de clientes...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 flex gap-6">
-      {/* Columna izquierda: catálogo / selección de preguntas */}
-      <div className="w-full lg:w-2/3">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold">Paso 1: Agrega tus productos</h1>
+    <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">Crear Nueva Solicitud</h2>
+      </div>
+
+      {errorTexto && (
+        <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-200">
+          {errorTexto}
         </div>
+      )}
 
-        {productos.length >= 3 && (
-          <p className="text-sm text-amber-600 mb-2">Al agregar un producto extra se suman $15 MXN adicionales.</p>
-        )}
+      {/* SELECTOR DE CLIENTE */}
+      {isSuperAdmin && clientes.length > 0 && (
+        <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Selecciona el Cliente:
+          </label>
+          <Select
+            value={selectedClientId?.toString() || ""}
+            onValueChange={handleClientChange}
+          >
+            <SelectTrigger className="w-full md:w-1/2 bg-white">
+              <SelectValue placeholder="Selecciona un cliente" />
+            </SelectTrigger>
+            <SelectContent>
+              {clientes.map((client) => (
+                <SelectItem
+                  key={client.id_client}
+                  value={client.id_client.toString()}
+                >
+                  {client.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
-        {/* Lista de productos disponibles o selector de preguntas */}
-        {!productoActual ? (
-          <div className={`flex flex-col ${productosDisponibles.length === 1 ? "items-center" : "items-start"} gap-4`}>
-            {productosDisponibles.length > 0 ? (
-              productosDisponibles.map((producto) => (
-                <ProductoCard key={producto.id_producto} producto={producto} onSelect={() => handleSeleccionarProducto(producto)} />
-              ))
+      {/* 1. Nombre de la solicitud */}
+      <div className="mb-6">
+        <label className="block text-gray-700 font-semibold mb-2">Nombre de la Solicitud</label>
+        <input 
+          type="text" 
+          className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Ej. Auditoría de Verano"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          disabled={!selectedClientId}
+        />
+      </div>
+
+      {cargando ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="animate-spin text-blue-500 mr-2" />
+          <span className="text-gray-500">Cargando catálogos del cliente...</span>
+        </div>
+      ) : selectedClientId ? (
+        <>
+          {/* 2. Selección de Productos */}
+          <div className="mb-8">
+            <label className="block text-gray-700 font-semibold mb-3">1. Selecciona los Productos a auditar</label>
+            {listaProductos.length === 0 ? (
+              <p className="text-gray-500 italic p-4 bg-gray-50 rounded">No hay productos registrados para este cliente.</p>
             ) : (
-              <p className="text-muted-foreground">Todos los productos del catálogo ya fueron agregados.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {listaProductos.map(prod => {
+                  const idProducto = prod.id_product || prod.id;
+                  const seleccionado = productosSeleccionados.some(p => p.id_product === idProducto);
+                  return (
+                    <label 
+                      key={idProducto} 
+                      className={`flex items-center p-3 border rounded cursor-pointer transition-colors ${seleccionado ? 'bg-blue-50 border-blue-500' : 'hover:bg-gray-50'}`}
+                    >
+                      <input 
+                        type="checkbox" 
+                        className="mr-3 w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                        checked={seleccionado}
+                        onChange={() => toggleProducto(prod)}
+                      />
+                      <span className="font-medium text-gray-800 line-clamp-1" title={prod.name}>{prod.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
             )}
           </div>
-        ) : (
-          <>
-            <h2 className="font-semibold text-lg mb-2">Selecciona preguntas para: {productoActual.name}</h2>
-            <div className="space-y-2 mb-4">
-              {mockPreguntas.map((p) => (
-                <PreguntaItem
-                  key={p.id}
-                  pregunta={p}
-                  selected={preguntasSeleccionadas.some((ps) => ps.id === p.id)}
-                  onToggle={() => handleTogglePregunta(p)}
-                />
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Button variant="secondary" onClick={() => setProductoActual(null)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleConfirmarProducto} disabled={preguntasSeleccionadas.length === 0}>
-                Confirmar producto
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
 
-      {/* Columna derecha: resumen */}
-      <div className="w-full lg:w-1/3 flex flex-col justify-between lg:h-[calc(100vh-2rem)]">
-        <div>
-          <h2 className="text-lg font-semibold mb-2">Productos y preguntas seleccionadas</h2>
-          <Separator className="mb-4" />
-
-          {productoActual ? (
-            <div className="border rounded-lg p-3 shadow-sm bg-background">
-              <h3 className="font-semibold mb-2">{productoActual.name}</h3>
-              {productoActual.images?.[0] ? (
-                <img src={toImgUrl(productoActual.images[0])} alt={productoActual.name} className="w-16 h-16 object-cover rounded border" />
-              ) : (
-                <p className="text-sm text-muted-foreground">Sin imagen</p>
-              )}
-              <ul className="mt-3 text-sm text-muted-foreground list-disc list-inside">
-                {preguntasSeleccionadas.map((p) => (
-                  <li key={p.id}>{p.texto}</li>
-                ))}
-              </ul>
+          {/* 3. Configuración de Preguntas */}
+          {productosSeleccionados.length > 0 && (
+            <div className="mb-8">
+              <label className="block text-gray-700 font-semibold mb-4">2. Configura las Preguntas por Producto</label>
+              
+              {productosSeleccionados.map(producto => {
+                const subtotal = calcularSubtotal(producto.preguntas);
+                
+                return (
+                  <div key={producto.id_product} className="mb-5 border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                    <div className="bg-gray-100 p-4 flex justify-between items-center border-b border-gray-200">
+                      <h3 className="font-bold text-gray-800">{producto.name}</h3>
+                      <span className="font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full text-sm">
+                        Subtotal: ${subtotal.toFixed(2)}
+                      </span>
+                    </div>
+                    
+                    <div className="p-4 bg-white">
+                      <div className="space-y-3">
+                        {listaPreguntas.length === 0 ? (
+                          <p className="text-sm text-gray-500">No hay preguntas disponibles para este cliente.</p>
+                        ) : (
+                          listaPreguntas.map(pregunta => {
+                            // ATENCIÓN: Usamos id_question aquí
+                            const seleccionada = producto.preguntas.some(q => q.id_pregunta === pregunta.id_question);
+                            return (
+                              <label key={pregunta.id_question} className="flex items-start cursor-pointer group p-2 rounded hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200">
+                                <input 
+                                  type="checkbox" 
+                                  className="mt-1 mr-3 w-4 h-4 text-green-600 rounded focus:ring-green-500"
+                                  checked={seleccionada}
+                                  onChange={() => togglePregunta(producto.id_product, pregunta)}
+                                />
+                                <div className="flex-1 flex justify-between items-center">
+                                  {/* ATENCIÓN: Usamos question y base_price */}
+                                  <span className="text-sm text-gray-700 font-medium">{pregunta.question}</span>
+                                  <span className="text-sm font-bold text-gray-600 ml-4">${Number(pregunta.base_price).toFixed(2)}</span>
+                                </div>
+                              </label>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ) : productos.length > 0 ? (
-            <div className={`flex flex-col ${productos.length === 1 ? "items-center" : "items-start"} gap-4`}>
-              {productos.map((p, index) => (
-                <ProductoSeleccionado key={p.id} p={p} index={index} onRemove={() => eliminarProducto(p.id)} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground">Aún no has agregado productos.</p>
           )}
-        </div>
 
-        {/* Footer fijo */}
-        <div className="mt-4">
-          <Separator className="mb-2" />
-          <div className="flex justify-between items-center mb-2">
-            <span className="font-semibold">Total:</span>
-            <span className="text-lg font-bold">${calcularPrecioTotal()} MXN</span>
-          </div>
-          <Button onClick={handleGuardarSolicitud} className="w-full">
-            Guardar solicitud
-          </Button>
-        </div>
-      </div>
+          {/* 4. Resumen y Guardar */}
+          {productosSeleccionados.length > 0 && (
+            <>
+              <hr className="my-6 border-gray-300" />
+              <div className="flex flex-col sm:flex-row justify-between items-center bg-gray-900 text-white p-5 rounded-lg shadow-lg">
+                <div className="text-lg mb-4 sm:mb-0 flex items-center">
+                  Costo Total: 
+                  <span className="text-3xl font-bold text-green-400 ml-3">${granTotal.toFixed(2)}</span>
+                </div>
+                <button 
+                  onClick={handleGuardar}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow transition-colors text-lg"
+                >
+                  Crear Solicitud
+                </button>
+              </div>
+            </>
+          )}
+        </>
+      ) : null}
+
     </div>
   );
-}
+};

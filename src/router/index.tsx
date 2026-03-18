@@ -19,6 +19,18 @@ import Cotizaciones from "../pages/cotizaciones/Cotizaciones";
 import CotizacionDetalle from "../pages/cotizaciones/CotizacionDetalle";
 import Servicios from "../pages/servicios/servicios";
 
+// Solicitudes Feature
+import SolicitudesList from "../pages/Solicitudes";
+import { CrearSolicitud } from "../components/CrearSolicitud";
+import SolicitudDetalle from "../pages/solicitudes/SolicitudDetalle";
+import { EditarSolicitud } from "../pages/solicitudes/EditarSolicitud";
+
+// PEDIDOS
+import PedidosList from "../pages/pedidos/PedidoList";
+import { CrearPedido } from "../pages/pedidos/CrearPedido";
+import PedidoDetalle from "../pages/pedidos/PedidoDetalle";
+
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -56,6 +68,17 @@ export default function AppRouter() {
           <Route path="cotizaciones/detalle/:id" element={<CotizacionDetalle />} />
 
           <Route path="servicios" element={<Servicios />} />
+
+          {/* Solicitudes Feature */}
+          <Route path="solicitudes" element={<SolicitudesList />} />
+          <Route path="crearSolicitud" element={<CrearSolicitud />} />
+          <Route path="detalle-solicitud/:id" element={<SolicitudDetalle />} />
+          <Route path="editar-solicitud/:id" element={<EditarSolicitud />} />
+
+          {/* Pedidos */}
+          <Route path="pedidos" element={<PedidosList />} />
+          <Route path="crearPedido" element={<CrearPedido />} />
+          <Route path="detalle-pedido/:id" element={<PedidoDetalle />} />
         </Route>
       </Routes>
     </BrowserRouter>
