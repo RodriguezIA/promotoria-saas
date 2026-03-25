@@ -30,6 +30,15 @@ import PedidosList from "../pages/pedidos/PedidoList";
 import { CrearPedido } from "../pages/pedidos/CrearPedido";
 import PedidoDetalle from "../pages/pedidos/PedidoDetalle";
 
+// FINANZAS
+import Finanzas from "../pages/finanzas/Finanzas";
+
+// PERFIL
+import Perfil from "../pages/perfil/Perfil";
+
+// MI NEGOCIO
+import MiNegocio from "../pages/miNegocio/MiNegocio";
+
 
 export default function AppRouter() {
   return (
@@ -79,6 +88,15 @@ export default function AppRouter() {
           <Route path="pedidos" element={<PedidosList />} />
           <Route path="crearPedido" element={<CrearPedido />} />
           <Route path="detalle-pedido/:id" element={<PedidoDetalle />} />
+
+          {/* Finanzas */}
+          <Route path="finanzas" element={<Finanzas />} />
+
+          {/* Mi Negocio */}
+          <Route path="mi-negocio" element={<MiNegocio />} />
+
+          {/* Perfil */}
+          <Route path="perfil" element={<Perfil />} />
         </Route>
       </Routes>
     </BrowserRouter>

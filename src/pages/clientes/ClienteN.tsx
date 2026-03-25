@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -10,8 +10,18 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import { MensajeConfirmacion } from "../../components/mensajeConfirmaacion";
 import { registClient } from '../../Fetch/clientes';
+import { getPaises, getEstados, getCiudades } from "../../Fetch/utils";
+
+import { Country, State, City } from "../../types/utils";
 
 type FormErrors = {
   [key: string]: string | null;
@@ -26,13 +36,22 @@ export default function NuevoCliente() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [paises, setPaises] = useState<Country[]>([]);
+  const [estados, setEstados] = useState<State[]>([]);
+  const [ciudades, setCiudades] = useState<City[]>([]);
   const [formData, setFormData] = useState({
     vc_nombre: "",
     vc_rfc: "",
     vc_email: "",
     vc_telefono: "",
-    vc_direccion: "",
-    vc_ciudad: "",
+    id_pais: "",
+    id_estado: "",
+    id_ciudad: "",
+    vc_calle: "",
+    vc_num_ext: "",
+    vc_num_int: "",
+    vc_colonia: "",
+    vc_cp: "",
     vc_observaciones: "",
     b_activo: true,
   });
@@ -42,8 +61,11 @@ export default function NuevoCliente() {
     formData.vc_rfc.trim() ||
     formData.vc_email.trim() ||
     formData.vc_telefono.trim() ||
-    formData.vc_direccion.trim() ||
-    formData.vc_ciudad.trim() ||
+    formData.vc_calle.trim() ||
+    formData.vc_num_ext.trim() ||
+    formData.vc_num_int.trim() ||
+    formData.vc_colonia.trim() ||
+    formData.vc_cp.trim() ||
     formData.vc_observaciones.trim()
   );
 
@@ -91,13 +113,22 @@ export default function NuevoCliente() {
         rfc: formData.vc_rfc || undefined,
         email: formData.vc_email,
         phone: formData.vc_telefono || undefined,
-        address: formData.vc_direccion || undefined,
-        city: formData.vc_ciudad || undefined,
+        id_pais: formData.id_pais ? Number(formData.id_pais) : undefined,
+        id_estado: formData.id_estado ? Number(formData.id_estado) : undefined,
+        id_ciudad: formData.id_ciudad ? Number(formData.id_ciudad) : undefined,
+        street: formData.vc_calle || undefined,
+        ext_number: formData.vc_num_ext || undefined,
+        int_number: formData.vc_num_int || undefined,
+        neighborhood: formData.vc_colonia || undefined,
+        zip: formData.vc_cp || undefined,
         addiccional_notes: formData.vc_observaciones || undefined,
       });
 
       toast.success("Cliente creado exitosamente");
-      navigate(`/clientes/${result.data.id}`);
+
+      console.log("result:", result);
+
+      // navigate(`/clientes/${result.data.id}`);
     } catch (error) {
       console.error("Error:", error);
       alert("Error al crear cliente");
@@ -167,6 +198,58 @@ export default function NuevoCliente() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  // userEffect para cargar países
+  useEffect(() => {
+    const fetchPaises = async () => {
+      const request = await getPaises();
+      const data: Country[] = request.data || [];
+      setPaises(data);
+      if (data.length > 0) {
+        setFormData((prev) => ({ ...prev, id_pais: String(data[0].id) }));
+      }
+    };
+
+    fetchPaises();
+  }, []);
+
+  // useEffect para cargar estados cuando cambia el país
+  useEffect(() => {
+    if (!formData.id_pais) return;
+
+    const fetchEstados = async () => {
+      setEstados([]);
+      setCiudades([]);
+      setFormData((prev) => ({ ...prev, id_estado: "", id_ciudad: "" }));
+      const request = await getEstados(Number(formData.id_pais));
+      const data: State[] = request.data || [];
+      setEstados(data);
+      if (data.length > 0) {
+        setFormData((prev) => ({ ...prev, id_estado: String(data[0].id) }));
+      }
+    };
+
+    fetchEstados();
+  }, [formData.id_pais]);
+
+  // useEffect para cargar ciudades cuando cambia el estado
+  useEffect(() => {
+    if (!formData.id_pais || !formData.id_estado) return;
+
+    const fetchCiudades = async () => {
+      setCiudades([]);
+      setFormData((prev) => ({ ...prev, id_ciudad: "" }));
+      const request = await getCiudades(Number(formData.id_pais), Number(formData.id_estado));
+      const data: City[] = request.data || [];
+      setCiudades(data);
+      if (data.length > 0) {
+        setFormData((prev) => ({ ...prev, id_ciudad: String(data[0].id) }));
+      }
+    };
+
+    fetchCiudades();
+  }, [formData.id_estado]);
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -347,7 +430,7 @@ export default function NuevoCliente() {
                   name="vc_telefono"
                   value={formData.vc_telefono}
                   onChange={handleChange}
-                  placeholder="+52 81 8888 9999"
+                  placeholder="8188889999"
                   className={`w-full px-4 py-2.5 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
                     errors.vc_telefono
                       ? "border-red-300 bg-red-50"
@@ -362,19 +445,53 @@ export default function NuevoCliente() {
                 )}
               </div>
 
-              {/* Dirección */}
+              {/* País */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Dirección
+                  País
                 </label>
-                <input
-                  type="text"
-                  name="vc_direccion"
-                  value={formData.vc_direccion}
-                  onChange={handleChange}
-                  placeholder="Av. Constitución 2211"
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
-                />
+                <Select
+                  value={formData.id_pais}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, id_pais: value }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecciona un país" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {paises.map((pais) => (
+                      <SelectItem key={pais.id} value={String(pais.id)}>
+                        {pais.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Estado */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Estado
+                </label>
+                <Select
+                  value={formData.id_estado}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, id_estado: value }))
+                  }
+                  disabled={estados.length === 0}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecciona un estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {estados.map((estado) => (
+                      <SelectItem key={estado.id} value={String(estado.id)}>
+                        {estado.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Ciudad */}
@@ -382,15 +499,102 @@ export default function NuevoCliente() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Ciudad
                 </label>
+                <Select
+                  value={formData.id_ciudad}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, id_ciudad: value }))
+                  }
+                  disabled={ciudades.length === 0}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecciona una ciudad" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ciudades.map((ciudad) => (
+                      <SelectItem key={ciudad.id} value={String(ciudad.id)}>
+                        {ciudad.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Calle */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Calle
+                </label>
                 <input
                   type="text"
-                  name="vc_ciudad"
-                  value={formData.vc_ciudad}
+                  name="vc_calle"
+                  value={formData.vc_calle}
                   onChange={handleChange}
-                  placeholder="Monterrey"
+                  placeholder="Av. Constitución"
                   className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
                 />
               </div>
+
+              {/* Número exterior */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Número exterior
+                </label>
+                <input
+                  type="text"
+                  name="vc_num_ext"
+                  value={formData.vc_num_ext}
+                  onChange={handleChange}
+                  placeholder="2211"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+                />
+              </div>
+
+              {/* Número interior */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Número interior
+                </label>
+                <input
+                  type="text"
+                  name="vc_num_int"
+                  value={formData.vc_num_int}
+                  onChange={handleChange}
+                  placeholder="Piso 3, Depto B"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+                />
+              </div>
+
+              {/* Colonia */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Colonia
+                </label>
+                <input
+                  type="text"
+                  name="vc_colonia"
+                  value={formData.vc_colonia}
+                  onChange={handleChange}
+                  placeholder="Col. Centro"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+                />
+              </div>
+
+              {/* Código postal */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Código postal
+                </label>
+                <input
+                  type="text"
+                  name="vc_cp"
+                  value={formData.vc_cp}
+                  onChange={handleChange}
+                  placeholder="64000"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+                />
+              </div>
+
+
             </div>
           </div>
 

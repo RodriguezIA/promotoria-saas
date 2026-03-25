@@ -5,17 +5,18 @@ import {
 import logo from "../../assets/promotorialogotipo_positivo.png";
 import logoSmall from "../../assets/promotorialogotipo_positivo.png";
 import {
-  FactoryIcon,
   Store,
-  FileQuestionIcon,
   MoreVertical,
   ChevronLeft,
   HomeIcon,
-  icons,
-  FileText,
-  Ticket,
-  FileSpreadsheet,
-  ClipboardList
+  ClipboardList,
+  UsersRound,
+  Package,
+  MessageCircleQuestion,
+  Receipt,
+  Banknote,
+  UserCircle,
+  Building2,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import LogoutButton from "../LogoutButton";
@@ -60,13 +61,13 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     },
     {
       route: "/clientes",
-      icon: FactoryIcon,
+      icon: UsersRound,
       label: "Clientes",
       show: user?.i_rol === 1,
     },
     {
       route: "/productos",
-      icon: icons.Package,
+      icon: Package,
       label: "Productos",
       show: user?.i_rol === 2 || user?.i_rol === 1,
     },
@@ -74,37 +75,43 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       route: "/establecimientos",
       icon: Store,
       label: "Establecimientos",
-      show: user?.i_rol === 2 || user?.i_rol === 1,
+      show: user?.i_rol === 1,
     },
     {
       route: "/preguntas",
-      icon: FileQuestionIcon,
+      icon: MessageCircleQuestion,
       label: "Preguntas",
       show: user?.i_rol === 1,
     },
     {
-      route: "/cotizacciones",
-      icon: FileText,
-      label: "Cotizaciones",
-      show: user?.i_rol === 1 || user?.i_rol === 2,
-    },
-    {
-      route: "/servicios",
-      icon: Ticket,
-      label: "Servicios",
-      show: user?.i_rol === 1 || user?.i_rol === 2,
-    },
-    {
       route: "/solicitudes",
-      icon: FileSpreadsheet,
+      icon: ClipboardList,
       label: "Solicitudes",
       show: user?.i_rol === 1 || user?.i_rol === 2, // Admin and Super Admin
     },
     {
       route: "/pedidos",
-      icon: ClipboardList,
+      icon: Receipt,
       label: "Pedidos",
       show: user?.i_rol === 1 || user?.i_rol === 2, 
+    },
+    {
+      route: "/finanzas",
+      icon: Banknote,
+      label: "Finanzas",
+      show: user?.i_rol === 1 || user?.i_rol === 2,
+    },
+    {
+      route: "/mi-negocio",
+      icon: Building2,
+      label: "Mi Negocio",
+      show: user?.i_rol === 2,
+    },
+    {
+      route: "/perfil",
+      icon: UserCircle,
+      label: "Mi perfil",
+      show: true,
     },
   ];
 
@@ -142,7 +149,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       <div className="space-y-3 flex-shrink-0">
         <div className="border-t border-border"></div>
 
-        <div className={cn("px-2", !isMobile && !isExpanded && "px-1")}>
+        {/* <div className={cn("px-2", !isMobile && !isExpanded && "px-1")}>
           <ThemeToggle
             size="md"
             variant="sidebar"
@@ -152,7 +159,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               isMobile || isExpanded ? "justify-start" : "justify-center",
             )}
           />
-        </div>
+        </div> */}
 
         <LogoutButton isExpanded={isMobile || isExpanded} />
       </div>

@@ -103,22 +103,34 @@ export function PromoterHeatMap({ promoters }: Props) {
           <MapPin size={20} className="text-gray-600" />
           <h2 className="text-lg font-medium">Mapa de Calor — Actividad de Promotores</h2>
         </div>
-        <span className="text-sm text-gray-500">{promoters.length} promotores</span>
+        <span className="text-sm text-gray-500">
+          {promoters.length > 0 ? `${promoters.length} promotores con ubicación` : "Sin ubicaciones registradas aún"}
+        </span>
       </div>
 
       {isLoaded ? (
-        <GoogleMap
-          mapContainerStyle={mapContainerStyle}
-          center={center}
-          zoom={11}
-          onLoad={onMapLoad}
-          options={{
-            streetViewControl: false,
-            mapTypeControl: false,
-            fullscreenControl: true,
-            styles: MAP_STYLE_GRAY,
-          }}
-        />
+        promoters.length > 0 ? (
+          <GoogleMap
+            mapContainerStyle={mapContainerStyle}
+            center={center}
+            zoom={11}
+            onLoad={onMapLoad}
+            options={{
+              streetViewControl: false,
+              mapTypeControl: false,
+              fullscreenControl: true,
+              styles: MAP_STYLE_GRAY,
+            }}
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center bg-gray-50 rounded-lg gap-3" style={{ height: 500 }}>
+            <MapPin className="w-10 h-10 text-gray-300" />
+            <p className="text-sm text-gray-400 font-medium">Sin ubicaciones registradas</p>
+            <p className="text-xs text-gray-400 text-center max-w-xs">
+              Las ubicaciones aparecerán aquí cuando los promotores actualicen su posición desde la app móvil.
+            </p>
+          </div>
+        )
       ) : (
         <div className="flex items-center justify-center bg-gray-100 rounded-lg" style={{ height: 500 }}>
           <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
