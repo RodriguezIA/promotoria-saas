@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { ModalCustom } from "../../components/ModalCustom";
+import { PageWrapper } from "../../components/ui/page-wrapper";
 import { getClientById } from "../../Fetch/clientes";
 import { registerUserInClient } from "../../Fetch/usuarios";
 import { clientDetail } from "../../types/clients";
@@ -72,30 +73,30 @@ export default function MiNegocio() {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="animate-spin w-6 h-6 mr-2 text-gray-400" />
-        <span className="text-gray-400">Cargando...</span>
-      </div>
+      <PageWrapper>
+        <div className="flex items-center justify-center py-20 gap-3">
+          <Loader2 className="animate-spin w-5 h-5" style={{ color: "var(--text-secondary)" }} />
+          <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Cargando...</span>
+        </div>
+      </PageWrapper>
     );
 
   if (!cliente)
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400">
-        No se encontró información del negocio.
-      </div>
+      <PageWrapper>
+        <div className="flex items-center justify-center py-20 text-sm" style={{ color: "var(--text-secondary)" }}>
+          No se encontró información del negocio.
+        </div>
+      </PageWrapper>
     );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-full" style={{ backgroundColor: "var(--bg)" }}>
 
       {/* Header fijo */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">Mi Negocio</h1>
-            <p className="text-sm text-gray-500">Información y gestión de tu empresa</p>
-          </div>
-        </div>
+      <div className="sticky top-0 z-10 border-b px-6 py-4" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+        <h1 className="text-xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>Mi Negocio</h1>
+        <p className="text-sm mt-0.5" style={{ color: "var(--text-secondary)" }}>Información y gestión de tu empresa</p>
       </div>
 
       <div className="max-w-6xl mx-auto p-6 space-y-6">

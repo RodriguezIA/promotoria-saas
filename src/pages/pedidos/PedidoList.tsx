@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table";
-import { Plus, Loader2, Eye, ClipboardList } from "lucide-react";
+import { Plus, Eye, Receipt } from "lucide-react";
 
 import { Button } from "../../components/ui/button";
 import { DataTable } from "../../components/ui/datatble";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import { PageWrapper } from "../../components/ui/page-wrapper";
+import { PageHeader } from "../../components/ui/page-header";
 
 import { useAuthStore } from "../../store/authStore";
 import { getOrdersByClient, OrderData } from "../../Fetch/pedidos";
@@ -86,39 +88,38 @@ export default function PedidosList() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Pedidos de Operación</h1>
-            <p className="text-sm text-gray-500 mt-1">Órdenes generadas que contienen tareas para los promotores.</p>
-          </div>
+    <PageWrapper>
+      <PageHeader
+        title="Pedidos de Operación"
+        subtitle="Órdenes generadas que contienen tareas para los promotores"
+        icon={Receipt}
+        actions={
           <Button onClick={() => navigate("/crearPedido")} className="flex items-center gap-2">
-            <Plus size={18} /> Crear Nuevo Pedido
+            <Plus size={16} /> Crear Pedido
           </Button>
-        </div>
+        }
+      />
 
-        {isSuperAdmin && clientes.length > 0 && (
-          <div className="bg-white p-4 rounded-lg border flex items-center gap-4">
-            <label className="text-sm font-semibold text-gray-700">Cliente:</label>
-            <Select value={selectedClientId?.toString() || ""} onValueChange={(val) => setSelectedClientId(Number(val))}>
-              <SelectTrigger className="w-64"><SelectValue placeholder="Selecciona un cliente" /></SelectTrigger>
-              <SelectContent>
-                {clientes.map((c) => <SelectItem key={c.id_client} value={c.id_client.toString()}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        <div className="bg-white rounded-lg border shadow-sm p-4">
-          <DataTable
-            columns={columns}
-            data={pedidos}
-            isLoading={loading}
-            emptyMessage="No hay pedidos registrados para este cliente."
-          />
+      {isSuperAdmin && clientes.length > 0 && (
+        <div className="flex items-center gap-3 p-4 rounded-xl border" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+          <label className="text-sm font-medium flex-shrink-0" style={{ color: "var(--text-secondary)" }}>Cliente:</label>
+          <Select value={selectedClientId?.toString() || ""} onValueChange={(val) => setSelectedClientId(Number(val))}>
+            <SelectTrigger className="w-64"><SelectValue placeholder="Selecciona un cliente" /></SelectTrigger>
+            <SelectContent>
+              {clientes.map((c) => <SelectItem key={c.id_client} value={c.id_client.toString()}>{c.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
+      )}
+
+      <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+        <DataTable
+          columns={columns}
+          data={pedidos}
+          isLoading={loading}
+          emptyMessage="No hay pedidos registrados para este cliente."
+        />
       </div>
-    </div>
+    </PageWrapper>
   );
 }

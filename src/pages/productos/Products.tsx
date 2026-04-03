@@ -7,6 +7,9 @@ import { toast } from "sonner";
 
 import { DataTable } from "../../components";
 import { Button } from "../../components/ui/button";
+import { PageWrapper } from "../../components/ui/page-wrapper";
+import { PageHeader } from "../../components/ui/page-header";
+import { StatCard } from "../../components/dashboard/StatCard";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -225,154 +228,86 @@ export default function ProductPage() {
     },
   ];
 
-  // Loading inicial para superadmin cargando clientes
   if (isSuperAdmin && loadingClients) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 size={32} className="animate-spin text-gray-400" />
-          <p className="text-gray-500">Cargando clientes...</p>
+      <PageWrapper>
+        <div className="flex items-center justify-center py-20 gap-3">
+          <Loader2 size={24} className="animate-spin" style={{ color: "var(--text-secondary)" }} />
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Cargando clientes...</p>
         </div>
-      </div>
+      </PageWrapper>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Productos</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Administra los productos del cliente
-            </p>
-          </div>
+    <PageWrapper>
+      <PageHeader
+        title="Productos"
+        subtitle="Administra los productos del cliente"
+        icon={Package}
+        actions={
           <Link to="/producto" state={{ id_client: selectedClientId }}>
             <Button className="flex items-center gap-2">
-              <Plus size={18} />
-              Nuevo Producto
+              <Plus size={16} /> Nuevo Producto
             </Button>
           </Link>
+        }
+      />
+
+      {isSuperAdmin && clients.length > 0 && (
+        <div className="flex items-center gap-3 p-4 rounded-xl border" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+          <label className="text-sm font-medium flex-shrink-0" style={{ color: "var(--text-secondary)" }}>Cliente:</label>
+          <Select value={selectedClientId?.toString() || ""} onValueChange={handleClientChange}>
+            <SelectTrigger className="w-64"><SelectValue placeholder="Selecciona un cliente" /></SelectTrigger>
+            <SelectContent>
+              {clients.map((client) => (
+                <SelectItem key={client.id_client} value={client.id_client.toString()}>
+                  {client.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+      )}
 
-        {/* Select de clientes (solo para superadmin) */}
-        {isSuperAdmin && clients.length > 0 && (
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center gap-4">
-              <label className="text-sm font-medium text-gray-700">
-                Cliente:
-              </label>
-              <Select
-                value={selectedClientId?.toString() || ""}
-                onValueChange={handleClientChange}
-              >
-                <SelectTrigger className="w-64">
-                  <SelectValue placeholder="Selecciona un cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem
-                      key={client.id_client}
-                      value={client.id_client.toString()}
-                    >
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-6 h-6 animate-spin" style={{ color: "var(--text-secondary)" }} />
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm">
+          {error}
+        </div>
+      )}
+
+      {!loading && !error && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger-children">
+            <StatCard title="Total" value={stats.total} icon={Package} />
+            <StatCard title="Activos" value={stats.activos} icon={Package} accent="#16a34a" />
+            <StatCard title="Inactivos" value={stats.inactivos} icon={Package} accent="#dc2626" />
           </div>
-        )}
 
-        {/* Loading state */}
-        {loading && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+            {products.length > 0 ? (
+              <DataTable columns={columns} data={products} />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <Package size={32} className="mb-3" style={{ color: "var(--text-secondary)" }} />
+                <h4 className="font-medium mb-1" style={{ color: "var(--text-primary)" }}>Sin productos</h4>
+                <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
+                  Aún no hay productos registrados para este cliente.
+                </p>
+                <Link to="/producto" state={{ id_client: selectedClientId }}>
+                  <Button size="sm"><Plus size={14} className="mr-1" /> Agregar producto</Button>
+                </Link>
+              </div>
+            )}
           </div>
-        )}
-
-        {/* Error state */}
-        {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-lg">
-            {error}
-          </div>
-        )}
-
-        {!loading && !error && (
-          <>
-            {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Total</p>
-                    <p className="text-2xl font-semibold text-gray-900">
-                      {stats.total}
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <Package size={20} className="text-gray-600" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Activos</p>
-                    <p className="text-2xl font-semibold text-gray-900">
-                      {stats.activos}
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
-                    <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Inactivos</p>
-                    <p className="text-2xl font-semibold text-gray-900">
-                      {stats.inactivos}
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                    <div className="w-2 h-2 bg-red-500 rounded-full" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* DataTable */}
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-              {products.length > 0 ? (
-                <DataTable columns={columns} data={products} />
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <Package size={32} className="text-gray-400" />
-                  </div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-1">
-                    Sin productos
-                  </h4>
-                  <p className="text-gray-500 mb-4">
-                    Aún no hay productos registrados para este cliente.
-                  </p>
-                  <Link to="/producto" state={{ id_client: selectedClientId }}>
-                    <Button>
-                      <Plus size={16} className="mr-2" />
-                      Agregar primer producto
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+        </>
+      )}
+    </PageWrapper>
   );
 }

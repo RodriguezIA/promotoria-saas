@@ -1,3 +1,5 @@
+import { useAuthStore } from "../store/authStore";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface ClientData {
@@ -16,6 +18,14 @@ interface ClientData {
   zip?: string;
   addiccional_notes?: string;
 }
+
+const getAuthHeaders = () => {
+  const token = useAuthStore.getState().token;
+  return {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`,
+  };
+};
 
 export const registClient = async (data: ClientData) => {
     try {
@@ -60,5 +70,20 @@ export const getClientById = async (id: number) => {
         return res.json();
     } catch (error) {
         console.error("f.getClientById:", error);
+    }
+}
+
+export const deleteCLientById = async (id: number) => {
+    try{
+        const res = await fetch(`${API_URL}/superadmin/client/${id}`, {
+            method: "DELETE",
+            headers: getAuthHeaders(),
+        });
+
+        if (!res.ok) throw new Error("Error al eliminar el cliente");
+
+        return res.json();
+    } catch (error) {
+        console.error("f.deleteCLientById:", error);
     }
 }

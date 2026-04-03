@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { Loader2, CheckCircle2, Clock, DollarSign } from "lucide-react";
+import { Loader2, CheckCircle2, Clock, DollarSign, Banknote } from "lucide-react";
 import { toast } from "sonner";
 import { ColumnDef } from "@tanstack/react-table";
 
-import { Card } from "../../components/ui/card";
 import { DataTable } from "../../components/ui/datatble";
+import { PageWrapper } from "../../components/ui/page-wrapper";
+import { PageHeader } from "../../components/ui/page-header";
+import { StatCard } from "../../components/dashboard/StatCard";
 import { useAuthStore } from "../../store/authStore";
 import { getMisPagos, MiPago, PromoterPaymentStatus } from "../../Fetch/finanzas";
 
@@ -66,14 +68,14 @@ export default function FinanzasAdmin() {
       accessorKey: "f_monto",
       header: "Monto",
       cell: ({ row }) => (
-        <span className="font-semibold text-gray-900">{fmt(row.getValue("f_monto"))}</span>
+        <span className="font-semibold">{fmt(row.getValue("f_monto"))}</span>
       ),
     },
     {
       accessorKey: "dt_periodo_inicio",
       header: "Período",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-600">
+        <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
           {fmtDate(row.original.dt_periodo_inicio)} – {fmtDate(row.original.dt_periodo_fin)}
         </span>
       ),
@@ -92,67 +94,36 @@ export default function FinanzasAdmin() {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="animate-spin w-6 h-6 mr-2 text-gray-500" />
-        <span className="text-gray-500">Cargando tus pagos...</span>
-      </div>
+      <PageWrapper>
+        <div className="flex items-center justify-center py-20 gap-3">
+          <Loader2 className="animate-spin w-5 h-5" style={{ color: "var(--text-secondary)" }} />
+          <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Cargando pagos...</span>
+        </div>
+      </PageWrapper>
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <PageWrapper>
+      <PageHeader
+        title="Mis Pagos"
+        subtitle="Historial y estado de tus pagos por servicios como promotor"
+        icon={Banknote}
+      />
 
-        {/* Encabezado */}
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Mis Pagos</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Historial y estado de pagos por tus servicios como promotor.
-          </p>
-        </div>
-
-        {/* Resumen */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="p-5 flex items-center gap-4">
-            <div className="p-3 rounded-full bg-gray-800">
-              <DollarSign className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 font-medium">Total acumulado</p>
-              <p className="text-xl font-bold text-gray-900">{fmt(totalCobrado + totalPendiente)}</p>
-            </div>
-          </Card>
-          <Card className="p-5 flex items-center gap-4">
-            <div className="p-3 rounded-full bg-green-500">
-              <CheckCircle2 className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 font-medium">Cobrado</p>
-              <p className="text-xl font-bold text-gray-900">{fmt(totalCobrado)}</p>
-            </div>
-          </Card>
-          <Card className="p-5 flex items-center gap-4">
-            <div className="p-3 rounded-full bg-amber-400">
-              <Clock className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 font-medium">Pendiente</p>
-              <p className="text-xl font-bold text-gray-900">{fmt(totalPendiente)}</p>
-            </div>
-          </Card>
-        </div>
-
-        {/* Tabla */}
-        <div className="bg-white rounded-lg border shadow-sm p-4">
-          <h2 className="text-base font-semibold text-gray-800 mb-4">Detalle de pagos</h2>
-          <DataTable
-            columns={columns}
-            data={pagos}
-            isLoading={false}
-            emptyMessage="No tienes pagos registrados aún."
-          />
-        </div>
-
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 stagger-children">
+        <StatCard title="Total acumulado" value={fmt(totalCobrado + totalPendiente)} icon={DollarSign} />
+        <StatCard title="Cobrado" value={fmt(totalCobrado)} icon={CheckCircle2} accent="#16a34a" />
+        <StatCard title="Pendiente" value={fmt(totalPendiente)} icon={Clock} accent="#d97706" />
       </div>
-    </div>
+
+      <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+        <DataTable
+          columns={columns}
+          data={pagos}
+          isLoading={false}
+          emptyMessage="No tienes pagos registrados aún."
+        />
+      </div>
+    </PageWrapper>
   );
 }

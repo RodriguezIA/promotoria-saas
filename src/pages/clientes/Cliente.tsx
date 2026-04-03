@@ -6,16 +6,21 @@ import { ColumnDef } from "@tanstack/react-table";
 import {
   Building2,
   Users,
-  MapPin,
-  Phone,
   Mail,
+  Phone,
+  MapPin,
   Eye,
   Edit2,
   Trash2,
   MoreVertical,
   Plus,
   Loader2,
+  UserCheck,
+  UserX,
 } from "lucide-react";
+import { PageWrapper } from "../../components/ui/page-wrapper";
+import { PageHeader } from "../../components/ui/page-header";
+import { StatCard } from "../../components/dashboard/StatCard";
 
 import { Button } from "../../components/ui/button";
 import {
@@ -33,7 +38,8 @@ import {
   FilterConfig,
 } from "../../components/ui/datatble";
 
-import { getCLientsList } from '../../Fetch/clientes';
+import { getCLientsList, deleteCLientById } from '../../Fetch/clientes';
+import { ConfirmModal } from '../../components/ui/confirm-modal';
 
 
 export interface Cliente {
@@ -59,6 +65,12 @@ export default function ClientesPage() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; cliente: Cliente | null; loading: boolean }>({
+    open: false,
+    cliente: null,
+    loading: false,
+  });
 
   // Cargar clientes al montar el componente
   useEffect(() => {
@@ -107,11 +119,26 @@ export default function ClientesPage() {
   };
 
   const handleDelete = (cliente: Cliente) => {
-    if (confirm(`¿Estás seguro de eliminar a ${cliente.vc_nombre}?`)) {
-      setClientes((prev) =>
-        prev.filter((c) => c.id_cliente !== cliente.id_cliente),
-      );
+    setDeleteModal({ open: true, cliente, loading: false });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.cliente) return;
+    setDeleteModal((prev) => ({ ...prev, loading: true }));
+    try {
+      await deleteCLientById(deleteModal.cliente.id_cliente);
+      setClientes((prev) => prev.filter((c) => c.id_cliente !== deleteModal.cliente!.id_cliente));
+      handleCloseDeleteModal();
+    } catch {
+      setDeleteModal((prev) => ({ ...prev, loading: false }));
     }
+  };
+
+  const handleCloseDeleteModal = () => {
+    setDeleteModal({ open: false, cliente: null, loading: false });
+    setTimeout(() => {
+      document.body.style.pointerEvents = "";
+    }, 100);
   };
 
   // ============================================================================
@@ -323,106 +350,43 @@ export default function ClientesPage() {
   // ============================================================================
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Clientes</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Administra los clientes del sistema
-            </p>
-          </div>
+    <PageWrapper>
+      <PageHeader
+        title="Clientes"
+        subtitle="Administra los clientes del sistema"
+        icon={Building2}
+        actions={
           <Link to="/crearCliente">
             <Button className="flex items-center gap-2">
-              <Plus size={18} />
-              Nuevo Cliente
+              <Plus size={16} /> Nuevo Cliente
             </Button>
           </Link>
+        }
+      />
+
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-7 h-7 animate-spin" style={{ color: "var(--text-secondary)" }} />
         </div>
+      )}
 
-        {/* Loading state */}
-        {loading && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-          </div>
-        )}
-
-        {/* Error state */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-            {error}
-          </div>
-        )}
-
-        {/* Content - solo mostrar cuando no está cargando */}
-        {!loading && !error && (
-          <>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Total</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {stats.total}
-                </p>
-              </div>
-              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                <Building2 size={20} className="text-gray-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Activos</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {stats.activos}
-                </p>
-              </div>
-              <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Inactivos</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {stats.inactivos}
-                </p>
-              </div>
-              <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                <div className="w-2 h-2 bg-red-500 rounded-full" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Usuarios</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {stats.usuarios}
-                </p>
-              </div>
-              <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                <Users size={20} className="text-blue-600" />
-              </div>
-            </div>
-          </div>
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm">
+          {error}
         </div>
+      )}
 
-        
+      {!loading && !error && (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 stagger-children">
+            <StatCard title="Total" value={stats.total} icon={Building2} />
+            <StatCard title="Activos" value={stats.activos} icon={UserCheck} accent="#16a34a" />
+            <StatCard title="Inactivos" value={stats.inactivos} icon={UserX} accent="#dc2626" />
+            <StatCard title="Usuarios" value={stats.usuarios} icon={Users} accent="#2563eb" />
+          </div>
 
-        {/* DataTable */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          {/* DataTable */}
+          <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
           <DataTable<Cliente>
             columns={columns}
             data={clientes}
@@ -471,10 +435,20 @@ export default function ClientesPage() {
             emptyIcon={<Building2 className="w-12 h-12 text-gray-300" />}
             getRowId={(row) => row.id_cliente.toString()}
           />
-        </div>
+          </div>
         </>
-        )}
-      </div>
-    </div>
+      )}
+      <ConfirmModal
+        open={deleteModal.open}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+        loading={deleteModal.loading}
+        variant="danger"
+        icon={<Trash2 size={22} />}
+        title="¿Eliminar cliente?"
+        description={`Esta acción no se puede deshacer. Se eliminará permanentemente a "${deleteModal.cliente?.vc_nombre}".`}
+        confirmLabel="Eliminar"
+      />
+    </PageWrapper>
   );
 }

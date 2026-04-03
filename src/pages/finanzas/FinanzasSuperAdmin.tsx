@@ -7,13 +7,16 @@ import {
   Loader2,
   DollarSign,
   Users,
+  Banknote,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "../../components/ui/button";
-import { Card } from "../../components/ui/card";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "../../components/ui/datatble";
+import { PageWrapper } from "../../components/ui/page-wrapper";
+import { PageHeader } from "../../components/ui/page-header";
+import { StatCard } from "../../components/dashboard/StatCard";
 
 import {
   getCobros,
@@ -55,30 +58,6 @@ const BadgeStatus = ({ status }: { status: PaymentStatus | PromoterPaymentStatus
     </span>
   );
 };
-
-// ─── TARJETAS RESUMEN ─────────────────────────────────────────────────────────
-
-const StatCard = ({
-  title,
-  value,
-  icon: Icon,
-  color,
-}: {
-  title: string;
-  value: string;
-  icon: React.ElementType;
-  color: string;
-}) => (
-  <Card className="p-5 flex items-center gap-4">
-    <div className={`p-3 rounded-full ${color}`}>
-      <Icon className="w-5 h-5 text-white" />
-    </div>
-    <div>
-      <p className="text-xs text-gray-500 font-medium">{title}</p>
-      <p className="text-xl font-bold text-gray-900">{value}</p>
-    </div>
-  </Card>
-);
 
 // ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
 
@@ -277,111 +256,59 @@ export default function FinanzasSuperAdmin() {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="animate-spin w-6 h-6 mr-2 text-gray-500" />
-        <span className="text-gray-500">Cargando finanzas...</span>
-      </div>
+      <PageWrapper>
+        <div className="flex items-center justify-center py-20 gap-3">
+          <Loader2 className="animate-spin w-5 h-5" style={{ color: "var(--text-secondary)" }} />
+          <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Cargando finanzas...</span>
+        </div>
+      </PageWrapper>
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <PageWrapper>
+      <PageHeader
+        title="Finanzas"
+        subtitle="Gestión de cobros a clientes y pagos a promotores"
+        icon={Banknote}
+      />
 
-        {/* Encabezado */}
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Finanzas</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Gestión de cobros a clientes y pagos a promotores.
-          </p>
+      {resumen && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
+          <StatCard title="Total cobrado" value={fmt(resumen.total_cobrado)} icon={TrendingUp} accent="#16a34a" />
+          <StatCard title="Por cobrar" value={fmt(resumen.total_pendiente_cobro)} icon={AlertCircle} accent="#dc2626" />
+          <StatCard title="Pagado promotores" value={fmt(resumen.total_pagado_promotores)} icon={Users} accent="#2563eb" />
+          <StatCard title="Pendiente promotores" value={fmt(resumen.total_pendiente_promotores)} icon={Clock} accent="#d97706" />
         </div>
+      )}
 
-        {/* Tarjetas de resumen */}
-        {resumen && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard
-              title="Total cobrado"
-              value={fmt(resumen.total_cobrado)}
-              icon={TrendingUp}
-              color="bg-green-500"
-            />
-            <StatCard
-              title="Por cobrar"
-              value={fmt(resumen.total_pendiente_cobro)}
-              icon={AlertCircle}
-              color="bg-red-400"
-            />
-            <StatCard
-              title="Pagado a promotores"
-              value={fmt(resumen.total_pagado_promotores)}
-              icon={Users}
-              color="bg-blue-500"
-            />
-            <StatCard
-              title="Pendiente promotores"
-              value={fmt(resumen.total_pendiente_promotores)}
-              icon={Clock}
-              color="bg-amber-400"
-            />
-          </div>
+      {/* Tabs */}
+      <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ backgroundColor: "var(--hover)" }}>
+        {(["cobros", "promotores"] as Tab[]).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150"
+            style={
+              tab === t
+                ? { backgroundColor: "var(--card-bg)", color: "var(--text-primary)", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }
+                : { color: "var(--text-secondary)" }
+            }
+          >
+            {t === "cobros" ? <DollarSign className="w-4 h-4" /> : <Users className="w-4 h-4" />}
+            {t === "cobros" ? "Cobros a clientes" : "Pagos a promotores"}
+            <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "var(--border)", color: "var(--text-secondary)" }}>
+              {t === "cobros" ? cobros.length : pagos.length}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+        {tab === "cobros" ? (
+          <DataTable columns={columnasCobros} data={cobros} isLoading={false} emptyMessage="No hay cobros registrados." />
+        ) : (
+          <DataTable columns={columnasPagos} data={pagos} isLoading={false} emptyMessage="No hay pagos de promotores registrados." />
         )}
-
-        {/* Tabs */}
-        <div className="border-b border-gray-200 flex gap-6">
-          <button
-            onClick={() => setTab("cobros")}
-            className={`pb-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${
-              tab === "cobros"
-                ? "border-gray-900 text-gray-900"
-                : "border-transparent text-gray-400 hover:text-gray-600"
-            }`}
-          >
-            <DollarSign className="w-4 h-4" />
-            Cobros a clientes
-            <span className="ml-1 bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">
-              {cobros.length}
-            </span>
-          </button>
-          <button
-            onClick={() => setTab("promotores")}
-            className={`pb-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${
-              tab === "promotores"
-                ? "border-gray-900 text-gray-900"
-                : "border-transparent text-gray-400 hover:text-gray-600"
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            Pagos a promotores
-            <span className="ml-1 bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">
-              {pagos.length}
-            </span>
-          </button>
-        </div>
-
-        {/* Tabla activa */}
-        <div className="bg-white rounded-lg border shadow-sm p-4">
-          {tab === "cobros" ? (
-            <>
-              <h2 className="text-base font-semibold text-gray-800 mb-4">Cobros de pedidos</h2>
-              <DataTable
-                columns={columnasCobros}
-                data={cobros}
-                isLoading={false}
-                emptyMessage="No hay cobros registrados."
-              />
-            </>
-          ) : (
-            <>
-              <h2 className="text-base font-semibold text-gray-800 mb-4">Pagos a promotores</h2>
-              <DataTable
-                columns={columnasPagos}
-                data={pagos}
-                isLoading={false}
-                emptyMessage="No hay pagos de promotores registrados."
-              />
-            </>
-          )}
-        </div>
-
       </div>
 
       {/* ── Modales ── */}
@@ -398,6 +325,6 @@ export default function FinanzasSuperAdmin() {
         onClose={() => setPagoSeleccionado(null)}
         onSuccess={handlePagoPromotorSuccess}
       />
-    </div>
+    </PageWrapper>
   );
 }

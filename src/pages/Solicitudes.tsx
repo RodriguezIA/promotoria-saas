@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table";
-import { Plus, Loader2, MoreHorizontal, Eye, Edit2 } from "lucide-react"; // <-- Agregamos iconos
+import { Plus, Loader2, MoreHorizontal, Eye, Edit2, ClipboardList } from "lucide-react";
 
 import { Button } from "../components/ui/button";
 import { DataTable } from "../components/ui/datatble";
+import { PageWrapper } from "../components/ui/page-wrapper";
+import { PageHeader } from "../components/ui/page-header";
 import {
   Select,
   SelectContent,
@@ -189,54 +191,49 @@ export default function SolicitudesList() {
 
   if (isSuperAdmin && loadingClientes) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <Loader2 size={32} className="animate-spin text-blue-500 mb-2" />
-        <p className="text-gray-500 font-medium">Cargando listado de clientes...</p>
-      </div>
+      <PageWrapper>
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <Loader2 size={28} className="animate-spin" style={{ color: "var(--text-secondary)" }} />
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Cargando clientes...</p>
+        </div>
+      </PageWrapper>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Solicitudes</h1>
-            <p className="text-sm text-gray-500 mt-1">Listado de solicitudes generadas para revisión en campo.</p>
-          </div>
+    <PageWrapper>
+      <PageHeader
+        title="Solicitudes"
+        subtitle="Listado de solicitudes generadas para revisión en campo"
+        icon={ClipboardList}
+        actions={
           <Button onClick={() => navigate("/crearSolicitud")} className="flex items-center gap-2">
-            <Plus size={18} /> Crear nueva solicitud
+            <Plus size={16} /> Nueva solicitud
           </Button>
+        }
+      />
+
+      {isSuperAdmin && clientes.length > 0 && (
+        <div className="flex items-center gap-3 p-4 rounded-xl border" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+          <label className="text-sm font-medium flex-shrink-0" style={{ color: "var(--text-secondary)" }}>
+            Cliente:
+          </label>
+          <Select value={selectedClientId?.toString() || ""} onValueChange={handleClientChange}>
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder="Selecciona un cliente" />
+            </SelectTrigger>
+            <SelectContent>
+              {clientes.map((client) => (
+                <SelectItem key={client.id_client} value={client.id_client.toString()}>
+                  {client.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+      )}
 
-        {/* SELECTOR DE CLIENTES (Exclusivo Super Admin) */}
-        {isSuperAdmin && clientes.length > 0 && (
-          <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex items-center gap-4">
-            <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">
-              Ver solicitudes del cliente:
-            </label>
-            <Select
-              value={selectedClientId?.toString() || ""}
-              onValueChange={handleClientChange}
-            >
-              <SelectTrigger className="w-64">
-                <SelectValue placeholder="Selecciona un cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {clientes.map((client) => (
-                  <SelectItem key={client.id_client} value={client.id_client.toString()}>
-                    {client.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {/* Tabla de Datos */}
-        <div className="bg-card rounded-lg border shadow-sm p-4 bg-white">
+      <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
           <DataTable
             columns={columns}
             data={solicitudes}
@@ -256,9 +253,7 @@ export default function SolicitudesList() {
               enabled: true,
             }}
           />
-        </div>
-        
       </div>
-    </div>
+    </PageWrapper>
   );
 }

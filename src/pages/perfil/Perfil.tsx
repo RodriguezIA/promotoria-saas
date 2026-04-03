@@ -19,6 +19,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Card } from "../../components/ui/card";
+import { PageWrapper } from "../../components/ui/page-wrapper";
 import {
   Dialog,
   DialogContent,
@@ -399,13 +400,11 @@ export default function Perfil() {
   const isSuperAdmin = perfil.i_rol === 1;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-2xl mx-auto space-y-5">
-
+    <PageWrapper className="max-w-2xl">
         {/* ── Encabezado ── */}
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Mi perfil</h1>
-          <p className="text-sm text-gray-500 mt-1">Visualiza y actualiza tu información personal.</p>
+          <h1 className="text-xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>Mi Perfil</h1>
+          <p className="text-sm mt-0.5" style={{ color: "var(--text-secondary)" }}>Visualiza y actualiza tu información personal.</p>
         </div>
 
         {/* ── Tarjeta principal ── */}
@@ -531,8 +530,6 @@ export default function Perfil() {
           </div>
         </Card>
 
-      </div>
-
       {/* ── Modales ── */}
       <ModalEditarPerfil
         open={modalEdit}
@@ -545,6 +542,6 @@ export default function Perfil() {
         open={modalPwd}
         onClose={() => setModalPwd(false)}
       />
-    </div>
+    </PageWrapper>
   );
 }

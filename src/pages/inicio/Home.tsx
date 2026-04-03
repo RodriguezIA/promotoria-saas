@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "../../store/authStore";
 import { StatCard } from "../../components/dashboard/StatCard";
 import { DateRangePicker } from "../../components/dashboard/DateRangePicker";
+import { PageWrapper } from "../../components/ui/page-wrapper";
 import { Users, Store, UserCheck, Briefcase, Loader2, ShoppingCart } from "lucide-react";
 import { PromoterHeatMap } from "./components/PromoterHearMap";
 
@@ -86,19 +87,16 @@ export default function Home() {
     : (adminStats?.heatmapPromoters ?? []);
 
   return (
-    <div className="space-y-6">
+    <PageWrapper>
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
-            {isSuperAdmin
-              ? "Vista general de todos los negocios"
-              : "Vista de tu negocio"}
+          <h1 className="text-xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>Dashboard</h1>
+          <p className="text-sm mt-0.5" style={{ color: "var(--text-secondary)" }}>
+            {isSuperAdmin ? "Vista general de todos los negocios" : "Vista de tu negocio"}
           </p>
         </div>
-        {/* El date picker solo aplica para superadmin ya que su endpoint lo soporta */}
         {isSuperAdmin && <DateRangePicker onDateChange={handleDateChange} />}
       </div>
 
@@ -108,63 +106,18 @@ export default function Home() {
           <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
         </div>
       ) : isSuperAdmin ? (
-        // ── Tarjetas SuperAdmin ──────────────────────────────────────────────
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Clientes"
-            value={(superStats?.totalClients ?? 0).toLocaleString()}
-            icon={Users}
-            description="Total de clientes"
-            trend={{ value: 12.5, isPositive: true }}
-          />
-          <StatCard
-            title="Usuarios Promotores"
-            value={(superStats?.totalUsuariosPromotores ?? 0).toLocaleString()}
-            icon={UserCheck}
-            description="Promotores registrados"
-            trend={{ value: 8.2, isPositive: true }}
-          />
-          <StatCard
-            title="Establecimientos"
-            value={(superStats?.totalStores ?? 0).toLocaleString()}
-            icon={Store}
-            description="Total establecimientos"
-            trend={{ value: 3.1, isPositive: true }}
-          />
-          <StatCard
-            title="Promotores Activos"
-            value={(superStats?.activeUsersPromoters ?? 0).toLocaleString()}
-            icon={Briefcase}
-            description={`Activos entre ${dateFrom.toLocaleDateString("es-MX")} - ${dateTo.toLocaleDateString("es-MX")}`}
-          />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 stagger-children">
+          <StatCard title="Clientes" value={(superStats?.totalClients ?? 0).toLocaleString()} icon={Users} description="Total de clientes" trend={{ value: 12.5, isPositive: true }} />
+          <StatCard title="Promotores" value={(superStats?.totalUsuariosPromotores ?? 0).toLocaleString()} icon={UserCheck} accent="#2563eb" description="Registrados" trend={{ value: 8.2, isPositive: true }} />
+          <StatCard title="Establecimientos" value={(superStats?.totalStores ?? 0).toLocaleString()} icon={Store} accent="#7c3aed" description="Total" trend={{ value: 3.1, isPositive: true }} />
+          <StatCard title="Activos" value={(superStats?.activeUsersPromoters ?? 0).toLocaleString()} icon={Briefcase} accent="#16a34a" description={`${dateFrom.toLocaleDateString("es-MX")} – ${dateTo.toLocaleDateString("es-MX")}`} />
         </div>
       ) : (
-        // ── Tarjetas Admin ───────────────────────────────────────────────────
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Mis Establecimientos"
-            value={(adminStats?.totalStores ?? 0).toLocaleString()}
-            icon={Store}
-            description="Establecimientos de tu cliente"
-          />
-          <StatCard
-            title="Mis Pedidos"
-            value={(adminStats?.totalOrders ?? 0).toLocaleString()}
-            icon={ShoppingCart}
-            description="Pedidos generados"
-          />
-          <StatCard
-            title="Total Promotores"
-            value={(adminStats?.totalPromoters ?? 0).toLocaleString()}
-            icon={UserCheck}
-            description="Promotores en la plataforma"
-          />
-          <StatCard
-            title="Promotores Activos"
-            value={(adminStats?.activePromoters ?? 0).toLocaleString()}
-            icon={Briefcase}
-            description="Con cuenta activa"
-          />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 stagger-children">
+          <StatCard title="Mis Establecimientos" value={(adminStats?.totalStores ?? 0).toLocaleString()} icon={Store} accent="#7c3aed" description="De tu negocio" />
+          <StatCard title="Mis Pedidos" value={(adminStats?.totalOrders ?? 0).toLocaleString()} icon={ShoppingCart} accent="#2563eb" description="Generados" />
+          <StatCard title="Total Promotores" value={(adminStats?.totalPromoters ?? 0).toLocaleString()} icon={UserCheck} description="En la plataforma" />
+          <StatCard title="Activos" value={(adminStats?.activePromoters ?? 0).toLocaleString()} icon={Briefcase} accent="#16a34a" description="Cuenta activa" />
         </div>
       )}
 
@@ -177,6 +130,6 @@ export default function Home() {
       {!loading && !isSuperAdmin && adminStats !== null && (
         <PromoterHeatMap promoters={heatmapData} />
       )}
-    </div>
+    </PageWrapper>
   );
 }
