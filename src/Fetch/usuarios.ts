@@ -31,10 +31,12 @@ export const registerUserInClient = async (payload: {
   name: string;
   lastname: string;
   email: string;
+  password: string;
+  i_rol: number;
   id_user_creator: number;
   id_client: number;
 }): Promise<ApiResponse<ClientUser>> => {
-  return api.post<ApiResponse<ClientUser>>("/admin/create-user-in-client", payload);
+  return api.post<ApiResponse<ClientUser>>("/users/", payload);
 };
 
 // GET: obtener usuarios por negocio

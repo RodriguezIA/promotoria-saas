@@ -18,7 +18,7 @@ import { useAuthStore } from "../../store/authStore";
 const tabs = [
   { id: "info", label: "Información", icon: FileText },
   { id: "users", label: "Usuarios", icon: Users },
-  { id: "stores", label: "Establecimientos", icon: Store },
+  // { id: "stores", label: "Establecimientos", icon: Store },
   { id: "products", label: "Productos", icon: Package },
   { id: "history", label: "Historial", icon: Clock },
 ];
@@ -199,7 +199,6 @@ export default function ClienteDetalle() {
                 <div className="p-6">
                     {activeTab === "info" && <TabInfo cliente={cliente} />}
                     {activeTab === "users" && <TabUsers cliente={cliente} />}
-                    {activeTab === "stores" && <TabStores />}
                     {activeTab === "products" && <TabProducts />}
                     {activeTab === "history" && <TabHistory />}
                 </div>
@@ -369,21 +368,26 @@ function TabUsers({ cliente }: { cliente: clientDetail | null }) {
   const handleSaveUser = async (): Promise<boolean> => {
     setIsLoadingModal(true);
     try {
+
+      console.log("cliente:", cliente);
+
       const response = await registerUserInClient({
         name: nombreRef.current?.value || "",
         lastname: apellidosRef.current?.value || "",
         email: emailRef.current?.value || "",
+        password: "defaultPassword123",
+        i_rol: 2,
         id_user_creator: user?.id_user || 0,
         id_client: cliente?.id_client || 0,
       });
 
-      if (response.error) {
+      if (!response.ok) {
         toast.error(response.message || "Error al agregar el usuario");
         return false;
       }
 
       toast.success("Usuario agregado exitosamente");
-      await fetchUsers();
+      fetchUsers();
       return true;
     } catch (err: any) {
       toast.error(err?.message || "Error al agregar el usuario");
@@ -450,7 +454,7 @@ function TabUsers({ cliente }: { cliente: clientDetail | null }) {
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Rol</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Estado</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Registro</th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Acciones</th>
+                {/* <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Acciones</th> */}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -499,11 +503,11 @@ function TabUsers({ cliente }: { cliente: clientDetail | null }) {
                         day: "numeric",
                       })}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    {/* <td className="px-4 py-3 text-right">
                       <button className="p-2 hover:bg-gray-100 rounded-lg">
                         <MoreVertical size={16} className="text-gray-500" />
                       </button>
-                    </td>
+                    </td> */}
                   </tr>
                 ))
               )}
@@ -515,60 +519,6 @@ function TabUsers({ cliente }: { cliente: clientDetail | null }) {
   );
 }
 
-// Tab: Establecimientos (placeholder)
-function TabStores() {
-  const stores = [
-    { id: 1, name: "Sucursal Centro", address: "Av. Juárez 123", city: "Monterrey", status: true },
-    { id: 2, name: "Sucursal Valle", address: "Av. Vasconcelos 456", city: "San Pedro", status: true },
-    { id: 3, name: "Sucursal Cumbres", address: "Av. Lincoln 789", city: "Monterrey", status: true },
-  ];
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Establecimientos
-        </h3>
-        <button className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2">
-          <Store size={16} />
-          Nuevo Establecimiento
-        </button>
-      </div>
-
-      {/* Grid de Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stores.map((store) => (
-          <div
-            key={store.id}
-            className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                <Store size={20} className="text-gray-600" />
-              </div>
-              {store.status ? (
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded-full">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                  Activo
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-red-50 text-red-700 text-xs rounded-full">
-                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
-                  Inactivo
-                </span>
-              )}
-            </div>
-            <h4 className="font-semibold text-gray-900 mb-1">{store.name}</h4>
-            <p className="text-sm text-gray-500 flex items-center gap-1">
-              <MapPin size={14} />
-              {store.address}, {store.city}
-            </p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 // Tab: Productos (placeholder)
 function TabProducts() {
