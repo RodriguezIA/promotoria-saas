@@ -1,40 +1,25 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  Building2,
-  Mail,
-  MapPin,
-  FileText,
-  Edit2,
-  Users,
-  Package,
-  Store,
-  Camera,
-  TrendingUp,
-  Clock,
-  ChevronDown,
-  CreditCard,
-  Ticket,
-} from "lucide-react";
+import { ArrowLeft, Building2, Mail, MapPin, FileText, Edit2, Users, Package, Store, Camera, TrendingUp, Clock, ChevronDown, CreditCard, Ticket, AlertCircle, MoreVertical, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
+import { Alert, AlertDescription } from "../../components/ui/alert"
 
 import { ModalCustom } from '../../components/ModalCustom'
 import { getClientById } from '../../Fetch/clientes';
-import { registerUserInClient } from '../../Fetch/usuarios';
+import { registerUserInClient, getUsersByIdClient, ClientUser } from '../../Fetch/usuarios';
 import { clientDetail } from '../../types/clients';
 import { useAuthStore } from "../../store/authStore";
 
 
-// Tabs disponibles
+// Tabs disponibles (sin counts hardcodeados — se muestran dinámicamente)
 const tabs = [
   { id: "info", label: "Información", icon: FileText },
-  { id: "users", label: "Usuarios", icon: Users, count: 45 },
-  { id: "stores", label: "Establecimientos", icon: Store, count: 12 },
-  { id: "products", label: "Productos", icon: Package, count: 1250 },
+  { id: "users", label: "Usuarios", icon: Users },
+  { id: "stores", label: "Establecimientos", icon: Store },
+  { id: "products", label: "Productos", icon: Package },
   { id: "history", label: "Historial", icon: Clock },
 ];
 
@@ -204,17 +189,6 @@ export default function ClienteDetalle() {
                                 >
                                     <Icon size={18} />
                                     {tab.label}
-                                    {tab.count !== undefined && (
-                                    <span
-                                        className={`px-2 py-0.5 rounded-full text-xs ${
-                                        isActive
-                                            ? "bg-gray-900 text-white"
-                                            : "bg-gray-100 text-gray-600"
-                                        }`}
-                                    >
-                                        {tab.count}
-                                    </span>
-                                    )}
                                 </button>
                             );
                         })}
@@ -356,43 +330,63 @@ function TabInfo({ cliente }: { cliente: clientDetail | null }) {
   );
 }
 
-// Tab: Usuarios (placeholder)
-function TabUsers({cliente}: {cliente: clientDetail | null}) {
+const ROL_LABELS: Record<number, string> = {
+  1: "SuperAdmin",
+  2: "Admin",
+  3: "Vendedor",
+};
+
+// Tab: Usuarios
+function TabUsers({ cliente }: { cliente: clientDetail | null }) {
   const { user } = useAuthStore();
   const [isLoadingModal, setIsLoadingModal] = useState(false);
+  const [users, setUsers] = useState<ClientUser[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [errorUsers, setErrorUsers] = useState<string | null>(null);
 
   const nombreRef = useRef<HTMLInputElement>(null);
   const apellidosRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
 
+  const fetchUsers = async () => {
+    if (!cliente?.id_client) return;
+    setLoadingUsers(true);
+    setErrorUsers(null);
+    try {
+      const response = await getUsersByIdClient(cliente.id_client);
+      setUsers(response.data ?? []);
+    } catch (err: any) {
+      setErrorUsers(err?.message || "Error al cargar los usuarios");
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [cliente?.id_client]);
 
   const handleSaveUser = async (): Promise<boolean> => {
     setIsLoadingModal(true);
-    
     try {
-      const userData = {
+      const response = await registerUserInClient({
         name: nombreRef.current?.value || "",
         lastname: apellidosRef.current?.value || "",
         email: emailRef.current?.value || "",
         id_user_creator: user?.id_user || 0,
         id_client: cliente?.id_client || 0,
-      };
-
-      console.log("Saving user data:", userData);
-
-      const response =  await registerUserInClient(userData);
-
-      console.log("Response from registerUserInClient:", response);
+      });
 
       if (response.error) {
-        toast.error('Error al agregar el usuario');
+        toast.error(response.message || "Error al agregar el usuario");
         return false;
       }
 
-      toast.success('Usuario agregado exitosamente');
+      toast.success("Usuario agregado exitosamente");
+      await fetchUsers();
       return true;
-    } catch (error) {
-      console.error(error);
+    } catch (err: any) {
+      toast.error(err?.message || "Error al agregar el usuario");
       return false;
     } finally {
       setIsLoadingModal(false);
@@ -404,6 +398,11 @@ function TabUsers({cliente}: {cliente: clientDetail | null}) {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">
           Usuarios del Cliente
+          {users.length > 0 && (
+            <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full font-normal">
+              {users.length}
+            </span>
+          )}
         </h3>
 
         <ModalCustom
@@ -413,80 +412,105 @@ function TabUsers({cliente}: {cliente: clientDetail | null}) {
           isLoading={isLoadingModal}
           onSubmit={handleSaveUser}
           body={
-            <>
-              {/* Formulario para agregar usuario */}
-              <div className="grid gap-4">
-                <div className="grid gap-3">
-                  <Label htmlFor="nombre">Nombre</Label>
-                  <Input ref={nombreRef} id="nombre" name="nombre" defaultValue="" />
-                </div>
-                <div className="grid gap-3">
-                  <Label htmlFor="apellidos">apellidos</Label>
-                  <Input ref={apellidosRef} id="apellidos" name="apellidos" defaultValue="" />
-                </div>
-                <div className="grid gap-3">
-                  <Label htmlFor="email">Correo electronico</Label>
-                  <Input ref={emailRef} type="email" id="email" name="email" defaultValue="" />
-                </div>
+            <div className="grid gap-4">
+              <div className="grid gap-3">
+                <Label htmlFor="nombre">Nombre</Label>
+                <Input ref={nombreRef} id="nombre" name="nombre" defaultValue="" />
               </div>
-            </>
+              <div className="grid gap-3">
+                <Label htmlFor="apellidos">Apellidos</Label>
+                <Input ref={apellidosRef} id="apellidos" name="apellidos" defaultValue="" />
+              </div>
+              <div className="grid gap-3">
+                <Label htmlFor="email">Correo electrónico</Label>
+                <Input ref={emailRef} type="email" id="email" name="email" defaultValue="" />
+              </div>
+            </div>
           }
         />
       </div>
 
-      {/* Table */}
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Usuario</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Rol</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Estado</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Acciones</th>
-            </tr>
-          </thead>
-          {/* <tbody className="divide-y divide-gray-200">
-            {users.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-medium">
-                      {user.name.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{user.name}</p>
-                      <p className="text-sm text-gray-500">{user.email}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <span className="px-2.5 py-1 bg-gray-100 text-gray-700 text-sm rounded-md">
-                    {user.role}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  {user.status ? (
-                    <span className="inline-flex items-center gap-1.5 text-sm text-green-700">
-                      <div className="w-2 h-2 bg-green-500 rounded-full" />
-                      Activo
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 text-sm text-red-700">
-                      <div className="w-2 h-2 bg-red-500 rounded-full" />
-                      Inactivo
-                    </span>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button className="p-2 hover:bg-gray-100 rounded-lg">
-                    <MoreVertical size={16} className="text-gray-500" />
-                  </button>
-                </td>
+      {errorUsers && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{errorUsers}</AlertDescription>
+        </Alert>
+      )}
+
+      {loadingUsers ? (
+        <div className="flex items-center justify-center py-10">
+          <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+        </div>
+      ) : (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Usuario</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Rol</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Estado</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Registro</th>
+                <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Acciones</th>
               </tr>
-            ))}
-          </tbody> */}
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-500">
+                    No hay usuarios registrados para este cliente
+                  </td>
+                </tr>
+              ) : (
+                users.map((u) => (
+                  <tr key={u.id_user} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-medium text-sm">
+                          {u.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{u.name} {u.lastname}</p>
+                          <p className="text-sm text-gray-500">{u.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="px-2.5 py-1 bg-gray-100 text-gray-700 text-sm rounded-md">
+                        {ROL_LABELS[u.i_rol] ?? `Rol ${u.i_rol}`}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {u.i_status === 1 ? (
+                        <span className="inline-flex items-center gap-1.5 text-sm text-green-700">
+                          <div className="w-2 h-2 bg-green-500 rounded-full" />
+                          Activo
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-sm text-red-700">
+                          <div className="w-2 h-2 bg-red-500 rounded-full" />
+                          Inactivo
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {new Date(u.dt_register).toLocaleDateString("es-MX", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button className="p-2 hover:bg-gray-100 rounded-lg">
+                        <MoreVertical size={16} className="text-gray-500" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

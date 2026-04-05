@@ -61,6 +61,7 @@ export default function AppRouter() {
           <Route path="clientes" element={<ClientesList />} />
           <Route path="crearCliente" element={<CrearCliente />} />
           <Route path="clientes/:id" element={<ClientDetailPage />} />
+          
           <Route path="productos" element={<ProductPage />} />
           <Route path="producto" element={<CreateProduct />} />
           <Route path="producto/:id_product" element={<CreateProduct />} />

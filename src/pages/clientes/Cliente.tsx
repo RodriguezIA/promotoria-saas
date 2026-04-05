@@ -378,12 +378,12 @@ export default function ClientesPage() {
 
       {!loading && !error && (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 stagger-children">
+          {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-4 stagger-children">
             <StatCard title="Total" value={stats.total} icon={Building2} />
             <StatCard title="Activos" value={stats.activos} icon={UserCheck} accent="#16a34a" />
             <StatCard title="Inactivos" value={stats.inactivos} icon={UserX} accent="#dc2626" />
             <StatCard title="Usuarios" value={stats.usuarios} icon={Users} accent="#2563eb" />
-          </div>
+          </div> */}
 
           {/* DataTable */}
           <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>

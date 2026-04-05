@@ -2,6 +2,28 @@ import { useAuthStore } from "../store/authStore";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+/**
+ * Forma estándar de todas las respuestas del backend.
+ * - ok: true si la petición fue exitosa
+ * - error: 0 si no hay error
+ * - data: payload de la respuesta
+ * - message: mensaje descriptivo
+ */
+export interface ApiResponse<T = unknown> {
+  ok: boolean;
+  error: number;
+  data: T;
+  message?: string;
+}
+
+/**
+ * PUT vs PATCH:
+ *   PUT   → reemplaza el recurso COMPLETO. Debes enviar todos los campos,
+ *            aunque no cambien. Si omites un campo, puede quedar en null/vacío.
+ *   PATCH → actualiza PARCIALMENTE el recurso. Solo envías los campos que cambian.
+ *            Es la opción correcta para editar un campo individual.
+ */
+
 interface ApiError {
     message?: string;
     details?: string;
@@ -53,6 +75,19 @@ export const api = {
     async put<T>(endpoint: string, body?: unknown): Promise<T> {
         const response = await fetch(`${API_URL}${endpoint}`, {
             method: "PUT",
+            headers: this.getAuthHeaders(),
+            body: body ? JSON.stringify(body) : undefined,
+        });
+
+        return this.handleResponse<T>(response);
+    },
+
+    /**
+     * Realiza una petición PATCH autenticada (actualización parcial)
+     */
+    async patch<T>(endpoint: string, body?: unknown): Promise<T> {
+        const response = await fetch(`${API_URL}${endpoint}`, {
+            method: "PATCH",
             headers: this.getAuthHeaders(),
             body: body ? JSON.stringify(body) : undefined,
         });

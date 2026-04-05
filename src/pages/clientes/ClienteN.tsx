@@ -382,6 +382,24 @@ export default function NuevoCliente() {
                   </label>
                 </div>
               </div>
+
+              {/* Documento situacion fiscal; */}
+              <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Documento
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Subir documento
+                    </button>
+                    <span className="text-sm text-gray-500">
+                      No se ha subido ningún documento
+                    </span>
+                  </div>
+              </div>
             </div>
           </div>
 
