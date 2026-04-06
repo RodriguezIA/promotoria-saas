@@ -113,10 +113,10 @@ export default function ClientesPage() {
     // Navegar a detalle o abrir modal
   };
 
-  const handleEdit = (cliente: Cliente) => {
-    console.log("Editar cliente:", cliente);
-    // Abrir modal de edición
-  };
+  // const handleEdit = (cliente: Cliente) => {
+  //   console.log("Editar cliente:", cliente);
+  //   // Abrir modal de edición
+  // };
 
   const handleDelete = (cliente: Cliente) => {
     setDeleteModal({ open: true, cliente, loading: false });
@@ -285,10 +285,10 @@ export default function ClientesPage() {
                   <Eye className="mr-2 h-4 w-4" />
                   Ver detalles
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleEdit(cliente)}>
+                {/* <DropdownMenuItem onClick={() => handleEdit(cliente)}>
                   <Edit2 className="mr-2 h-4 w-4" />
                   Editar
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => handleDelete(cliente)}

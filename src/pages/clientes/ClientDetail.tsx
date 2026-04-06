@@ -12,15 +12,14 @@ import { getClientById } from '../../Fetch/clientes';
 import { registerUserInClient, getUsersByIdClient, ClientUser } from '../../Fetch/usuarios';
 import { clientDetail } from '../../types/clients';
 import { useAuthStore } from "../../store/authStore";
+import { ApiResponse, api } from "../../lib/api";
 
 
 // Tabs disponibles (sin counts hardcodeados — se muestran dinámicamente)
 const tabs = [
   { id: "info", label: "Información", icon: FileText },
   { id: "users", label: "Usuarios", icon: Users },
-  // { id: "stores", label: "Establecimientos", icon: Store },
   { id: "products", label: "Productos", icon: Package },
-  { id: "history", label: "Historial", icon: Clock },
 ];
 
 export default function ClienteDetalle() {
@@ -32,8 +31,6 @@ export default function ClienteDetalle() {
     const [initials, setInitials] = useState("");
 
     useEffect(() => {
-        console.log("Fetching client data...");
-
         const fetchingData = async() => {
             try{
                 const data = await getClientById(id ? parseInt(id) : 0);
@@ -77,14 +74,9 @@ export default function ClienteDetalle() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                <button className="px-4 py-2 text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+                {/* <button className="px-4 py-2 text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
                     <Edit2 size={16} />
                     Editar
-                </button>
-                {/*  TODO: esto cambiara a cambiar status
-                <button className="px-4 py-2 text-red-600 bg-white border border-gray-200 rounded-lg hover:bg-red-50 transition-colors flex items-center gap-2">
-                    <Trash2 size={16} />
-                    Eliminar
                 </button> */}
                 </div>
             </div>
@@ -144,28 +136,6 @@ export default function ClienteDetalle() {
                             
                             <p className="text-gray-500 mt-1">{cliente?.rfc}</p>
                         </div>
-
-                        {/* Quick Stats */}
-                        {/* <div className="flex gap-6 md:mb-2">
-                            <div className="text-center">
-                            <p className="text-2xl font-bold text-gray-900">
-                                {cliente.users_count}
-                            </p>
-                            <p className="text-sm text-gray-500">Usuarios</p>
-                            </div>
-                            <div className="text-center">
-                            <p className="text-2xl font-bold text-gray-900">
-                                {cliente.stores_count}
-                            </p>
-                            <p className="text-sm text-gray-500">Establecimientos</p>
-                            </div>
-                            <div className="text-center">
-                            <p className="text-2xl font-bold text-gray-900">
-                                {cliente.products_count}
-                            </p>
-                            <p className="text-sm text-gray-500">Productos</p>
-                            </div>
-                        </div> */}
                     </div>
                 </div>
             </div>
@@ -199,8 +169,7 @@ export default function ClienteDetalle() {
                 <div className="p-6">
                     {activeTab === "info" && <TabInfo cliente={cliente} />}
                     {activeTab === "users" && <TabUsers cliente={cliente} />}
-                    {activeTab === "products" && <TabProducts />}
-                    {activeTab === "history" && <TabHistory />}
+                    {activeTab === "products" && <TabProducts cliente={cliente} />}
                 </div>
             </div>
         </div>
@@ -256,14 +225,6 @@ function TabInfo({ cliente }: { cliente: clientDetail | null }) {
               <p className="text-sm text-gray-500 mb-1">Ciudad</p>
               <p className="font-medium text-gray-900">{cliente?.city}</p>
             </div>
-            {/* <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Estado</p>
-              <p className="font-medium text-gray-900">{cliente.state}</p>
-            </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Código Postal</p>
-              <p className="font-medium text-gray-900">{cliente.zip}</p>
-            </div> */}
           </div>
         </div>
 
@@ -317,10 +278,6 @@ function TabInfo({ cliente }: { cliente: clientDetail | null }) {
             <button className="w-full px-4 py-2.5 text-left text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-3">
               <Store size={18} className="text-gray-400" />
               <span>Nuevo Establecimiento</span>
-            </button>
-            <button className="w-full px-4 py-2.5 text-left text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-3">
-              <Package size={18} className="text-gray-400" />
-              <span>Asignar Productos</span>
             </button>
           </div>
         </div>
@@ -520,185 +477,116 @@ function TabUsers({ cliente }: { cliente: clientDetail | null }) {
 }
 
 
-// Tab: Productos (placeholder)
-function TabProducts() {
+interface Product {
+  id_product: number;
+  id_client: number;
+  name: string;
+  description: string | null;
+  vc_image: string | null;
+  i_status: number;
+  dt_created: string;
+  dt_updated: string;
+}
+
+// Tab: Productos
+function TabProducts({ cliente }: { cliente: any | null }) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!cliente?.id_client) return;
+    setLoading(true);
+    setError(null);
+    api.get<ApiResponse<Product[]>>(`/products/${cliente.id_client}`)
+      .then((res) => setProducts(res.data ?? []))
+      .catch((err: any) => setError(err?.message || "Error al cargar los productos"))
+      .finally(() => setLoading(false));
+  }, [cliente?.id_client]);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">
           Productos Asignados
+          {products.length > 0 && (
+            <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full font-normal">
+              {products.length}
+            </span>
+          )}
         </h3>
-        <button className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2">
-          <Package size={16} />
-          Asignar Productos
-        </button>
       </div>
 
-      {/* Placeholder */}
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-          <Package size={32} className="text-gray-400" />
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {loading ? (
+        <div className="flex items-center justify-center py-10">
+          <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
         </div>
-        <h4 className="text-lg font-medium text-gray-900 mb-1">
-          Catálogo de Productos
-        </h4>
-        <p className="text-gray-500 max-w-md">
-          Aquí se mostrará el DataTable con todos los productos asignados a este cliente.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// Tab: Historial con Acordeones
-function TabHistory() {
-  const [openAccordions, setOpenAccordions] = useState<string[]>(["cliente"]);
-
-  const toggleAccordion = (id: string) => {
-    setOpenAccordions((prev) =>
-      prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]
-    );
-  };
-
-  const isOpen = (id: string) => openAccordions.includes(id);
-
-  // Mock data de logs
-  const logsCliente = [
-    { id: 1, action: "Cliente creado", user: "Admin", date: "2024-01-15 10:30", detail: "Se registró el cliente en el sistema" },
-    { id: 2, action: "Email actualizado", user: "Juan Pérez", date: "2024-03-20 14:15", detail: "Se cambió de info@liverpool.com a contacto@liverpool.com.mx" },
-    { id: 3, action: "RFC actualizado", user: "María García", date: "2024-06-10 09:45", detail: "Se corrigió el RFC del cliente" },
-    { id: 4, action: "Notas modificadas", user: "Admin", date: "2024-12-20 16:00", detail: "Se agregaron notas sobre crédito" },
-  ];
-
-  const logsUsuarios = [
-    { id: 1, action: "Usuario creado", user: "Admin", date: "2024-01-15 11:00", detail: "Se creó usuario juan@liverpool.com" },
-    { id: 2, action: "Rol modificado", user: "Admin", date: "2024-02-28 10:30", detail: "Juan Pérez cambió de Vendedor a Admin" },
-    { id: 3, action: "Usuario desactivado", user: "Admin", date: "2024-08-15 14:00", detail: "Se desactivó usuario carlos@liverpool.com" },
-  ];
-
-  const logsEstablecimientos = [
-    { id: 1, action: "Sucursal creada", user: "Admin", date: "2024-01-20 09:00", detail: "Se registró Sucursal Centro" },
-    { id: 2, action: "Dirección actualizada", user: "María García", date: "2024-05-12 11:30", detail: "Se actualizó dirección de Sucursal Valle" },
-  ];
-
-  const logsProductos = [
-    { id: 1, action: "Productos asignados", user: "Admin", date: "2024-02-01 10:00", detail: "Se asignaron 500 productos al catálogo" },
-    { id: 2, action: "Precio actualizado", user: "Juan Pérez", date: "2024-07-15 16:45", detail: "Se actualizaron precios de 120 productos" },
-  ];
-
-  const logsTickets = [
-    { id: 1, action: "Ticket creado", user: "Soporte", date: "2024-04-10 08:30", detail: "Ticket #1234 - Problema con facturación" },
-    { id: 2, action: "Ticket resuelto", user: "Soporte", date: "2024-04-12 14:00", detail: "Ticket #1234 cerrado exitosamente" },
-    { id: 3, action: "Ticket creado", user: "Soporte", date: "2024-11-05 10:15", detail: "Ticket #2456 - Solicitud de capacitación" },
-  ];
-
-  const logsPagos = [
-    { id: 1, action: "Pago recibido", user: "Sistema", date: "2024-02-01 00:00", detail: "Pago mensual - $15,000 MXN" },
-    { id: 2, action: "Pago recibido", user: "Sistema", date: "2024-03-01 00:00", detail: "Pago mensual - $15,000 MXN" },
-    { id: 3, action: "Pago atrasado", user: "Sistema", date: "2024-04-05 00:00", detail: "Recordatorio enviado - Factura pendiente" },
-    { id: 4, action: "Pago recibido", user: "Sistema", date: "2024-04-10 09:30", detail: "Pago mensual - $15,000 MXN (con retraso)" },
-  ];
-
-  const accordions = [
-    { id: "cliente", label: "Cliente", icon: Building2, logs: logsCliente, color: "bg-gray-100 text-gray-600" },
-    { id: "usuarios", label: "Usuarios", icon: Users, logs: logsUsuarios, color: "bg-blue-50 text-blue-600" },
-    { id: "establecimientos", label: "Establecimientos", icon: Store, logs: logsEstablecimientos, color: "bg-purple-50 text-purple-600" },
-    { id: "productos", label: "Productos", icon: Package, logs: logsProductos, color: "bg-orange-50 text-orange-600" },
-    { id: "tickets", label: "Tickets", icon: Ticket, logs: logsTickets, color: "bg-yellow-50 text-yellow-600" },
-    { id: "pagos", label: "Pagos", icon: CreditCard, logs: logsPagos, color: "bg-green-50 text-green-600" },
-  ];
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Historial de Cambios
-        </h3>
-        <p className="text-sm text-gray-500">
-          Registro de todas las actividades
-        </p>
-      </div>
-
-      {/* Acordeones */}
-      <div className="space-y-3">
-        {accordions.map((accordion) => {
-          const Icon = accordion.icon;
-          const open = isOpen(accordion.id);
-
-          return (
-            <div
-              key={accordion.id}
-              className="border border-gray-200 rounded-lg overflow-hidden"
-            >
-              {/* Header del Acordeón */}
-              <button
-                onClick={() => toggleAccordion(accordion.id)}
-                className="w-full px-4 py-3 bg-white hover:bg-gray-50 transition-colors flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${accordion.color}`}>
-                    <Icon size={18} />
-                  </div>
-                  <span className="font-medium text-gray-900">
-                    {accordion.label}
-                  </span>
-                  <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
-                    {accordion.logs.length} registros
-                  </span>
-                </div>
-                <ChevronDown
-                  size={20}
-                  className={`text-gray-400 transition-transform duration-200 ${
-                    open ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {/* Contenido del Acordeón */}
-              {open && (
-                <div className="border-t border-gray-200 bg-gray-50">
-                  <div className="p-4">
-                    {/* Timeline */}
-                    <div className="relative">
-                      {accordion.logs.map((log, index) => (
-                        <div key={log.id} className="flex gap-4 pb-4 last:pb-0">
-                          {/* Línea de timeline */}
-                          <div className="flex flex-col items-center">
-                            <div className="w-3 h-3 bg-gray-300 rounded-full border-2 border-white shadow-sm" />
-                            {index < accordion.logs.length - 1 && (
-                              <div className="w-0.5 flex-1 bg-gray-200 mt-1" />
-                            )}
-                          </div>
-
-                          {/* Contenido del log */}
-                          <div className="flex-1 pb-4">
-                            <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                              <div className="flex items-start justify-between gap-2 mb-1">
-                                <p className="font-medium text-gray-900">
-                                  {log.action}
-                                </p>
-                                <span className="text-xs text-gray-400 whitespace-nowrap">
-                                  {log.date}
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-600 mb-2">
-                                {log.detail}
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                Por: {log.user}
-                              </p>
-                            </div>
-                          </div>
+      ) : (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Producto</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Descripción</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Estado</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Creado</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {products.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-10 text-center text-sm text-gray-500">
+                    No hay productos asignados a este cliente
+                  </td>
+                </tr>
+              ) : (
+                products.map((p) => (
+                  <tr key={p.id_product} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Package size={16} className="text-gray-500" />
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                        <p className="font-medium text-gray-900">{p.name}</p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {p.description ?? <span className="italic text-gray-400">Sin descripción</span>}
+                    </td>
+                    <td className="px-4 py-3">
+                      {p.i_status === 1 ? (
+                        <span className="inline-flex items-center gap-1.5 text-sm text-green-700">
+                          <div className="w-2 h-2 bg-green-500 rounded-full" />
+                          Activo
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-sm text-red-700">
+                          <div className="w-2 h-2 bg-red-500 rounded-full" />
+                          Inactivo
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {new Date(p.dt_created).toLocaleDateString("es-MX", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </td>
+                  </tr>
+                ))
               )}
-            </div>
-          );
-        })}
-      </div>
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
