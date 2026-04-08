@@ -188,6 +188,11 @@ const formatDate = (dateString?: string) => {
 
 // Tab: Información
 function TabInfo({ cliente }: { cliente: clientDetail | null }) {
+
+  useEffect(() => {
+
+  }, [cliente]);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Columna Principal */}
@@ -229,7 +234,7 @@ function TabInfo({ cliente }: { cliente: clientDetail | null }) {
         </div>
 
         {/* Observaciones */}
-        <div className="space-y-4">
+        {/* <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <FileText size={20} className="text-gray-400" />
             Observaciones
@@ -237,7 +242,7 @@ function TabInfo({ cliente }: { cliente: clientDetail | null }) {
           <div className="p-4 bg-gray-50 rounded-lg">
             <p className="text-gray-700 whitespace-pre-wrap">{cliente?.addiccional_notes}</p>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Columna Lateral */}
@@ -265,7 +270,7 @@ function TabInfo({ cliente }: { cliente: clientDetail | null }) {
         </div>
 
         {/* Acceso Rápido */}
-        <div className="p-4 bg-gray-50 rounded-lg space-y-4">
+        {/* <div className="p-4 bg-gray-50 rounded-lg space-y-4">
           <h3 className="font-semibold text-gray-900 flex items-center gap-2">
             <TrendingUp size={18} className="text-gray-400" />
             Acciones Rápidas
@@ -280,7 +285,7 @@ function TabInfo({ cliente }: { cliente: clientDetail | null }) {
               <span>Nuevo Establecimiento</span>
             </button>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

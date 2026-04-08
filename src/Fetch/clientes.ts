@@ -73,6 +73,23 @@ export const getClientById = async (id: number) => {
     }
 }
 
+export const updateClientFiscalDoc = async (id: number, url: string) => {
+    try {
+        const res = await fetch(`${API_URL}/superadmin/client/${id}`, {
+            method: "PATCH",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ vc_url_situacion_fiscal: url }),
+        });
+
+        if (!res.ok) throw new Error("Error al actualizar el documento fiscal");
+
+        return res.json();
+    } catch (error) {
+        console.error("f.updateClientFiscalDoc:", error);
+        throw error;
+    }
+};
+
 export const deleteCLientById = async (id: number) => {
     try{
         const res = await fetch(`${API_URL}/superadmin/client/${id}`, {

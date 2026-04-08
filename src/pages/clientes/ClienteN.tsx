@@ -17,11 +17,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
+import { Input } from "../../components/ui/input";
 import { MensajeConfirmacion } from "../../components/mensajeConfirmaacion";
-import { registClient } from '../../Fetch/clientes';
+import { registClient, updateClientFiscalDoc } from '../../Fetch/clientes';
+import { uploadSituacionFiscal } from '../../Fetch/storage';
 import { getPaises, getEstados, getCiudades } from "../../Fetch/utils";
 
 import { Country, State, City } from "../../types/utils";
+import { ApiResponse, api } from "../../lib/api";
+import { useAuthStore } from "../../store/authStore";
+import { ClientDTO } from "../../dtos/clients";
 
 type FormErrors = {
   [key: string]: string | null;
@@ -31,11 +36,13 @@ type FormErrors = {
 export default function NuevoCliente() {
   // --------------- Instanciamiento de librerias
   const navigate = useNavigate();
+  const { user } = useAuthStore();
 
   // --------------- States
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [documentoFile, setDocumentoFile] = useState<File | null>(null);
   const [paises, setPaises] = useState<Country[]>([]);
   const [estados, setEstados] = useState<State[]>([]);
   const [ciudades, setCiudades] = useState<City[]>([]);
@@ -105,10 +112,8 @@ export default function NuevoCliente() {
     setLoading(true);
 
     try {
-      const id_user = 1;
-
-      const result = await registClient({
-        id_user,
+      const request = await api.post<ApiResponse<ClientDTO>>('/clients', {
+        id_user: user?.id_user,
         name: formData.vc_nombre,
         rfc: formData.vc_rfc || undefined,
         email: formData.vc_email,
@@ -119,19 +124,25 @@ export default function NuevoCliente() {
         street: formData.vc_calle || undefined,
         ext_number: formData.vc_num_ext || undefined,
         int_number: formData.vc_num_int || undefined,
-        neighborhood: formData.vc_colonia || undefined,
+        neighborhood: formData.vc_colonia.trim().toLowerCase() || undefined,
         zip: formData.vc_cp || undefined,
         addiccional_notes: formData.vc_observaciones || undefined,
       });
 
+      const clienteId: number = request.data.id_client;
+      if (documentoFile) {
+        const formDataDoc = new FormData();
+        formDataDoc.append('file', documentoFile);
+        const uploadRes = await api.upload<ApiResponse<{ url: string }>>(`/clients/${clienteId}/docs`,formDataDoc);
+        console.log("URL del documento:", uploadRes.data.url);
+      }
+
       toast.success("Cliente creado exitosamente");
 
-      console.log("result:", result);
-
-      // navigate(`/clientes/${result.data.id}`);
+      navigate(`/clientes/${clienteId}`);
     } catch (error) {
       console.error("Error:", error);
-      alert("Error al crear cliente");
+      toast.error("Error al crear cliente");
     } finally {
       setLoading(false);
     }
@@ -383,22 +394,21 @@ export default function NuevoCliente() {
                 </div>
               </div>
 
-              {/* Documento situacion fiscal; */}
+
+              {/* Documento situacion fiscal:  */}
               <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Documento
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <button
-                      type="button"
-                      className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                    >
-                      Subir documento
-                    </button>
-                    <span className="text-sm text-gray-500">
-                      No se ha subido ningún documento
-                    </span>
-                  </div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Documento: carta de situacion fiscal 
+                </label>
+                <Input
+                  type="file"
+                  accept=".pdf,.xml"
+                  onChange={(e) => setDocumentoFile(e.target.files?.[0] ?? null)}
+                  className="cursor-pointer"
+                />
+                {documentoFile && (
+                  <p className="mt-1 text-sm text-gray-500 truncate">{documentoFile.name}</p>
+                )}
               </div>
             </div>
           </div>
@@ -413,7 +423,7 @@ export default function NuevoCliente() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Email */}
+              {/* Email: TODO: agregar la nota que este correo sera donde lleguen todas las notificaciones (factuaracion, etc) debe ser el oficial */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email *
@@ -537,6 +547,21 @@ export default function NuevoCliente() {
                 </Select>
               </div>
 
+              {/* Colonia */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Colonia
+                </label>
+                <input
+                  type="text"
+                  name="vc_colonia"
+                  value={formData.vc_colonia}
+                  onChange={handleChange}
+                  placeholder="Col. Centro"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+                />
+              </div>
+
               {/* Calle */}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -578,21 +603,6 @@ export default function NuevoCliente() {
                   value={formData.vc_num_int}
                   onChange={handleChange}
                   placeholder="Piso 3, Depto B"
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
-                />
-              </div>
-
-              {/* Colonia */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Colonia
-                </label>
-                <input
-                  type="text"
-                  name="vc_colonia"
-                  value={formData.vc_colonia}
-                  onChange={handleChange}
-                  placeholder="Col. Centro"
                   className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
                 />
               </div>
