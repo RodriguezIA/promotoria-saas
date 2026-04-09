@@ -213,12 +213,17 @@ export default function NuevoCliente() {
   // userEffect para cargar países
   useEffect(() => {
     const fetchPaises = async () => {
-      const request = await getPaises();
+      // const request = await getPaises();
+      // const data: Country[] = request.data || [];
+      // setPaises(data);
+      // if (data.length > 0) {
+      //   setFormData((prev) => ({ ...prev, id_pais: String(data[0].id) }));
+      // }
+
+      const request = await api.get<ApiResponse<Country[]>>('/clients/countries');
       const data: Country[] = request.data || [];
       setPaises(data);
-      if (data.length > 0) {
-        setFormData((prev) => ({ ...prev, id_pais: String(data[0].id) }));
-      }
+
     };
 
     fetchPaises();
@@ -232,7 +237,9 @@ export default function NuevoCliente() {
       setEstados([]);
       setCiudades([]);
       setFormData((prev) => ({ ...prev, id_estado: "", id_ciudad: "" }));
-      const request = await getEstados(Number(formData.id_pais));
+
+
+      const request = await api.get<ApiResponse<State[]>>(`/clients/states/${formData.id_pais}`);
       const data: State[] = request.data || [];
       setEstados(data);
       if (data.length > 0) {
@@ -250,7 +257,7 @@ export default function NuevoCliente() {
     const fetchCiudades = async () => {
       setCiudades([]);
       setFormData((prev) => ({ ...prev, id_ciudad: "" }));
-      const request = await getCiudades(Number(formData.id_pais), Number(formData.id_estado));
+      const request = await api.get<ApiResponse<City[]>>(`/clients/cities/${formData.id_estado}`);
       const data: City[] = request.data || [];
       setCiudades(data);
       if (data.length > 0) {
