@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Building2, Mail, MapPin, FileText, Edit2, Users, Package, Store, Camera, TrendingUp, Clock, ChevronDown, CreditCard, Ticket, AlertCircle, MoreVertical, Loader2 } from "lucide-react";
+import { ArrowLeft, Mail, MapPin, FileText, Users, Package, Camera, Clock, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Input } from "../../components/ui/input"
@@ -8,14 +8,12 @@ import { Label } from "../../components/ui/label"
 import { Alert, AlertDescription } from "../../components/ui/alert"
 
 import { ModalCustom } from '../../components/ModalCustom'
-import { getClientById } from '../../Fetch/clientes';
 import { registerUserInClient, getUsersByIdClient, ClientUser } from '../../Fetch/usuarios';
-import { clientDetail } from '../../types/clients';
 import { useAuthStore } from "../../store/authStore";
 import { ApiResponse, api } from "../../lib/api";
+import { ClientDTO } from '../../dtos/clients'
 
 
-// Tabs disponibles (sin counts hardcodeados — se muestran dinámicamente)
 const tabs = [
   { id: "info", label: "Información", icon: FileText },
   { id: "users", label: "Usuarios", icon: Users },
@@ -27,20 +25,14 @@ export default function ClienteDetalle() {
     
     const [activeTab, setActiveTab] = useState("info");
     const [imageHover, setImageHover] = useState(false);
-    const [cliente, setCliente] = useState<clientDetail | null>(null);
+    const [cliente, setCliente] = useState<ClientDTO | null>(null);
     const [initials, setInitials] = useState("");
 
     useEffect(() => {
         const fetchingData = async() => {
             try{
-                const data = await getClientById(id ? parseInt(id) : 0);
-
-                const nameInitials = data.data.name
-                    .split(" ")
-                    .map((word: string) => word[0])
-                    .slice(0, 2)
-                    .join("")
-                    .toUpperCase();
+                const data = await api.get<ApiResponse<ClientDTO>>(`/clients/${id}`);
+                const nameInitials = data.data.name.split(" ").map((word: string) => word[0]).slice(0, 2).join("").toUpperCase();
 
                 setInitials(nameInitials);
                 setCliente(data.data);
@@ -187,7 +179,7 @@ const formatDate = (dateString?: string) => {
 };
 
 // Tab: Información
-function TabInfo({ cliente }: { cliente: clientDetail | null }) {
+function TabInfo({ cliente }: { cliente: ClientDTO | null }) {
 
   useEffect(() => {
 
@@ -222,27 +214,47 @@ function TabInfo({ cliente }: { cliente: clientDetail | null }) {
             Dirección
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
-              <p className="text-sm text-gray-500 mb-1">Calle</p>
-              <p className="font-medium text-gray-900">{cliente?.address}</p>
+            {/* País y Estado en una fila */}
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-500 mb-1">País</p>
+              <p className="font-medium text-gray-900">{cliente?.address?.country?.name || "No registrado"}</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-500 mb-1">Estado</p>
+              <p className="font-medium text-gray-900">{cliente?.address?.state?.name || "No registrado"}</p>
+            </div>
+
+            {/* Ciudad y Colonia */}
+            <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-500 mb-1">Ciudad</p>
-              <p className="font-medium text-gray-900">{cliente?.city}</p>
+              <p className="font-medium text-gray-900">{cliente?.address?.city?.name || "No registrado"}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-500 mb-1">Colonia</p>
+              <p className="font-medium text-gray-900">{cliente?.address?.neighborhood || "No registrado"}</p>
+            </div>
+
+            {/* Calle ocupa toda la fila */}
+            <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
+              <p className="text-sm text-gray-500 mb-1">Calle</p>
+              <p className="font-medium text-gray-900">{cliente?.address?.street || "No registrado"}</p>
+            </div>
+
+            {/* Números y CP en una fila de 3 */}
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-500 mb-1">Núm. Exterior</p>
+              <p className="font-medium text-gray-900">{cliente?.address?.ext_number || "—"}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-500 mb-1">Núm. Interior</p>
+              <p className="font-medium text-gray-900">{cliente?.address?.int_number || "—"}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
+              <p className="text-sm text-gray-500 mb-1">Código Postal</p>
+              <p className="font-medium text-gray-900">{cliente?.address?.postal_code || "—"}</p>
             </div>
           </div>
         </div>
-
-        {/* Observaciones */}
-        {/* <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <FileText size={20} className="text-gray-400" />
-            Observaciones
-          </h3>
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-gray-700 whitespace-pre-wrap">{cliente?.addiccional_notes}</p>
-          </div>
-        </div> */}
       </div>
 
       {/* Columna Lateral */}
@@ -268,24 +280,6 @@ function TabInfo({ cliente }: { cliente: clientDetail | null }) {
             </div>
           </div>
         </div>
-
-        {/* Acceso Rápido */}
-        {/* <div className="p-4 bg-gray-50 rounded-lg space-y-4">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-            <TrendingUp size={18} className="text-gray-400" />
-            Acciones Rápidas
-          </h3>
-          <div className="space-y-2">
-            <button className="w-full px-4 py-2.5 text-left text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-3">
-              <Users size={18} className="text-gray-400" />
-              <span>Agregar Usuario</span>
-            </button>
-            <button className="w-full px-4 py-2.5 text-left text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-3">
-              <Store size={18} className="text-gray-400" />
-              <span>Nuevo Establecimiento</span>
-            </button>
-          </div>
-        </div> */}
       </div>
     </div>
   );
@@ -297,8 +291,7 @@ const ROL_LABELS: Record<number, string> = {
   3: "Vendedor",
 };
 
-// Tab: Usuarios
-function TabUsers({ cliente }: { cliente: clientDetail | null }) {
+function TabUsers({ cliente }: { cliente: ClientDTO | null }) {
   const { user } = useAuthStore();
   const [isLoadingModal, setIsLoadingModal] = useState(false);
   const [users, setUsers] = useState<ClientUser[]>([]);

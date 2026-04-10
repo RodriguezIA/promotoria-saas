@@ -1,3 +1,5 @@
+import { AddressDTO } from './address'
+
 export interface ClientDTO {
     id_client: number
     id_user: number
@@ -9,8 +11,9 @@ export interface ClientDTO {
     rfc?: string
     email?: string
     phone?: string
-    address?: string
+    address?: AddressDTO
     city?: string
     addiccional_notes?: string
     vc_url_situacion_fiscal?: string | null
 }
+

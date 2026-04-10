@@ -1,44 +1,24 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import {
-  ArrowLeft,
-  Building2,
-  Mail,
-  FileText,
-  Save,
-  AlertCircle,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Building2, Mail, FileText, Save, AlertCircle,} from "lucide-react";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
 import { Input } from "../../components/ui/input";
 import { MensajeConfirmacion } from "../../components/mensajeConfirmaacion";
-import { registClient, updateClientFiscalDoc } from '../../Fetch/clientes';
-import { uploadSituacionFiscal } from '../../Fetch/storage';
-import { getPaises, getEstados, getCiudades } from "../../Fetch/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 
-import { Country, State, City } from "../../types/utils";
+import { ClientDTO } from "../../dtos/clients";
 import { ApiResponse, api } from "../../lib/api";
 import { useAuthStore } from "../../store/authStore";
-import { ClientDTO } from "../../dtos/clients";
-
-type FormErrors = {
-  [key: string]: string | null;
-};
+import { Country, State, City } from "../../types/utils";
 
 
+
+type FormErrors = { [key: string]: string | null;};
 export default function NuevoCliente() {
-  // --------------- Instanciamiento de librerias
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
-  // --------------- States
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -46,6 +26,7 @@ export default function NuevoCliente() {
   const [paises, setPaises] = useState<Country[]>([]);
   const [estados, setEstados] = useState<State[]>([]);
   const [ciudades, setCiudades] = useState<City[]>([]);
+  
   const [formData, setFormData] = useState({
     vc_nombre: "",
     vc_rfc: "",
@@ -76,29 +57,19 @@ export default function NuevoCliente() {
     formData.vc_observaciones.trim()
   );
 
-  // --------------- handlers
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
 
-    let finalValue: string | boolean =
-      type === "checkbox" && e.target instanceof HTMLInputElement
-        ? e.target.checked
-        : value;
+    let finalValue: string | boolean = type === "checkbox" && e.target instanceof HTMLInputElement ? e.target.checked : value;
 
     if (name === "vc_rfc") {
       finalValue = formatRFC(value);
     }
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: finalValue,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: finalValue }));
 
     if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: null,
-      }));
+      setErrors((prev) => ({ ...prev, [name]: null, }));
     }
   };
 
@@ -161,7 +132,6 @@ export default function NuevoCliente() {
     navigate('/clientes');
   };
 
- // --------------- Funciones de utilidad 
   const formatRFC = (value: string) => {
     return value
       .toUpperCase()
@@ -210,16 +180,8 @@ export default function NuevoCliente() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // userEffect para cargar países
   useEffect(() => {
     const fetchPaises = async () => {
-      // const request = await getPaises();
-      // const data: Country[] = request.data || [];
-      // setPaises(data);
-      // if (data.length > 0) {
-      //   setFormData((prev) => ({ ...prev, id_pais: String(data[0].id) }));
-      // }
-
       const request = await api.get<ApiResponse<Country[]>>('/clients/countries');
       const data: Country[] = request.data || [];
       setPaises(data);
@@ -229,7 +191,6 @@ export default function NuevoCliente() {
     fetchPaises();
   }, []);
 
-  // useEffect para cargar estados cuando cambia el país
   useEffect(() => {
     if (!formData.id_pais) return;
 
@@ -237,8 +198,6 @@ export default function NuevoCliente() {
       setEstados([]);
       setCiudades([]);
       setFormData((prev) => ({ ...prev, id_estado: "", id_ciudad: "" }));
-
-
       const request = await api.get<ApiResponse<State[]>>(`/clients/states/${formData.id_pais}`);
       const data: State[] = request.data || [];
       setEstados(data);
@@ -250,10 +209,9 @@ export default function NuevoCliente() {
     fetchEstados();
   }, [formData.id_pais]);
 
-  // useEffect para cargar ciudades cuando cambia el estado
+
   useEffect(() => {
     if (!formData.id_pais || !formData.id_estado) return;
-
     const fetchCiudades = async () => {
       setCiudades([]);
       setFormData((prev) => ({ ...prev, id_ciudad: "" }));
@@ -447,6 +405,7 @@ export default function NuevoCliente() {
                       : "border-gray-200"
                   }`}
                 />
+                <span>Este correo llegaran las notificaciones del sistema</span>
                 {errors.vc_email && (
                   <div className="flex items-center gap-1 mt-1 text-sm text-red-600">
                     <AlertCircle size={14} />
