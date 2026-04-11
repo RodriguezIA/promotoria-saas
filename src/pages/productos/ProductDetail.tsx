@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 
 import { getProductById, deleteProduct } from "../../Fetch/products";
-import { MensajeConfirmacion } from "../../components/mensajeConfirmaacion";
+import { MensajeConfirmacion } from "../../components/custom/mensajeConfirmaacion";
 
 interface Product {
   id_product: number;

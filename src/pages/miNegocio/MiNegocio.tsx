@@ -19,7 +19,7 @@ import { toast } from "sonner";
 
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { ModalCustom } from "../../components/ModalCustom";
+import { ModalCustom } from "../../components/custom/ModalCustom";
 import { PageWrapper } from "../../components/ui/page-wrapper";
 import { getClientById } from "../../Fetch/clientes";
 import { registerUserInClient } from "../../Fetch/usuarios";

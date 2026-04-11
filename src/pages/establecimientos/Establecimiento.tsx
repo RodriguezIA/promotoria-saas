@@ -22,7 +22,7 @@ import {
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { MensajeConfirmacion } from "../../components/mensajeConfirmaacion";
+import { MensajeConfirmacion } from "../../components/custom/mensajeConfirmaacion";
 
 import { useAuthStore } from '../../store/authStore'
 

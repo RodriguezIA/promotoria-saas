@@ -15,7 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import {Plus, Search, Filter, MoreHorizontal, CheckCircle, XCircle, PlayCircle, FileText, Trash2, Clock, Pencil, Eye, History} from "lucide-react";
 
 import { Servicio, fetchCrearServicio } from "../../Fetch/servicios";
-import { ModalCustom } from '../../components/ModalCustom'
+import { ModalCustom } from '../../components/custom/ModalCustom'
 
 
 

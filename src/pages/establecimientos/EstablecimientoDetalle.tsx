@@ -20,7 +20,7 @@ import {
 
 import { useAuthStore } from '../../store/authStore'
 import { Button } from "../../components/ui/button";
-import { MensajeConfirmacion } from "../../components/mensajeConfirmaacion";
+import { MensajeConfirmacion } from "../../components/custom/mensajeConfirmaacion";
 import { getStoreClientById, deleteStoreClient, getStoreById, Store } from "../../Fetch/establecimientos";
 
 const libraries: ("places")[] = ["places"];

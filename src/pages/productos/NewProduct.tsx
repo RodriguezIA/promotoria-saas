@@ -13,7 +13,7 @@ import {
   Loader2,
 } from "lucide-react";
 
-import { MensajeConfirmacion } from "../../components/mensajeConfirmaacion";
+import { MensajeConfirmacion } from "../../components/custom/mensajeConfirmaacion";
 import { 
   createProduct, 
   uploadProductImage, 
