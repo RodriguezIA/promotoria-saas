@@ -29,8 +29,8 @@ export interface CreateUserInCLientDetailDTO {
   id_client: number;
   id_user_creator: number;
 }
+
 export interface ClientListDTO extends ClientDTO {
     i_cant_usuarios: number
-    i_cant_establecimientos: number
 }
 

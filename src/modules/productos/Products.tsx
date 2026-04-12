@@ -1,84 +1,55 @@
-// pages/admin/products/Products.tsx
-import { useState, useEffect, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Loader2, Package, Plus, MoreHorizontal, Eye, Edit2, Trash2 } from "lucide-react";
-import { ColumnDef } from "@tanstack/react-table";
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { useState, useEffect } from "react"
+import { ColumnDef } from "@tanstack/react-table"
+import { Link, useNavigate } from "react-router-dom"
+import { Loader2, Package, Plus, MoreHorizontal, Eye, Edit2, Trash2 } from "lucide-react"
 
-import { DataTable } from "../../components";
-import { Button } from "../../components/ui/button";
-import { PageWrapper } from "../../components/ui/page-wrapper";
-import { PageHeader } from "../../components/ui/page-header";
-import { StatCard } from "../../components/dashboard/StatCard";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
-import { getProductsByClient, deleteProduct } from "../../Fetch/products";
-import { getCLientsList } from "../../Fetch/clientes";
-import { useAuthStore } from "../../store/authStore";
 
-interface Product {
-  id_product: number;
-  name: string;
-  description: string | null;
-  i_status: number;
-  dt_created: string;
-  dt_updated: string;
-}
+import { useAuthStore } from '@/store';
+import { ProductDTO, ClientDTO } from "@/dtos";
+import { api, ApiResponse, formatDate } from '@/lib'
+import { Button, DataTable, PageWrapper, PageHeader, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components';
 
-interface Client {
-  id_client: number;
-  name: string;
-}
 
 export default function ProductPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
+
   const [loading, setLoading] = useState(true);
   const [loadingClients, setLoadingClients] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [clients, setClients] = useState<Client[]>([]);
+  const [products, setProducts] = useState<ProductDTO[]>([]);
+  const [clients, setClients] = useState<ClientDTO[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+
 
   const isSuperAdmin = user?.i_rol === 1;
 
-  // Cargar clientes si es superadmin
+
   useEffect(() => {
     if (isSuperAdmin) {
       fetchClients();
     } else {
-      // Si no es superadmin, usar el id_client del usuario
       setSelectedClientId(user?.id_client || null);
     }
   }, [isSuperAdmin, user]);
 
-  // Cargar productos cuando se selecciona un cliente
   useEffect(() => {
     if (selectedClientId) {
       fetchProducts(selectedClientId);
     }
   }, [selectedClientId]);
 
+
+
   const fetchClients = async () => {
     try {
       setLoadingClients(true);
-      const response = await getCLientsList();
+      const response = await api.get<ApiResponse<ClientDTO[]>>(`/clients`);
       const clientsList = response.data || [];
       setClients(clientsList);
       
-      // Seleccionar el primer cliente por defecto
       if (clientsList.length > 0) {
         setSelectedClientId(clientsList[0].id_client);
       }
@@ -94,7 +65,7 @@ export default function ProductPage() {
     try {
       setLoading(true);
       setError(null);
-      const response = await getProductsByClient(clientId);
+      const response = await api.get<ApiResponse<ProductDTO[]>>(`/products/${clientId}`);
       setProducts(response.data || []);
     } catch (err) {
       console.error("Error fetching products:", err);
@@ -108,28 +79,12 @@ export default function ProductPage() {
     setSelectedClientId(Number(value));
   };
 
-  const stats = useMemo(
-    () => ({
-      total: products.length,
-      activos: products.filter((p) => p.i_status === 1).length,
-      inactivos: products.filter((p) => p.i_status === 0).length,
-    }),
-    [products]
-  );
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-MX", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
 
   const handleDelete = async (id_product: number) => {
     if (!confirm("¿Estás seguro de eliminar este producto?")) return;
 
     try {
-      await deleteProduct(id_product);
+      await api.delete<ApiResponse>(`/products/${id_product}`);
       toast.success("Producto eliminado exitosamente");
       if (selectedClientId) {
         fetchProducts(selectedClientId);
@@ -140,7 +95,7 @@ export default function ProductPage() {
     }
   };
 
-  const columns: ColumnDef<Product>[] = [
+  const columns: ColumnDef<ProductDTO>[] = [
     {
       accessorKey: "name",
       header: "Nombre",
@@ -284,12 +239,6 @@ export default function ProductPage() {
 
       {!loading && !error && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger-children">
-            <StatCard title="Total" value={stats.total} icon={Package} />
-            <StatCard title="Activos" value={stats.activos} icon={Package} accent="#16a34a" />
-            <StatCard title="Inactivos" value={stats.inactivos} icon={Package} accent="#dc2626" />
-          </div>
-
           <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
             {products.length > 0 ? (
               <DataTable columns={columns} data={products} />

@@ -1,79 +1,43 @@
-// pages/ProductoForm.tsx
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { toast } from "sonner";
-import {
-  ArrowLeft,
-  Package,
-  FileText,
-  Save,
-  AlertCircle,
-  ImagePlus,
-  X,
-  Loader2,
-} from "lucide-react";
+import { toast } from "sonner"
+import { useState, useEffect } from "react"
+import { useNavigate, useParams, useLocation } from "react-router-dom"
+import { ArrowLeft, Package, FileText, Save, AlertCircle, ImagePlus, X, Loader2 } from "lucide-react"
 
-import { MensajeConfirmacion } from "../../components/custom/mensajeConfirmaacion";
-import { 
-  createProduct, 
-  uploadProductImage, 
-  getProductById,
-  updateProduct
-} from "../../Fetch/products";
-import { useAuthStore } from "../../store/authStore";
 
-type FormErrors = {
-  [key: string]: string | null;
-};
+import { ProductDTO } from "@/dtos"
+import { useAuthStore } from '@/store'
+import { MensajeConfirmacion } from '@/components'
+import { api, ApiResponse, FormErrors } from '@/lib'
+
 
 export default function ProductoForm() {
-  const navigate = useNavigate();
-  const { id_client, id_product } = useParams();
-  const { user } = useAuthStore();
-  const location = useLocation();
-  const isSuperAdmin = user?.i_rol === 1;
-  const clientIdFromState = Number((location.state as any)?.id_client);
-  const clientIdFromParams = Number(id_client);
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { user } = useAuthStore()
+  const { id_client, id_product } = useParams()
+  
+  const isEditMode = Boolean(id_product)
+  const isSuperAdmin = user?.i_rol === 1
+  const clientIdFromParams = Number(id_client)
+  const clientIdFromState = Number((location.state as any)?.id_client)
+  const resolvedClientId = isSuperAdmin ? (clientIdFromState || clientIdFromParams || null) : (user?.id_client || null);
 
-  // Detectar si es modo edición
-  const isEditMode = Boolean(id_product);
+  const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState<FormErrors>({})
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [imageChanged, setImageChanged] = useState(false)
+  const [loadingData, setLoadingData] = useState(isEditMode)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [formData, setFormData] = useState({ name: "", description: ""})
+  const [originalData, setOriginalData] = useState({ id_product: 0, name: "", description: "", vc_image: ""})
 
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [loading, setLoading] = useState(false);
-  const [loadingData, setLoadingData] = useState(isEditMode);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imageChanged, setImageChanged] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-  });
-  const [originalData, setOriginalData] = useState({
-    name: "",
-    description: "",
-    vc_image: "",
-  });
-
-  const resolvedClientId =
-  isSuperAdmin
-    ? (clientIdFromState || clientIdFromParams || null)
-    : (user?.id_client || null);
-
-    
-
-  // Cargar datos si es modo edición
-  useEffect(() => {
-    if (isEditMode && id_product) {
-      fetchProduct();
-    }
-  }, [id_product]);
 
   const fetchProduct = async () => {
     try {
       setLoadingData(true);
-      const response = await getProductById(Number(id_product));
-      const product = response.data;
+      const res = await api.get<ApiResponse<ProductDTO>>(`/products/product/${id_product}`)
+      const product = res.data;
 
       setFormData({
         name: product.name || "",
@@ -81,6 +45,7 @@ export default function ProductoForm() {
       });
 
       setOriginalData({
+        id_product: product.id_product,
         name: product.name || "",
         description: product.description || "",
         vc_image: product.vc_image || "",
@@ -171,48 +136,50 @@ export default function ProductoForm() {
       let productId = Number(id_product);
 
       if (isEditMode) {
-        // Modo edición: actualizar producto
-        await updateProduct(productId, {
-          name: formData.name,
-          description: formData.description || undefined,
-        });
 
-        // Si cambió la imagen, subirla
-        if (imageChanged && imageFile) {
-          await uploadProductImage(productId, Number(user?.id_client!), imageFile);
-        }
-
-        toast.success("Producto actualizado exitosamente");
-      } else {
-        if (!resolvedClientId) {
-          toast.error("Selecciona un cliente antes de crear el producto");
-          setLoading(false);
-          return;
-        }
-        // Modo creación: crear producto
-        const result = await createProduct({
+        await api.put(`/products/${productId}`, {
           id_user: user?.id_user!,
           id_client: resolvedClientId!,
           name: formData.name,
           description: formData.description || undefined,
-        });
+        })
+
+        if (imageChanged && imageFile) {
+          const formatImage = new FormData();
+          formatImage.append('file', imageFile)
+          await api.upload<ApiResponse>(`/products/upload-image/${resolvedClientId}/${originalData.id_product}`, formatImage)
+        }
+
+        toast.success("Producto actualizado exitosamente");
+        navigate(`/productos/`);
+      } else {
+
+        if (!resolvedClientId) {
+          toast.error("Selecciona un cliente antes de crear el producto")
+          setLoading(false)
+          return
+        }
+
+        const res = await api.post<ApiResponse<ProductDTO>>(`/products`, {
+          id_user: user?.id_user!,
+          id_client: resolvedClientId!,
+          name: formData.name,
+          description: formData.description || undefined,
+        })
         
-        const productId = result.data.id;
-        
-        // Si hay imagen, subirla
         if (imageFile) {
           try {
-            await uploadProductImage(productId, resolvedClientId!, imageFile);
+            const formatImage = new FormData();
+            formatImage.append('file', imageFile)
+            await api.upload<ApiResponse>(`/products/upload-image/${resolvedClientId}/${res.data.id_product}`, formatImage)
           } catch {
             toast.warning("Producto creado, pero falló la subida de imagen");
           }
         }
-        
-        console.log("Create product result:", result);
-        toast.success("Producto creado exitosamente");
-      }
 
-      navigate(`/producto/detalle/${productId}`);
+        toast.success("Producto creado exitosamente");
+        navigate(`/productos/`);
+      }
     } catch (error) {
       console.error("Error:", error);
       toast.error(isEditMode ? "Error al actualizar producto" : "Error al crear producto");
@@ -247,7 +214,14 @@ export default function ProductoForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Loading inicial para modo edición
+
+  useEffect(() => {
+    if (isEditMode && id_product) {
+      fetchProduct();
+    }
+  }, [id_product]);
+
+
   if (loadingData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -258,6 +232,7 @@ export default function ProductoForm() {
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-gray-50">

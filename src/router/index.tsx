@@ -1,19 +1,15 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom"
 
 
-import { Clientes, ClienteDetalle, CrearCliente } from '@/modules/clientes'; 
+import { Clientes, ClienteDetalle, CrearCliente } from '@/modules/clientes' 
+import {ProductPage, ProductoDetalle, ProductoForm } from '@/modules/productos'
 
 import PrivateRoute from "../components/PrivateRoute";
 import Layout from "../components/layout/Layout";
 import Login from "../pages/Login";
 import Home from "../pages/inicio/Home";
-// import ClientesList from "../modules/clientes/Cliente";
 import RestorePassword from "../pages/auth/restore-password";
-// import CrearCliente from "../modules/clientes/ClienteN";
-// import ClientDetailPage from "../modules/clientes/ClientDetail";
-import ProductPage from "../pages/productos/Products";
-import CreateProduct from "../pages/productos/NewProduct";
-import ProductDetail from "../pages/productos/ProductDetail";
+
 import Establecimientos from "../pages/establecimientos/Establecimientos";
 import Establecimiento from "../pages/establecimientos/Establecimiento";
 import EstablecimientoDetalle from "../pages/establecimientos/EstablecimientoDetalle";
@@ -67,9 +63,9 @@ export default function AppRouter() {
           <Route path="clientes/:id" element={<ClienteDetalle />} />
           
           <Route path="productos" element={<ProductPage />} />
-          <Route path="producto" element={<CreateProduct />} />
-          <Route path="producto/:id_product" element={<CreateProduct />} />
-          <Route path="producto/detalle/:id_product" element={<ProductDetail />} />
+          <Route path="producto" element={<ProductoForm />} />
+          <Route path="producto/:id_product" element={<ProductoForm />} />
+          <Route path="producto/detalle/:id_product" element={<ProductoDetalle />} />
           <Route path="establecimientos" element={<Establecimientos />} />
           <Route path="establecimiento" element={<Establecimiento />} />
           <Route path="establecimiento/:id_store_client" element={<Establecimiento />} />

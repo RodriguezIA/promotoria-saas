@@ -1,68 +1,34 @@
-// pages/ProductoDetalle.tsx
-import { useState, useEffect } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  Package,
-  FileText,
-  Edit2,
-  Trash2,
-  Clock,
-  ImageOff,
-  Loader2,
-} from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { useState, useEffect } from "react"
+import { Link, useParams, useNavigate } from "react-router-dom"
+import { ArrowLeft, Package, FileText, Edit2, Trash2, Clock, ImageOff, Loader2 } from "lucide-react"
 
-import { getProductById, deleteProduct } from "../../Fetch/products";
-import { MensajeConfirmacion } from "../../components/custom/mensajeConfirmaacion";
 
-interface Product {
-  id_product: number;
-  id_user: number;
-  id_client: number;
-  name: string;
-  description: string | null;
-  vc_image: string | null;
-  i_status: number;
-  dt_created: string;
-  dt_updated: string;
-}
+import { ProductDTO } from "@/dtos"
+import { api, ApiResponse } from "@/lib"
+import { MensajeConfirmacion } from "@/components"
+
 
 export default function ProductoDetalle() {
-  const { id_product } = useParams();
   const navigate = useNavigate();
+  const { id_product } = useParams();
+  
 
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<ProductDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [_deleting, setDeleting] = useState(false);
+
 
   const id_client = product?.id_client;
 
-  useEffect(() => {
-    fetchProduct();
-  }, [id_product]);
-
-  const fetchProduct = async () => {
-    try {
-      setLoading(true);
-      const response = await getProductById(Number(id_product));
-      setProduct(response.data);
-    } catch (error) {
-      console.error("Error fetching product:", error);
-      toast.error("Error al cargar el producto");
-      navigate(-1);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDelete = async () => {
     try {
       setDeleting(true);
-      await deleteProduct(Number(id_product));
+      await api.delete(`/products/${id_product}`);
       toast.success("Producto eliminado exitosamente");
-      navigate(`/clientes/${id_client}/productos`);
+      navigate(`/productos/`);
     } catch (error) {
       console.error("Error deleting product:", error);
       toast.error("Error al eliminar el producto");
@@ -82,6 +48,25 @@ export default function ProductoDetalle() {
       minute: "2-digit",
     });
   };
+
+
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        const resp = await api.get<ApiResponse<ProductDTO>>(`/products/product/${id_product}`)
+        setProduct(resp.data)
+      } catch (error) {
+        console.error("Error fetching product):", error);
+        toast.error("Error al cargar el producto");
+        navigate(-1);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProductData();
+  }, [id_product]);
+
 
   if (loading) {
     return (

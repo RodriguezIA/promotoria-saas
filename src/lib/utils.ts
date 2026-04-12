@@ -13,3 +13,7 @@ export const formatDate = (dateString?: string) => {
     day: "numeric",
   });
 };
+
+export type FormErrors = {
+  [key: string]: string | null;
+};
