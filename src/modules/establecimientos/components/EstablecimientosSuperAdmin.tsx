@@ -1,38 +1,35 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from "react-router-dom";
-import { Plus, Loader2, Store as StoreIcon, MoreHorizontal, Eye, Edit2, Trash2 } from "lucide-react";
+import { toast } from 'sonner'
+import { useState, useEffect } from 'react'
+import { ColumnDef } from '@tanstack/react-table'
+import { Link, useNavigate } from "react-router-dom"
+import { Plus, Loader2, Store as StoreIcon, MoreHorizontal, Eye, Edit2, Trash2 } from "lucide-react"
 
-import { Button } from "../../components/ui/button";
-import { DataTable } from "../../components/ui/datatble";
-import { EstablecimientoModalRegistroMasivo } from './EstablecimientoModalRegistroMasivo';
-import { ColumnDef } from '@tanstack/react-table';
 
-import { getStoresForClient, deleteStoreClient, Store } from "../../Fetch/establecimientos";
-import { useAuthStore } from '../../store/authStore';
-import { toast } from 'sonner';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from '../../components/ui/dropdown-menu';
+import { api, ApiResponse } from '@/lib'
+import { getStores, deleteStore, Store } from '@/Fetch/establecimientos'
+import { EstablecimientoModalRegistroMasivo } from './EstablecimientoModalRegistroMasivo'
+import { Button, DataTable, DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from '@/components'
 
-export function EstablecimientosAdministradoresClients() {
+
+export function EstablecimientosSuperAdmin() {
     const navigate = useNavigate()
 
     const [loading, setLoading] = useState(true);
     const [establecimientos, setEstablecimientos] = useState<Store[]>([]);
-    const { user } = useAuthStore();
 
-    // Cargar establecimientos al montar el componente
     useEffect(() => {
         fetchEstablecimientos();
-    }, [user]);
+    }, []);
+
 
     const fetchEstablecimientos = async () => {
-        if (!user?.id_client) {
-            setLoading(false);
-            return;
-        }
-
         try {
             setLoading(true);
-            const response = await getStoresForClient(user.id_client);
+            // const response = await getStores();
+
+            const response = await api.get<ApiResponse<any>>(`/stores`)
+
+            console.log(response)
             
             if (response.ok && response.data) {
                 setEstablecimientos(response.data);
@@ -47,20 +44,19 @@ export function EstablecimientosAdministradoresClients() {
         }
     };
 
-    const handleDeleteEstablecimeinto = async(id_store: number) => {
+    const handleDeleteEstablecimiento = async (id_store: number) => {
         try {
-            if(user?.id_client && user.id_client > 0){
-                const result = await deleteStoreClient(id_store);
+            const result = await deleteStore(id_store);
 
-                if(result.ok){
-                    toast.success("Establecimiento eliminado correctamente");
-
-                    window.location.reload();
-                }
-            } 
+            if (result.ok) {
+                toast.success("Establecimiento eliminado correctamente");
+                fetchEstablecimientos();
+            } else {
+                toast.error("Error al eliminar el establecimiento");
+            }
         } catch (error) {
-            console.error("f.handleDeleteEstablecimeinto: ", error);
-            toast.error("Erro al eliminar el establecimiento");
+            console.error("f.handleDeleteEstablecimiento: ", error);
+            toast.error("Error al eliminar el establecimiento");
         }
     }
 
@@ -121,20 +117,20 @@ export function EstablecimientosAdministradoresClients() {
 
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                                onClick={() => navigate(`/establecimiento/detalle/${store.id_store_client ?? store.id_store}`)}
+                                onClick={() => navigate(`/establecimiento/detalle/${store.id_store}`)}
                             >
                                 <Eye className="mr-2 h-4 w-4" />
                                 Ver detalle
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                                onClick={() => navigate(`/establecimiento/${store.id_store_client ?? store.id_store}`)}
+                                onClick={() => navigate(`/establecimiento/${store.id_store}`)}
                             >
                                 <Edit2 className="mr-2 h-4 w-4" />
                                 Editar
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 className="text-red-600"
-                                onClick={() => store.id_store_client && handleDeleteEstablecimeinto(store.id_store_client)}
+                                onClick={() => handleDeleteEstablecimiento(store.id_store)}
                             >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Eliminar

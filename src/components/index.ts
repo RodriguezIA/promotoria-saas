@@ -10,6 +10,7 @@
  *  CONFIRM-MODAL: COMPONENTES RELACIONADOS CON MODALES DE CONFIRMACIÓN, INCLUYENDO MODALES DE ELIMINACIÓN, MODALES DE ADVERTENCIA, ETC.
  * D:
  *  DATABLE: COMPONENTES RELACIONADOS CON LA TABLA DE DATOS, INCLUYENDO EL COMPONENTE PRINCIPAL, PAGINACIÓN, FILTROS, CABECERAS DE COLUMNA Y FUNCIONES AUXILIARES.
+ *  DIALOG: COMPONENTES DEL DIALOG
  *  DROPDOWN-MENU: COMPONENTES RELACIONADOS CON MENÚS DESPLEGABLES, INCLUYENDO MENÚS DE ACCIONES, MENÚS DE OPCIONES, ETC.
  * I:
  *  INPUT: COMPONENTES RELACIONADOS CON CAMPOS DE ENTRADA DE DATOS, INCLUYENDO INPUTS DE TEXTO, SELECTORES, CHECKBOXES, ETC.
@@ -41,6 +42,9 @@ export { DataTableFilters } from "./ui/datatable-filters";
 export { DataTableColumnHeader, DataTableSortableHeader} from "./ui/datatable-columnheader";
 export { exportToExcel, textFilter, selectFilter, multiselectFilter, numberRangeFilter, dateRangeFilter, booleanFilter, debounce, createSelectColumn, createActionsColumn } from "../utils/datatable";
 export type { DataTableProps, PaginationConfig, PaginationMode, ExportConfig, FiltersConfig, FilterConfig, FilterType, FilterOption, RowSelectionConfig, ActionColumnConfig, DataTableInitialState, DataTablePaginationProps, DataTableFiltersProps, DataTableColumnHeaderProps, DataTableToolbarProps, TypedColumnDef, ExtractDataType, } from "../types/datable";
+
+// DIALOG
+export { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogOverlay, DialogPortal } from './ui/dialog'
 
 // DROPDOWN-MENU
 export { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,DropdownMenuCheckboxItem, DropdownMenuGroup, DropdownMenuPortal,DropdownMenuRadioGroup,DropdownMenuRadioItem,DropdownMenuShortcut,DropdownMenuSub,DropdownMenuSubContent,DropdownMenuSubTrigger } from "./ui/dropdown-menu";

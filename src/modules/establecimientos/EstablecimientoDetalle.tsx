@@ -1,27 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
-import { toast } from "sonner";
-import {
-    ArrowLeft,
-    Loader2,
-    Store as StoreIcon,
-    MapPin,
-    Hash,
-    Edit,
-    Trash2,
-    Copy,
-    ExternalLink,
-} from "lucide-react";
-import {
-    GoogleMap,
-    useJsApiLoader,
-    OverlayView,
-} from "@react-google-maps/api";
+import { toast } from "sonner"
+import { useState, useEffect, useCallback } from "react"
+import { useNavigate, useParams, Link } from "react-router-dom"
+import { ArrowLeft, Loader2, Store as StoreIcon, MapPin, Hash, Edit, Trash2, Copy, ExternalLink } from "lucide-react"
+import { GoogleMap, useJsApiLoader, OverlayView } from "@react-google-maps/api";
 
-import { useAuthStore } from '../../store/authStore'
-import { Button } from "../../components/ui/button";
-import { MensajeConfirmacion } from "../../components/custom/mensajeConfirmaacion";
-import { getStoreClientById, deleteStoreClient, getStoreById, Store } from "../../Fetch/establecimientos";
+import { useAuthStore } from '@/store'
+import { Button, MensajeConfirmacion } from "@/components";
+import { getStoreClientById, deleteStoreClient, getStoreById, Store } from "@/Fetch/establecimientos";
 
 const libraries: ("places")[] = ["places"];
 const mapContainerStyle = {

@@ -2,17 +2,14 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 
 
 import { Clientes, ClienteDetalle, CrearCliente } from '@/modules/clientes' 
-import {ProductPage, ProductoDetalle, ProductoForm } from '@/modules/productos'
+import { ProductPage, ProductoDetalle, ProductoForm } from '@/modules/productos'
+import { Establecimientos, Establecimiento, EstablecimientoDetalle } from '@/modules/establecimientos'
 
 import PrivateRoute from "../components/PrivateRoute";
 import Layout from "../components/layout/Layout";
 import Login from "../pages/Login";
 import Home from "../pages/inicio/Home";
 import RestorePassword from "../pages/auth/restore-password";
-
-import Establecimientos from "../pages/establecimientos/Establecimientos";
-import Establecimiento from "../pages/establecimientos/Establecimiento";
-import EstablecimientoDetalle from "../pages/establecimientos/EstablecimientoDetalle";
 import Preguntas from "../pages/preguntas/Preguntas";
 import PreguntaDetalle from "../pages/preguntas/PreguntaDetalle";
 import Cotizaciones from "../pages/cotizaciones/Cotizaciones";
@@ -61,42 +58,32 @@ export default function AppRouter() {
           <Route path="clientes" element={<Clientes />} />
           <Route path="crearCliente" element={<CrearCliente />} />
           <Route path="clientes/:id" element={<ClienteDetalle />} />
-          
           <Route path="productos" element={<ProductPage />} />
           <Route path="producto" element={<ProductoForm />} />
           <Route path="producto/:id_product" element={<ProductoForm />} />
           <Route path="producto/detalle/:id_product" element={<ProductoDetalle />} />
+
+
           <Route path="establecimientos" element={<Establecimientos />} />
           <Route path="establecimiento" element={<Establecimiento />} />
           <Route path="establecimiento/:id_store_client" element={<Establecimiento />} />
           <Route path="establecimiento/detalle/:id_store_client" element={<EstablecimientoDetalle />} />
+
+          
           <Route path="preguntas" element={<Preguntas />} />
           <Route path="preguntas/detalle/:id" element={<PreguntaDetalle />} />
-
-
           <Route path="cotizaciones" element={<Cotizaciones />} />
           <Route path="cotizaciones/detalle/:id" element={<CotizacionDetalle />} />
-
           <Route path="servicios" element={<Servicios />} />
-
-          {/* Solicitudes Feature */}
           <Route path="solicitudes" element={<SolicitudesList />} />
           <Route path="crearSolicitud" element={<CrearSolicitud />} />
           <Route path="detalle-solicitud/:id" element={<SolicitudDetalle />} />
           <Route path="editar-solicitud/:id" element={<EditarSolicitud />} />
-
-          {/* Pedidos */}
           <Route path="pedidos" element={<PedidosList />} />
           <Route path="crearPedido" element={<CrearPedido />} />
           <Route path="detalle-pedido/:id" element={<PedidoDetalle />} />
-
-          {/* Finanzas */}
           <Route path="finanzas" element={<Finanzas />} />
-
-          {/* Mi Negocio */}
           <Route path="mi-negocio" element={<MiNegocio />} />
-
-          {/* Perfil */}
           <Route path="perfil" element={<Perfil />} />
         </Route>
       </Routes>

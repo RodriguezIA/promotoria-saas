@@ -1,30 +1,15 @@
+import * as XLSX from 'xlsx'
+import { toast } from 'sonner'
 import { useState } from 'react'
-import { Upload, Download, Loader2, FileSpreadsheet } from "lucide-react";
-import { toast } from 'sonner';
-import * as XLSX from 'xlsx';
+import { Upload, Download, Loader2, FileSpreadsheet } from "lucide-react"
 
-import { Label } from "../../components/ui/label"
-import { Input } from "../../components/ui/input"
-import { Button } from "../../components/ui/button"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "../../components/ui/dialog"
 
-import { useAuthStore } from '../../store/authStore'
-import { uploadStoresFromExcel } from '../../Fetch/establecimientos';
+import { useAuthStore } from '@/store'
+import { uploadStoresFromExcel } from '../../../Fetch/establecimientos';
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Input, Label } from "@/components"
 
-interface Props {
-    id_client?: number;
-    onSuccess?: () => void;
-}
 
-export function EstablecimientoModalRegistroMasivo({ id_client, onSuccess }: Props) {
+export function EstablecimientoModalRegistroMasivo({ id_client, onSuccess }: { id_client?: number; onSuccess?: () => void;}) {
     const { user } = useAuthStore();
 
     const [open, setOpen] = useState(false);
