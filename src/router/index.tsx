@@ -66,8 +66,8 @@ export default function AppRouter() {
 
           <Route path="establecimientos" element={<Establecimientos />} />
           <Route path="establecimiento" element={<Establecimiento />} />
-          <Route path="establecimiento/:id_store_client" element={<Establecimiento />} />
-          <Route path="establecimiento/detalle/:id_store_client" element={<EstablecimientoDetalle />} />
+          {/* <Route path="establecimiento/:id_store_client" element={<Establecimiento />} />
+          <Route path="establecimiento/detalle/:id_store_client" element={<EstablecimientoDetalle />} /> */}
 
           
           <Route path="preguntas" element={<Preguntas />} />

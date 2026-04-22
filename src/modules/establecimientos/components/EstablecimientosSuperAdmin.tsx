@@ -175,7 +175,18 @@ export function EstablecimientosSuperAdmin() {
             {!loading && (
                 <div className="bg-white rounded-lg border border-gray-200 p-4">
                     {establecimientos.length > 0 ? (
-                        <DataTable columns={columns} data={establecimientos} />
+                        <DataTable 
+                            columns={columns} 
+                            data={establecimientos}
+                            pagination={{
+                                mode: "client",
+                                pageSize: 10,
+                                pageSizeOptions: [5, 10, 20, 50],
+                                showPageSizeSelector: true,
+                                showSelectedCount: true,
+                                showPageNavigation: true,
+                            }}
+                        />
                     ) : (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">

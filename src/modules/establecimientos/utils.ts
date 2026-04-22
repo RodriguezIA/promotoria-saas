@@ -3,6 +3,7 @@ export const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 export interface FormData {
     id_user: number,    name: string,
     store_code?: string,
+    id_channel_sale?: number,
     address?: {
         entity_type: string
         entity_id: number
@@ -31,6 +32,7 @@ export const initialFormData: FormData = {
     id_user: 0,
     name: "",
     store_code: "",
+    id_channel_sale: undefined,
     address: {
         entity_type: "store",
         entity_id: 0,

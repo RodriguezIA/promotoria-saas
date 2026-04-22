@@ -1,14 +1,16 @@
 import { toast } from "sonner"
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { ArrowLeft, Store, MapPin } from "lucide-react"
+import { ArrowLeft, Store, MapPin, Map } from "lucide-react"
+import { useJsApiLoader, GoogleMap } from "@react-google-maps/api"
 
 
 import { api, ApiResponse } from '@/lib'
 import { useAuthStore } from '@/store'
 import { Button, Input, Label, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components'
 import { FormData, initialFormData } from './utils'
-import { CountryDTO, StateDTO, CityDTO } from '@/dtos'
+import { CountryDTO, StateDTO, CityDTO, channelSalesDTO } from '@/dtos'
+import { CustomMarker } from './components/CustomMarker'
 
 
 export default function Establecimiento() {
@@ -19,9 +21,30 @@ export default function Establecimiento() {
     const [countries, setCountries] = useState<CountryDTO[]>()
     const [states, setStates] = useState<StateDTO[]>()
     const [cities, setCities] = useState<CityDTO[]>()
+    const [channels, setChannels] = useState<channelSalesDTO[]>()
+
+    const [mapCenter, setMapCenter] = useState({ lat: 25.7460, lng: -100.2792 }) 
+    const [markerPosition, setMarkerPosition] = useState<{lat: number, lng: number} | null>(null)
+
+    const { isLoaded } = useJsApiLoader({
+        id: 'google-map-script',
+        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+    })
 
 
-    // Use Effect de direccion
+    useEffect(() => {
+        try {
+           const fetchData = async () => {
+            const request = await api.get<ApiResponse<channelSalesDTO[]>>('/channel-sales/')
+            setChannels(request.data)
+           }
+           
+           fetchData() 
+        } catch (error) {
+            toast.error("Error al cargar los canales de venta")
+        }
+    }, [])
+
     useEffect(() => {
         try {
             const fetchData = async () => {
@@ -66,12 +89,85 @@ export default function Establecimiento() {
             console.log("fomulario: ", formData);
             const res = await api.post<ApiResponse<any>>(`/stores/`, formData);
 
-            console.log("res: ", res);
+            if(res.error && res.error > 0){
+                toast.error("Error al crear el establecimiento");
+            }
+
+            navigate("/establecimientos");
+            toast.success("Establecimiento creado correctamente");
         } catch (error) {
             console.error("f.handlesubmit: ", error);
         }
 
     };
+
+    const handleLocate = () => {
+        if (!isLoaded || !window.google) {
+            toast.error("El mapa aún no está listo")
+            return
+        }
+
+        const addressParts = []
+        
+        if (formData.address?.street) addressParts.push(formData.address.street)
+        if (formData.address?.ext_number) addressParts.push(formData.address.ext_number)
+        if (formData.address?.neighborhood) addressParts.push(formData.address.neighborhood)
+
+        const cityName = cities?.find(c => c.id === formData.address?.id_city)?.name
+        const stateName = states?.find(s => s.id === formData.address?.id_state)?.name
+        const countryName = countries?.find(c => c.id === formData.address?.id_country)?.name
+
+        if (cityName) addressParts.push(cityName)
+        if (stateName) addressParts.push(stateName)
+        if (countryName) addressParts.push(countryName)
+
+        const addressString = addressParts.join(", ")
+
+        if (!addressString || addressParts.length < 2) {
+            toast.error("Por favor ingresa más detalles en la dirección para localizarla")
+            return
+        }
+
+        const geocoder = new window.google.maps.Geocoder()
+        
+        geocoder.geocode({ address: addressString }, (results, status) => {
+            if (status === 'OK' && results && results[0]) {
+                const location = results[0].geometry.location
+                const newPos = { lat: location.lat(), lng: location.lng() }
+                
+                setMapCenter(newPos)
+                setMarkerPosition(newPos)
+                
+                setFormData((prev) => ({
+                    ...prev,
+                    address: prev.address ? {
+                        ...prev.address,
+                        latitude: newPos.lat,
+                        longitude: newPos.lng
+                    } : undefined
+                } as FormData))
+                
+                toast.success("Dirección localizada en el mapa")
+            } else {
+                toast.error("No se pudo encontrar la ubicación exacta. Intenta ser más específico.")
+            }
+        })
+    }
+
+    const onMapClick = (e: google.maps.MapMouseEvent) => {
+        if (e.latLng) {
+            const newPos = { lat: e.latLng.lat(), lng: e.latLng.lng() }
+            setMarkerPosition(newPos)
+            setFormData((prev) => ({
+                ...prev,
+                address: prev.address ? {
+                    ...prev.address,
+                    latitude: newPos.lat,
+                    longitude: newPos.lng
+                } : undefined
+            } as FormData))
+        }
+    }
 
     return (
         <>
@@ -135,6 +231,41 @@ export default function Establecimiento() {
                                     }}
                                     placeholder="Ej: SUC-001"
                                 />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="id_channel_sale">Canal de Venta (Opcional)</Label>
+                                <Select
+                                    name="id_channel_sale"
+                                    value={formData.id_channel_sale ? String(formData.id_channel_sale) : undefined}
+                                    onValueChange={(value) => {
+                                        setFormData((prev) => ({
+                                            ...prev, 
+                                            id_channel_sale: Number(value)
+                                        }))
+                                    }}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona un canal de venta..." />
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                        {channels?.map((channel) => (
+                                            <SelectItem key={channel.id} value={String(channel.id)}>
+                                                <div className="flex items-center gap-2">
+                                                    {channel.url_image && (
+                                                        <img 
+                                                            src={channel.url_image} 
+                                                            alt={channel.name} 
+                                                            className="w-8 h-8 object-contain rounded-full bg-white border border-gray-100"
+                                                        />
+                                                    )}
+                                                    <span className="capitalize">{channel.name}</span>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
                     </div>
@@ -342,6 +473,52 @@ export default function Establecimiento() {
                                     }}
                                 />
                             </div>
+
+                            <div className="col-span-1 md:col-span-2 lg:col-span-3 mt-2 flex flex-col gap-4">
+                                <Button 
+                                    type="button" 
+                                    variant="secondary"
+                                    onClick={handleLocate}
+                                    className="w-full md:w-auto self-start flex items-center gap-2"
+                                >
+                                    <Map size={18} />
+                                    Localizar en el mapa
+                                </Button>
+
+                                <p className="text-xs text-gray-500 text-right">
+                                    * Puedes hacer clic en el mapa para ajustar la ubicación exacta del establecimiento.
+                                </p>
+
+                                <div className="h-[400px] w-full rounded-md border border-gray-200 overflow-hidden bg-gray-50 relative">
+                                    {isLoaded ? (
+                                        <GoogleMap
+                                            mapContainerStyle={{ width: '100%', height: '100%' }}
+                                            center={mapCenter}
+                                            zoom={markerPosition ? 17 : 13}
+                                            onClick={onMapClick}
+                                            options={{
+                                                disableDefaultUI: true,
+                                                zoomControl: true,
+                                                streetViewControl: false,
+                                                mapTypeControl: false,
+                                            }}
+                                        >
+                                            {markerPosition && (
+                                                <CustomMarker 
+                                                    position={markerPosition}
+                                                    storeName={formData.name || "Nuevo Establecimiento"}
+                                                    imageUrl={channels?.find(c => c.id === formData.id_channel_sale)?.url_image || ''}
+                                                />
+                                            )}
+                                        </GoogleMap>
+                                    ) : (
+                                        <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                                            Cargando mapa de Google...
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            
                         </div>
                     </div>
                 </div>
