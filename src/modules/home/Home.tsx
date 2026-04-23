@@ -1,19 +1,12 @@
-import { useState, useEffect } from "react";
-import { useAuthStore } from "../../store/authStore";
-import { StatCard } from "../../components/dashboard/StatCard";
-import { DateRangePicker } from "../../components/dashboard/DateRangePicker";
-import { PageWrapper } from "../../components/ui/page-wrapper";
-import { Users, Store, UserCheck, Briefcase, Loader2, ShoppingCart } from "lucide-react";
-import { PromoterHeatMap } from "./components/PromoterHearMap";
+import { useState, useEffect } from "react"
+import { Users, Store, UserCheck, Briefcase, Loader2, ShoppingCart } from "lucide-react"
 
-import {
-  getDashboardAnalytics,
-  getAdminDashboardStats,
-  DashboardAnalytics,
-  AdminDashboardStats,
-} from "../../Fetch/inicio";
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
+import { useAuthStore } from "@/store"
+// import { PromoterHeatMap } from "../../pages/inicio/components"
+import { StatCard, DateRangePicker, PageWrapper } from "@/components"
+import { getDashboardAnalytics, getAdminDashboardStats, DashboardAnalytics, AdminDashboardStats } from "@/Fetch/inicio"
+
 
 const defaultDateFrom = () => {
   const d = new Date();
@@ -28,7 +21,7 @@ const toISOLocal = (date: Date) => {
 
 // ─── COMPONENTE ───────────────────────────────────────────────────────────────
 
-export default function Home() {
+export function Home() {
   const { user } = useAuthStore();
   const isSuperAdmin = user?.i_rol === 1;
 
@@ -122,14 +115,14 @@ export default function Home() {
       )}
 
       {/* Heatmap superadmin — solo si hay datos */}
-      {!loading && isSuperAdmin && heatmapData.length > 0 && (
+      {/* {!loading && isSuperAdmin && heatmapData.length > 0 && (
         <PromoterHeatMap promoters={heatmapData} />
-      )}
+      )} */}
 
       {/* Heatmap admin — siempre visible una vez cargado (promotores globales) */}
-      {!loading && !isSuperAdmin && adminStats !== null && (
+      {/* {!loading && !isSuperAdmin && adminStats !== null && (
         <PromoterHeatMap promoters={heatmapData} />
-      )}
+      )} */}
     </PageWrapper>
   );
 }

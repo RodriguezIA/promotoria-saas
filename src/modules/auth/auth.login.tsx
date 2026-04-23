@@ -1,22 +1,18 @@
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 
-import { useAuthStore } from "../store/authStore";
-import { loginUser } from "../Fetch/login";
 
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import DebugRegisterModal from "../components/DebugRegisterModal";
+import { useAuthStore } from "@/store"
+import { loginUser } from "@/Fetch/login"
+import { Button, Input } from "@/components"
+import logo from "@/assets/promotorialogotipo_positivo.png"
 
-import logo from "../assets/promotorialogotipo_positivo.png";
-
-export default function Login() {
+export function Login() {
   const navigate = useNavigate();
   const authstore = useAuthStore();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showDebugModal, setShowDebugModal] = useState(false);
 
   const handleSubmit = async () => {
     if (!username || !password) return;
@@ -162,17 +158,6 @@ export default function Login() {
                   Solicita tu prueba gratuita
                 </Button>
               </div>
-
-              {/* Botón Debug (solo desarrollo) */}
-              {process.env.NODE_ENV === "development" && (
-                <Button
-                  onClick={() => setShowDebugModal(true)}
-                  variant="outline"
-                  className="w-full text-sm text-gray-600 border-dashed"
-                >
-                  🔧 Registrar Usuario Debug
-                </Button>
-              )}
             </div>
 
             {/* Footer opcional */}
@@ -189,12 +174,6 @@ export default function Login() {
           </div>
         </div>
       </div>
-
-      {/* Modal de Registro Debug */}
-      <DebugRegisterModal
-        isOpen={showDebugModal}
-        onClose={() => setShowDebugModal(false)}
-      />
     </>
   );
 }

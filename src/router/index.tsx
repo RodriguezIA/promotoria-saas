@@ -2,24 +2,16 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 
 
 import { Layout } from "@/layout"
-import { PrivateRoute } from '@/modules/auth'
+import { Home } from '@/modules/home'
 import { Finanzas } from '@/modules/finanzas'
 import { Perfil, MiNegocio } from '@/modules/perfil'
+import { PrivateRoute, Login, RestorePassword } from '@/modules/auth'
 import { ListadoPreguntas, PreguntaDetalle } from '@/modules/preguntas'
 import { Clientes, ClienteDetalle, CrearCliente } from '@/modules/clientes'
 import { CrearPedido, PedidoDetalle, PedidosList } from '@/modules/pedidos'
 import { ProductPage, ProductoDetalle, ProductoForm } from '@/modules/productos'
 import { Establecimientos, Establecimiento, EstablecimientoDetalle } from '@/modules/establecimientos'
 import { CrearSolicitud, EditarSolicitud, SolicitudDetalle, SolicitudesList } from '@/modules/solicitudes'
-
-
-
-
-
-
-import Login from "../pages/Login";
-import Home from "../pages/inicio/Home";
-import RestorePassword from "../pages/auth/restore-password";
 
 
 export default function AppRouter() {

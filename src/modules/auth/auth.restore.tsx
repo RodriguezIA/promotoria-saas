@@ -1,15 +1,14 @@
-import logo from "../../assets/promotorialogotipo_positivo.png";
-import { Button } from "../../components/ui/button";
-import { toast } from "sonner";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Input } from "../../components/ui/input";
-import { useState } from "react";
-import {
-  requestPasswordReset,
-  resetPassword,
-} from "../../Fetch/restorePassword";
+import { toast } from "sonner"
+import { useState } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
 
-export default function RestorePassword() {
+
+import { Button, Input } from "@/components"
+import logo from "@/assets/promotorialogotipo_positivo.png"
+import { requestPasswordReset, resetPassword } from "@/Fetch/restorePassword"
+
+
+export function RestorePassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
