@@ -29,6 +29,7 @@
  * S:
  *  SELECT: COMPONENTES RELACIONADOS CON CAMPOS DE SELECCIÓN, INCLUYENDO SELECTORES DE OPCIONES, SELECTORES DE FECHA, ETC.
  *  SEPARATOR: COMPONENTE DE SEPARADOR
+ *  STATCARD: COMPONENTE CADR DE ESTADISTICA
  * T:
  *  TABLE: COMPONENTE TABLA SENCILLO
  *  TEXTAREA:  TEXT AREA
@@ -93,6 +94,8 @@ export { Select, SelectTrigger, SelectContent, SelectItem, SelectValue, SelectGr
 
 // SEPARATOR
 export { Separator } from "./ui/separator"
+
+export { StatCard } from './dashboard/StatCard'
 
 // TABLE
 export { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from './ui/table'

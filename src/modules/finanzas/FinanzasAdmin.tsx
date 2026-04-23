@@ -1,16 +1,13 @@
-import { useEffect, useState } from "react";
-import { Loader2, CheckCircle2, Clock, DollarSign, Banknote } from "lucide-react";
-import { toast } from "sonner";
-import { ColumnDef } from "@tanstack/react-table";
+import { toast } from "sonner"
+import { useEffect, useState } from "react"
+import { ColumnDef } from "@tanstack/react-table"
+import { Loader2, CheckCircle2, Clock, DollarSign, Banknote } from "lucide-react"
 
-import { DataTable } from "../../components/ui/datatble";
-import { PageWrapper } from "../../components/ui/page-wrapper";
-import { PageHeader } from "../../components/ui/page-header";
-import { StatCard } from "../../components/dashboard/StatCard";
-import { useAuthStore } from "../../store/authStore";
-import { getMisPagos, MiPago, PromoterPaymentStatus } from "../../Fetch/finanzas";
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
+import { useAuthStore } from "@/store"
+import { DataTable, PageHeader, PageWrapper, StatCard } from "@/components"
+import { getMisPagos, MiPago, PromoterPaymentStatus } from "@/Fetch/finanzas"
+
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n);
@@ -31,9 +28,9 @@ const BadgeStatus = ({ status }: { status: PromoterPaymentStatus }) => {
   );
 };
 
-// ─── COMPONENTE ───────────────────────────────────────────────────────────────
 
-export default function FinanzasAdmin() {
+
+export function FinanzasAdmin() {
   const { user } = useAuthStore();
   const [pagos, setPagos] = useState<MiPago[]>([]);
   const [loading, setLoading] = useState(true);

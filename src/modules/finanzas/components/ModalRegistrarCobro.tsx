@@ -1,35 +1,12 @@
-import { useState } from "react";
-import {
-  Banknote,
-  ArrowLeftRight,
-  CreditCard,
-  Store,
-  Loader2,
-  CheckCircle2,
-  Receipt,
-} from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { useState } from "react"
+import { Banknote, ArrowLeftRight, CreditCard, Store, Loader2, CheckCircle2, Receipt } from "lucide-react"
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "../../../components/ui/dialog";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Label } from "../../../components/ui/label";
-import { Textarea } from "../../../components/ui/textarea";
 
-import {
-  marcarCobroPagado,
-  CobroPedido,
-  MetodoPago,
-  RegistrarPagoPayload,
-} from "../../../Fetch/finanzas";
+import { marcarCobroPagado, CobroPedido, MetodoPago, RegistrarPagoPayload } from "@/Fetch/finanzas";
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input, Label, Textarea } from "@/components";
 
-// ─── TIPOS ────────────────────────────────────────────────────────────────────
+
 
 interface Props {
   cobro: CobroPedido | null;
@@ -38,7 +15,6 @@ interface Props {
   onSuccess: (id_cobro: number, payload: RegistrarPagoPayload) => void;
 }
 
-// ─── CONFIG MÉTODOS DE PAGO ───────────────────────────────────────────────────
 
 const METODOS: {
   key: MetodoPago;
@@ -90,7 +66,7 @@ const fmt = (n: number) =>
 
 // ─── COMPONENTE ───────────────────────────────────────────────────────────────
 
-export default function ModalRegistrarCobro({ cobro, open, onClose, onSuccess }: Props) {
+export function ModalRegistrarCobro({ cobro, open, onClose, onSuccess }: Props) {
   const hoy = new Date().toISOString().split("T")[0];
 
   const [metodo, setMetodo] = useState<MetodoPago>("transferencia");

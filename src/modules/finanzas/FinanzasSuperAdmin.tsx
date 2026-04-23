@@ -1,39 +1,14 @@
-import { useEffect, useState } from "react";
-import {
-  TrendingUp,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-  DollarSign,
-  Users,
-  Banknote,
-} from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { useEffect, useState } from "react"
+import { ColumnDef } from "@tanstack/react-table"
+import { TrendingUp, Clock, CheckCircle2, AlertCircle, Loader2, DollarSign, Users, Banknote } from "lucide-react"
 
-import { Button } from "../../components/ui/button";
-import { ColumnDef } from "@tanstack/react-table";
-import { DataTable } from "../../components/ui/datatble";
-import { PageWrapper } from "../../components/ui/page-wrapper";
-import { PageHeader } from "../../components/ui/page-header";
-import { StatCard } from "../../components/dashboard/StatCard";
 
-import {
-  getCobros,
-  getPagosPromotores,
-  getResumenFinanzas,
-  CobroPedido,
-  PagoPromotor,
-  ResumenFinanzas,
-  PaymentStatus,
-  PromoterPaymentStatus,
-  RegistrarPagoPayload,
-} from "../../Fetch/finanzas";
+import { ModalRegistrarCobro, ModalRegistrarPagoPromotor } from './components'
+import { Button, DataTable, PageWrapper, PageHeader, StatCard} from "@/components"
+import { getCobros, getPagosPromotores, getResumenFinanzas, CobroPedido, PagoPromotor, ResumenFinanzas, PaymentStatus, PromoterPaymentStatus, RegistrarPagoPayload } from "@/Fetch/finanzas";
 
-import ModalRegistrarCobro from "./components/ModalRegistrarCobro";
-import ModalRegistrarPagoPromotor from "./components/ModalRegistrarPagoPromotor";
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n);
@@ -154,15 +129,6 @@ export default function FinanzasSuperAdmin() {
       header: "Total",
       cell: ({ row }) => (
         <span className="font-semibold text-gray-900">{fmt(row.getValue("f_total"))}</span>
-      ),
-    },
-    {
-      accessorKey: "f_pendiente",
-      header: "Por cobrar",
-      cell: ({ row }) => (
-        <span className={row.getValue("f_pendiente") > 0 ? "text-red-600 font-semibold" : "text-gray-400"}>
-          {fmt(row.getValue("f_pendiente"))}
-        </span>
       ),
     },
     {

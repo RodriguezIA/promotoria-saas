@@ -1,35 +1,13 @@
-import { useState } from "react";
-import {
-  Banknote,
-  ArrowLeftRight,
-  CreditCard,
-  Store,
-  Loader2,
-  CheckCircle2,
-  Users,
-} from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { useState } from "react"
+import { Banknote, ArrowLeftRight, CreditCard, Store, Loader2, CheckCircle2, Users } from "lucide-react"
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "../../../components/ui/dialog";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Label } from "../../../components/ui/label";
-import { Textarea } from "../../../components/ui/textarea";
 
-import {
-  marcarPagoPromotorPagado,
-  PagoPromotor,
-  MetodoPago,
-  RegistrarPagoPayload,
-} from "../../../Fetch/finanzas";
+import { marcarPagoPromotorPagado, PagoPromotor, MetodoPago, RegistrarPagoPayload } from "@/Fetch/finanzas"
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input, Label, Textarea } from "@/components/"
 
-// ─── TIPOS ────────────────────────────────────────────────────────────────────
+
+
 
 interface Props {
   pago: PagoPromotor | null;
@@ -38,7 +16,6 @@ interface Props {
   onSuccess: (id_pago: number, payload: RegistrarPagoPayload) => void;
 }
 
-// ─── CONFIG MÉTODOS DE PAGO ───────────────────────────────────────────────────
 
 const METODOS: {
   key: MetodoPago;
@@ -92,7 +69,7 @@ const fmtDate = (d: string) => new Date(d).toLocaleDateString("es-MX");
 
 // ─── COMPONENTE ───────────────────────────────────────────────────────────────
 
-export default function ModalRegistrarPagoPromotor({ pago, open, onClose, onSuccess }: Props) {
+export function ModalRegistrarPagoPromotor({ pago, open, onClose, onSuccess }: Props) {
   const hoy = new Date().toISOString().split("T")[0];
 
   const [metodo, setMetodo] = useState<MetodoPago>("transferencia");
