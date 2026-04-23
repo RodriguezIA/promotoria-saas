@@ -1,36 +1,23 @@
-import {
-  SidebarMenu,
-  SidebarMenuItem,
-} from "../../components/ui/sidebar";
-import logo from "../../assets/promotorialogotipo_positivo.png";
-import logoSmall from "../../assets/promotorialogotipo_positivo.png";
-import {
-  Store,
-  MoreVertical,
-  ChevronLeft,
-  HomeIcon,
-  ClipboardList,
-  UsersRound,
-  Package,
-  MessageCircleQuestion,
-  Receipt,
-  Banknote,
-  UserCircle,
-  Building2,
-} from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
-import LogoutButton from "../LogoutButton";
-import { ThemeToggle } from "../ui/theme-toggle";
-import { useAuthStore } from "../../store/authStore";
-import { useState } from "react";
-import { cn } from "../../lib/utils";
+import { useState } from "react"
+import { Link, useLocation } from "react-router-dom"
+import { Store, MoreVertical, ChevronLeft, HomeIcon, ClipboardList, UsersRound, Package, MessageCircleQuestion, Receipt, Banknote, UserCircle, Building2 } from "lucide-react"
+
+
+import { cn } from "@/lib"
+import { useAuthStore } from "@/store"
+import { SidebarMenu, SidebarMenuItem, LogoutButton } from "@/components"
+
+
+import logo from "@/assets/promotorialogotipo_positivo.png"
+import logoSmall from "@/assets/promotorialogotipo_positivo.png"
+
 
 interface SidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
 }
 
-export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
+export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const location = useLocation();
   const pathname = location.pathname;
   const { user } = useAuthStore();

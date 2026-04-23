@@ -1,10 +1,13 @@
-import { SidebarProvider } from "../../components/ui/sidebar";
-import { Outlet, useLocation } from "react-router-dom";
-import Sidebar from "./Sidebar";
-import { Menu, X } from "lucide-react";
-import { useState } from "react";
-import { useAuthStore } from "../../store/authStore";
-import { cn } from "../../lib/utils";
+import { useState } from "react"
+import { Menu, X } from "lucide-react"
+import { Outlet, useLocation } from "react-router-dom"
+
+
+import { cn } from "@/lib";
+import { Sidebar } from "./Sidebar"
+import { useAuthStore } from "@/store"
+import { SidebarProvider } from '@/components'
+
 
 const ROUTE_LABELS: Record<string, string> = {
   "/": "Dashboard",
@@ -58,7 +61,7 @@ function UserAvatar({ name }: { name: string }) {
   );
 }
 
-export default function Layout() {
+export function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const { user } = useAuthStore();

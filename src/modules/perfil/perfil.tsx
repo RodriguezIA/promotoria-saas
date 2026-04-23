@@ -1,66 +1,24 @@
-import { useEffect, useState } from "react";
-import {
-  UserCircle,
-  Pencil,
-  KeyRound,
-  ShieldCheck,
-  Calendar,
-  Mail,
-  Loader2,
-  CheckCircle2,
-  Eye,
-  EyeOff,
-  X,
-  Lock,
-} from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { useEffect, useState } from "react"
+import { Pencil, KeyRound, ShieldCheck, Calendar, Mail, Loader2, CheckCircle2, Eye, EyeOff, X, Lock } from "lucide-react"
 
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { Card } from "../../components/ui/card";
-import { PageWrapper } from "../../components/ui/page-wrapper";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "../../components/ui/dialog";
 
-import { useAuthStore } from "../../store/authStore";
-import {
-  getPerfil,
-  updateProfile,
-  updateEmail,
-  changePassword,
-  PerfilUsuario,
-} from "../../Fetch/perfil";
+import { useAuthStore } from "@/store"
+import { getPerfil, updateProfile, updateEmail, changePassword, PerfilUsuario } from "@/Fetch/perfil";
+import { Button, Card, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input, Label, PageWrapper } from "@/components"
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
 
 const ROL_LABEL: Record<number, { label: string; color: string }> = {
   1: { label: "Super Admin", color: "bg-purple-100 text-purple-800 border-purple-200" },
   2: { label: "Administrador", color: "bg-blue-100 text-blue-800 border-blue-200" },
 };
 
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" });
+const fmtDate = (d: string) => new Date(d).toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" });
+const initials = (name: string, lastname: string) => `${name.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
 
-const initials = (name: string, lastname: string) =>
-  `${name.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
 
-// ─── SUB-COMPONENTES ──────────────────────────────────────────────────────────
 
-function InfoRow({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-}) {
+function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string; }) {
   return (
     <div className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
       <div className="mt-0.5 p-1.5 bg-gray-100 rounded-md">
@@ -74,7 +32,7 @@ function InfoRow({
   );
 }
 
-// ── Modal editar perfil ────────────────────────────────────────────────────────
+
 
 interface EditModalProps {
   open: boolean;
@@ -182,8 +140,6 @@ function ModalEditarPerfil({ open, perfil, onClose, onSaved }: EditModalProps) {
     </Dialog>
   );
 }
-
-// ── Modal cambiar contraseña ───────────────────────────────────────────────────
 
 interface PwdModalProps {
   open: boolean;
@@ -348,9 +304,9 @@ function ModalCambiarPassword({ open, onClose }: PwdModalProps) {
   );
 }
 
-// ─── PÁGINA PRINCIPAL ─────────────────────────────────────────────────────────
 
-export default function Perfil() {
+
+export function Perfil() {
   const { user, login, token } = useAuthStore();
   const [perfil, setPerfil] = useState<PerfilUsuario | null>(null);
   const [loading, setLoading] = useState(true);

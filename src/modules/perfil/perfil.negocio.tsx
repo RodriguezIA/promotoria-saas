@@ -1,32 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import {
-  Building2,
-  Mail,
-  MapPin,
-  FileText,
-  Users,
-  Package,
-  Store,
-  Clock,
-  TrendingUp,
-  ChevronDown,
-  CreditCard,
-  Ticket,
-  Loader2,
-  Phone,
-} from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { useState, useEffect, useRef } from "react"
+import { Building2, Mail, MapPin, FileText, Users, Package, Store, Clock, TrendingUp, ChevronDown, CreditCard, Ticket, Loader2, Phone } from "lucide-react"
 
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { ModalCustom } from "../../components/custom/ModalCustom";
-import { PageWrapper } from "../../components/ui/page-wrapper";
-import { getClientById } from "../../Fetch/clientes";
-import { registerUserInClient } from "../../Fetch/usuarios";
-import { clientDetail } from "../../types/clients";
-import { useAuthStore } from "../../store/authStore";
 
-// ─── TABS ─────────────────────────────────────────────────────────────────────
+import { useAuthStore } from "@/store"
+import { clientDetail } from "@/types/clients"
+import { getClientById } from "@/Fetch/clientes"
+import { registerUserInClient } from "@/Fetch/usuarios"
+import { PageWrapper, ModalCustom, Input, Label } from "@/components"
+
 
 const tabs = [
   { id: "info", label: "Información", icon: FileText },
@@ -36,7 +18,6 @@ const tabs = [
   { id: "history", label: "Historial", icon: Clock },
 ];
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
 
 const formatDate = (dateString?: string) => {
   if (!dateString) return "-";
@@ -47,17 +28,10 @@ const formatDate = (dateString?: string) => {
   });
 };
 
-const getInitials = (name: string) =>
-  name
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+const getInitials = (name: string) => name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 
-// ─── PÁGINA PRINCIPAL ─────────────────────────────────────────────────────────
 
-export default function MiNegocio() {
+export function MiNegocio() {
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState("info");
   const [cliente, setCliente] = useState<clientDetail | null>(null);
@@ -177,7 +151,6 @@ export default function MiNegocio() {
   );
 }
 
-// ─── TAB: INFORMACIÓN ─────────────────────────────────────────────────────────
 
 function TabInfo({ cliente }: { cliente: clientDetail }) {
   return (
@@ -282,8 +255,6 @@ function TabInfo({ cliente }: { cliente: clientDetail }) {
   );
 }
 
-// ─── TAB: USUARIOS ────────────────────────────────────────────────────────────
-
 function TabUsers({ cliente }: { cliente: clientDetail }) {
   const { user } = useAuthStore();
   const [isLoadingModal, setIsLoadingModal] = useState(false);
@@ -301,6 +272,8 @@ function TabUsers({ cliente }: { cliente: clientDetail }) {
         email: emailRef.current?.value || "",
         id_user_creator: user?.id_user || 0,
         id_client: cliente.id_client,
+        password: "",
+        i_rol: 0
       });
       if (res?.error) { toast.error("Error al agregar el usuario"); return false; }
       toast.success("Usuario agregado exitosamente");
@@ -364,8 +337,6 @@ function TabUsers({ cliente }: { cliente: clientDetail }) {
   );
 }
 
-// ─── TAB: ESTABLECIMIENTOS ────────────────────────────────────────────────────
-
 function TabStores() {
   return (
     <div className="space-y-4">
@@ -384,8 +355,6 @@ function TabStores() {
   );
 }
 
-// ─── TAB: PRODUCTOS ───────────────────────────────────────────────────────────
-
 function TabProducts() {
   return (
     <div className="space-y-4">
@@ -401,8 +370,6 @@ function TabProducts() {
     </div>
   );
 }
-
-// ─── TAB: HISTORIAL ───────────────────────────────────────────────────────────
 
 function TabHistory() {
   const [openAccordions, setOpenAccordions] = useState<string[]>(["negocio"]);

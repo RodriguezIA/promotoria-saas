@@ -1,7 +1,10 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 
 
+import { Layout } from "@/layout"
+import { PrivateRoute } from '@/modules/auth'
 import { Finanzas } from '@/modules/finanzas'
+import { Perfil, MiNegocio } from '@/modules/perfil'
 import { ListadoPreguntas, PreguntaDetalle } from '@/modules/preguntas'
 import { Clientes, ClienteDetalle, CrearCliente } from '@/modules/clientes'
 import { CrearPedido, PedidoDetalle, PedidosList } from '@/modules/pedidos'
@@ -11,18 +14,12 @@ import { CrearSolicitud, EditarSolicitud, SolicitudDetalle, SolicitudesList } fr
 
 
 
-import PrivateRoute from "../components/PrivateRoute";
-import Layout from "../components/layout/Layout";
+
+
+
 import Login from "../pages/Login";
 import Home from "../pages/inicio/Home";
 import RestorePassword from "../pages/auth/restore-password";
-
-
-// PERFIL
-import Perfil from "../pages/perfil/Perfil";
-
-// MI NEGOCIO
-import MiNegocio from "../pages/miNegocio/MiNegocio";
 
 
 export default function AppRouter() {
@@ -64,10 +61,8 @@ export default function AppRouter() {
           <Route path="crearPedido" element={<CrearPedido />} />
           <Route path="detalle-pedido/:id" element={<PedidoDetalle />} />
           <Route path="finanzas" element={<Finanzas />} />
-
-          
-          <Route path="mi-negocio" element={<MiNegocio />} />
           <Route path="perfil" element={<Perfil />} />
+          <Route path="mi-negocio" element={<MiNegocio />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,13 +1,13 @@
 import { LogOut } from "lucide-react";
-import { useAuthStore } from "../store/authStore";
+import { useAuthStore } from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
-import { cn } from "../lib/utils";
+import { cn } from "../../lib/utils";
 
 interface LogoutButtonProps {
   isExpanded?: boolean;
 }
 
-export default function LogoutButton({ isExpanded = true }: LogoutButtonProps) {
+export function LogoutButton({ isExpanded = true }: LogoutButtonProps) {
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
 

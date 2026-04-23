@@ -20,6 +20,7 @@
  *  INPUT: COMPONENTES RELACIONADOS CON CAMPOS DE ENTRADA DE DATOS, INCLUYENDO INPUTS DE TEXTO, SELECTORES, CHECKBOXES, ETC.
  * L:
  *  LABEL: COMPONENTES RELACIONADOS CON ETIQUETAS Y DESCRIPCIONES DE CAMPOS, INCLUYENDO LABELS, HELPERS, ETC.
+ *  LOGOUTBUTTON: COMPONENTE BOTON PRINCIPAL DEL SISTMEA PARA CERRAR SESSION
  * M:
  *  MESSAGE-CONFIRMACION: COMPONENTES RELACIONADOS CON MENSAJES DE CONFIRMACIÓN PERSONALIZADOS, INCLUYENDO MODALES DE CONFIRMACIÓN, ALERTAS DE CONFIRMACIÓN, ETC.
  *  MODAL CUSTOM: COMPONENTES RELACIONADOS CON MODALES PERSONALIZADOS, INCLUYENDO MODALES DE CONFIRMACIÓN, MODALES DE FORMULARIOS, ETC.
@@ -30,9 +31,11 @@
  *  SELECT: COMPONENTES RELACIONADOS CON CAMPOS DE SELECCIÓN, INCLUYENDO SELECTORES DE OPCIONES, SELECTORES DE FECHA, ETC.
  *  SEPARATOR: COMPONENTE DE SEPARADOR
  *  STATCARD: COMPONENTE CADR DE ESTADISTICA
+ *  SIDEBAR: COMPONENTE PRINCIPAL DEL SISTEMA
  * T:
  *  TABLE: COMPONENTE TABLA SENCILLO
  *  TEXTAREA:  TEXT AREA
+ *  THEMETOGGLE: COMPONENTE PARA CAMBIAR DE TEMA CLARO/OBSCURO
  *  TOOLTIP: COMPONENTE TOOLTIP
  */
 
@@ -78,6 +81,7 @@ export { Input } from "./ui/input";
 
 // LABEL
 export { Label } from "./ui/label";
+export { LogoutButton } from './custom/LogoutButton'
 
 // MODAL CUSTOM
 export { MensajeConfirmacion } from "./custom/mensajeConfirmaacion";
@@ -95,13 +99,19 @@ export { Select, SelectTrigger, SelectContent, SelectItem, SelectValue, SelectGr
 // SEPARATOR
 export { Separator } from "./ui/separator"
 
+// STATCARD
 export { StatCard } from './dashboard/StatCard'
+
+// SIDEBAR
+export { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupAction, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarInput, SidebarInset, SidebarMenu, SidebarMenuAction, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSkeleton, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarProvider, SidebarRail, SidebarSeparator, SidebarTrigger, useSidebar  } from './ui/sidebar'
 
 // TABLE
 export { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from './ui/table'
 
 // TEXTAREA
 export { Textarea } from './ui/textarea'
+
+export { ThemeToggle, ThemeToggleCompact, ThemeToggleHeader } from './ui/theme-toggle'
 
 // TOOLTIP
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
