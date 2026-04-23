@@ -24,6 +24,8 @@
  *  PAGE-WRAPPER: COMPONENTES RELACIONADOS CON EL ENVOLTORIO DE PÁGINAS, INCLUYENDO LAYOUTS, CONTENEDORES, ETC.
  * S:
  *  SELECT: COMPONENTES RELACIONADOS CON CAMPOS DE SELECCIÓN, INCLUYENDO SELECTORES DE OPCIONES, SELECTORES DE FECHA, ETC.
+ * T:
+ *  TOOLTIP: COMPONENTE TOOLTIP
  */
 
 // ALERT
@@ -68,3 +70,6 @@ export { PageWrapper } from "./ui/page-wrapper";
 
 // SELECT
 export { Select, SelectTrigger, SelectContent, SelectItem, SelectValue, SelectGroup,SelectLabel, SelectScrollDownButton, SelectScrollUpButton, SelectSeparator } from "./ui/select";
+
+// TOOLTIP
+export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'

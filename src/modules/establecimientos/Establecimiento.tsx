@@ -2,10 +2,10 @@ import { toast } from "sonner"
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { ArrowLeft, Store, MapPin, Map } from "lucide-react"
-import { useJsApiLoader, GoogleMap } from "@react-google-maps/api"
+import { GoogleMap } from "@react-google-maps/api"
 
 
-import { api, ApiResponse } from '@/lib'
+import { api, ApiResponse, useJsApiLoader, GOOGLE_MAPS_CONFIG } from '@/lib'
 import { useAuthStore } from '@/store'
 import { Button, Input, Label, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components'
 import { FormData, initialFormData } from './utils'
@@ -26,11 +26,7 @@ export default function Establecimiento() {
     const [mapCenter, setMapCenter] = useState({ lat: 25.7460, lng: -100.2792 }) 
     const [markerPosition, setMarkerPosition] = useState<{lat: number, lng: number} | null>(null)
 
-    const { isLoaded } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY
-    })
-
+    const { isLoaded } = useJsApiLoader(GOOGLE_MAPS_CONFIG)
 
     useEffect(() => {
         try {

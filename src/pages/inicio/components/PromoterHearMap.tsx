@@ -1,13 +1,11 @@
-// components/dashboard/PromoterHeatMap.tsx
-import { GoogleMap, useJsApiLoader } from "@react-google-maps/api";
 import { useRef } from "react";
-import { HeatmapPromoter } from "../../../Fetch/inicio";
 import { Loader2, MapPin } from "lucide-react";
+import { GoogleMap } from "@react-google-maps/api";
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+import { HeatmapPromoter } from '@/Fetch/inicio';
+import { GOOGLE_MAPS_CONFIG, useJsApiLoader } from '@/lib'
 
-// ⚠️ Agrega "visualization" a las libraries
-const libraries: ("visualization")[] = ["visualization"];
+
 
 const mapContainerStyle = {
   width: "100%",
@@ -19,8 +17,11 @@ interface Props {
   promoters: HeatmapPromoter[];
 }
 
+
 export function PromoterHeatMap({ promoters }: Props) {
   const heatmapRef = useRef<google.maps.visualization.HeatmapLayer | null>(null);
+
+  const { isLoaded } = useJsApiLoader(GOOGLE_MAPS_CONFIG)
 
   const MAP_STYLE_GRAY: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -53,10 +54,6 @@ export function PromoterHeatMap({ promoters }: Props) {
     { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#e0e0e0" }] },
     ];
 
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-    libraries,
-  });
 
   // Centro del mapa: promedio de coordenadas
   const center = promoters.length > 0

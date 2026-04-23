@@ -2,20 +2,21 @@ import { toast } from 'sonner'
 import { useState, useEffect } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { Link, useNavigate } from "react-router-dom"
-import { Plus, Loader2, Store as StoreIcon, MoreHorizontal, Eye, Edit2, Trash2 } from "lucide-react"
+import { Plus, Loader2, Store as StoreIcon, Eye, Trash2 } from "lucide-react"
 
-
+import { StoreDTO } from '@/dtos'
 import { api, ApiResponse } from '@/lib'
-import { getStores, deleteStore, Store } from '@/Fetch/establecimientos'
+import { Button, DataTable, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components'
+import { deleteStore } from '@/Fetch/establecimientos'
 import { EstablecimientoModalRegistroMasivo } from './EstablecimientoModalRegistroMasivo'
-import { Button, DataTable, DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from '@/components'
+
 
 
 export function EstablecimientosSuperAdmin() {
     const navigate = useNavigate()
 
     const [loading, setLoading] = useState(true);
-    const [establecimientos, setEstablecimientos] = useState<Store[]>([]);
+    const [establecimientos, setEstablecimientos] = useState<StoreDTO[]>([]);
 
     useEffect(() => {
         fetchEstablecimientos();
@@ -25,12 +26,7 @@ export function EstablecimientosSuperAdmin() {
     const fetchEstablecimientos = async () => {
         try {
             setLoading(true);
-            // const response = await getStores();
-
-            const response = await api.get<ApiResponse<any>>(`/stores`)
-
-            console.log(response)
-            
+            const response = await api.get<ApiResponse<StoreDTO[]>>(`/stores`)
             if (response.ok && response.data) {
                 setEstablecimientos(response.data);
             } else {
@@ -60,7 +56,31 @@ export function EstablecimientosSuperAdmin() {
         }
     }
 
-    const columns: ColumnDef<Store>[] = [
+    const columns: ColumnDef<StoreDTO>[] = [
+        {
+            id: "sales_channel",
+            header: "Canal de venta",
+            meta: { className: "text-center" }, 
+            cell: ({ row }) => {
+                const store = row.original;
+
+                if(store.sales_channel){
+                    return (
+                        <div className="flex flex-col items-center justify-center gap-2 py-2">
+                            <img 
+                                src={store.sales_channel.url_image} 
+                                alt={store.sales_channel.name}
+                                className="h-10 w-10 rounded-full object-cover border border-gray-200 bg-white" 
+                            />
+                            <span className="text-xs font-medium text-gray-700 text-center leading-tight">
+                                {store.sales_channel.name}
+                            </span>
+                        </div>
+                    )
+                }
+                return <span className="text-xs text-gray-400">Sin canal</span>
+            }
+        },
         {
             accessorKey: "name",
             header: "Nombre",
@@ -70,73 +90,57 @@ export function EstablecimientosSuperAdmin() {
             header: "Código de Tienda",
         },
         {
-            accessorKey: "street",
-            header: "Calle",
-        },
-        {
-            accessorKey: "ext_number",
-            header: "Número Exterior",
-        },
-        {
-            accessorKey: "int_number",
-            header: "Número Interior",
-        },
-        {
-            accessorKey: "neighborhood",
-            header: "Colonia",
-        },
-        {
-            accessorKey: "municipality",
+            accessorKey: "address.city.name",
             header: "Municipio",
         },
         {
-            accessorKey: "state",
+            accessorKey: "address.state.name",
             header: "Estado",
         },
         {
-            accessorKey: "postal_code",
-            header: "C.P.",
-        },
-        {
-            accessorKey: "country",
-            header: "País",
-        },
-        {
             id: "actions",
-            header: "operaciones",
+            header: "Operaciones",
+            meta: { className: "text-center" },
             cell: ({ row }) => {
                 const store = row.original;
 
                 return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
+                    <TooltipProvider delayDuration={100}>
+                        <div className="flex items-center justify-center gap-2">
+                            
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button 
+                                        variant="outline" 
+                                        size="icon" 
+                                        className="h-8 w-8"
+                                        onClick={() => navigate(`/establecimiento/detalle/${store.id_store}`)}
+                                    >
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Ver detalle</p>
+                                </TooltipContent>
+                            </Tooltip>
 
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                                onClick={() => navigate(`/establecimiento/detalle/${store.id_store}`)}
-                            >
-                                <Eye className="mr-2 h-4 w-4" />
-                                Ver detalle
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => navigate(`/establecimiento/${store.id_store}`)}
-                            >
-                                <Edit2 className="mr-2 h-4 w-4" />
-                                Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => handleDeleteEstablecimiento(store.id_store)}
-                            >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Eliminar
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button 
+                                        variant="destructive" 
+                                        size="icon" 
+                                        className="h-8 w-8"
+                                        onClick={() => handleDeleteEstablecimiento(store.id_store)}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Eliminar</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </div>
+                    </TooltipProvider>
                 )
             }
         }

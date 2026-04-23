@@ -4,3 +4,8 @@ export interface channelSalesDTO {
     description?: string
     url_image?: string
 }
+
+export interface channelSaleEstablecimientoDTO {
+    name: string,
+    url_image?: string
+}

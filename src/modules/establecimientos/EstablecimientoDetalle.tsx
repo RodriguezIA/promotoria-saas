@@ -2,22 +2,20 @@ import { toast } from "sonner"
 import { useState, useEffect, useCallback } from "react"
 import { useNavigate, useParams, Link } from "react-router-dom"
 import { ArrowLeft, Loader2, Store as StoreIcon, MapPin, Hash, Edit, Trash2, Copy, ExternalLink } from "lucide-react"
-import { GoogleMap, useJsApiLoader, OverlayView } from "@react-google-maps/api";
+import { GoogleMap, OverlayView } from "@react-google-maps/api";
 
-import { useAuthStore } from '@/store'
-import { Button, MensajeConfirmacion } from "@/components";
-import { getStoreClientById, deleteStoreClient, getStoreById, Store } from "@/Fetch/establecimientos";
+import { Button } from "@/components";
+import { GOOGLE_MAPS_CONFIG, useJsApiLoader, api, ApiResponse } from '@/lib'
+import { getStoreById, Store } from "@/Fetch/establecimientos";
+import { StoreDTO } from '@/dtos'
 
-const libraries: ("places")[] = ["places"];
+
 const mapContainerStyle = {
     width: "100%",
     height: "700px",
     borderRadius: "8px",
 };
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
-// Componente del marcador personalizado
 interface CustomMarkerProps {
     position: google.maps.LatLngLiteral;
     imageUrl: string | null;
@@ -94,80 +92,35 @@ function CustomMarker({ position, imageUrl, storeName }: CustomMarkerProps) {
 export default function EstablecimientoDetalle() {
     const navigate = useNavigate();
     const { id_store_client } = useParams();
-    const { user } = useAuthStore()
 
-    const [establecimiento, setEstablecimiento] = useState<Store | null>(null);
+    const [establecimiento, setEstablecimiento] = useState<StoreDTO>();
     const [loading, setLoading] = useState(true);
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [_deleting, setDeleting] = useState(false);
     const [storeImage, setStoreImage] = useState<string | null>(null);
 
-    const { isLoaded } = useJsApiLoader({
-        googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-        libraries,
-    });
+    const { isLoaded } = useJsApiLoader(GOOGLE_MAPS_CONFIG)
 
     useEffect(() => {
-        if (id_store_client) {
-            if(user?.id_client && user.id_client > 0){
-                fetchEstablecimientoIdClient()
-            }else {
-                fetchEstablecimiento();
-            }
-        }
-    }, [id_store_client]);
-
-    // Generar URL de Street View cuando se carga el establecimiento
-    useEffect(() => {
-        if (establecimiento?.latitude && establecimiento?.longitude) {
-            const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=400x300&location=${Number(establecimiento.latitude)},${Number(establecimiento.longitude)}&fov=90&heading=235&pitch=10&key=${GOOGLE_MAPS_API_KEY}`;
+        if (establecimiento?.address.latitude && establecimiento?.address.longitude) {
+            const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=400x300&location=${Number(establecimiento.address.latitude)},${Number(establecimiento.address.longitude)}&fov=90&heading=235&pitch=10&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`;
             setStoreImage(streetViewUrl);
         }
     }, [establecimiento]);
 
-    const fetchEstablecimiento = async () => {
+    useEffect(() => {
+        setLoading(true);
         try {
-            setLoading(true);
-            const response = await getStoreById(Number(id_store_client));
-            setEstablecimiento(response.data);
-        } catch (error) {
-            console.error("Error al cargar establecimiento:", error);
-            toast.error("Error al cargar los datos del establecimiento");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchEstablecimientoIdClient = async () => {
-        try {
-            setLoading(true);
-            const response = await getStoreClientById(Number(id_store_client));
-            setEstablecimiento(response.data);
-        } catch (error) {
-            console.error("Error al cargar establecimiento:", error);
-            toast.error("Error al cargar los datos del establecimiento");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleDelete = async () => {
-        setDeleting(true);
-        try {
-            if(user?.id_client && user.id_client > 0){
-                await deleteStoreClient(Number(id_store_client))
+            const fetch = async() => {
+                const resp = await api.get<ApiResponse<StoreDTO>>(`/stores/${id_store_client}`);
+                console.log(resp);
+                setEstablecimiento(resp.data);
             }
-
-            toast.success("Establecimiento eliminado correctamente");
-            navigate("/establecimientos");
+            fetch()
         } catch (error) {
-            console.error("Error al eliminar:", error);
-            toast.error("Error al eliminar el establecimiento");
+            console.error("error establecimiento detalle uyseeffect main");
         } finally {
-            setDeleting(false);
-            setShowDeleteConfirm(false);
+            setLoading(false);
         }
-    };
+    }, [id_store_client])
 
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
@@ -177,24 +130,24 @@ export default function EstablecimientoDetalle() {
     const getFullAddress = () => {
         if (!establecimiento) return "";
         const parts = [
-            establecimiento.street,
-            establecimiento.ext_number,
-            establecimiento.int_number,
-            establecimiento.neighborhood,
-            establecimiento.municipality,
-            establecimiento.state,
-            establecimiento.postal_code,
-            establecimiento.country,
+            establecimiento.address.street,
+            establecimiento.address.ext_number,
+            establecimiento.address.int_number,
+            establecimiento.address.neighborhood,
+            establecimiento.address.city?.name,
+            establecimiento.address.state?.name,
+            establecimiento.address.postal_code,
+            establecimiento.address.country?.name,
         ].filter(Boolean);
         return parts.join(", ");
     };
 
     const onMapLoad = useCallback((map: google.maps.Map) => {
         // Centrar el mapa en las coordenadas del establecimiento
-        if (establecimiento?.latitude && establecimiento?.longitude) {
+        if (establecimiento?.address.latitude && establecimiento?.address.longitude) {
             map.setCenter({
-                lat: establecimiento.latitude,
-                lng: establecimiento.longitude,
+                lat: establecimiento.address.latitude,
+                lng: establecimiento.address.longitude,
             });
         }
     }, [establecimiento]);
@@ -220,19 +173,12 @@ export default function EstablecimientoDetalle() {
     }
 
     const markerPosition = {
-        lat: Number(establecimiento.latitude),
-        lng: Number(establecimiento.longitude),
+        lat: Number(establecimiento.address.latitude),
+        lng: Number(establecimiento.address.longitude),
     };
 
     return (
         <>
-            <MensajeConfirmacion
-                open={showDeleteConfirm}
-                onOpenChange={setShowDeleteConfirm}
-                onConfirm={handleDelete}
-                title="¿Eliminar establecimiento?"
-                description="Esta acción no se puede deshacer. El establecimiento será eliminado permanentemente."
-            />
 
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
@@ -254,21 +200,14 @@ export default function EstablecimientoDetalle() {
                     </div>
                 </div>
 
-                <div className="flex gap-3">
+                {/* <div className="flex gap-3">
                     <Link to={`/establecimiento/${id_store_client}`}>
                         <Button variant="outline">
                             <Edit size={18} className="mr-2" />
                             Editar
                         </Button>
                     </Link>
-                    <Button
-                        variant="destructive"
-                        onClick={() => setShowDeleteConfirm(true)}
-                    >
-                        <Trash2 size={18} className="mr-2" />
-                        Eliminar
-                    </Button>
-                </div>
+                </div> */}
             </div>
 
             {/* Contenido */}
@@ -342,37 +281,37 @@ export default function EstablecimientoDetalle() {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <p className="text-sm text-gray-500">Calle</p>
-                            <p className="font-medium">{establecimiento.street}</p>
+                            <p className="font-medium">{establecimiento.address.street}</p>
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Número Exterior</p>
-                            <p className="font-medium">{establecimiento.ext_number}</p>
+                            <p className="font-medium">{establecimiento.address.ext_number}</p>
                         </div>
-                        {establecimiento.int_number && (
+                        {establecimiento.address.int_number && (
                             <div>
                                 <p className="text-sm text-gray-500">Número Interior</p>
-                                <p className="font-medium">{establecimiento.int_number}</p>
+                                <p className="font-medium">{establecimiento.address.int_number}</p>
                             </div>
                         )}
                         <div>
                             <p className="text-sm text-gray-500">Colonia</p>
-                            <p className="font-medium">{establecimiento.neighborhood}</p>
+                            <p className="font-medium">{establecimiento.address.neighborhood}</p>
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Municipio</p>
-                            <p className="font-medium">{establecimiento.municipality}</p>
+                            <p className="font-medium">{establecimiento.address.city?.name}</p>
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Estado</p>
-                            <p className="font-medium">{establecimiento.state}</p>
+                            <p className="font-medium">{establecimiento.address.state?.name}</p>
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Código Postal</p>
-                            <p className="font-medium">{establecimiento.postal_code}</p>
+                            <p className="font-medium">{establecimiento.address.postal_code}</p>
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">País</p>
-                            <p className="font-medium">{establecimiento.country}</p>
+                            <p className="font-medium">{establecimiento.address.country?.name}</p>
                         </div>
                     </div>
                 </div>
@@ -387,11 +326,11 @@ export default function EstablecimientoDetalle() {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <p className="text-sm text-gray-500">Latitud</p>
-                            <p className="font-mono font-medium">{establecimiento.latitude}</p>
+                            <p className="font-mono font-medium">{establecimiento.address.latitude}</p>
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Longitud</p>
-                            <p className="font-mono font-medium">{establecimiento.longitude}</p>
+                            <p className="font-mono font-medium">{establecimiento.address.longitude}</p>
                         </div>
                     </div>
 
@@ -400,7 +339,7 @@ export default function EstablecimientoDetalle() {
                         className="mt-4 w-full"
                         onClick={() =>
                             window.open(
-                                `https://www.google.com/maps?q=${establecimiento.latitude},${establecimiento.longitude}`,
+                                `https://www.google.com/maps?q=${establecimiento.address.latitude},${establecimiento.address.longitude}`,
                                 "_blank"
                             )
                         }
@@ -415,18 +354,18 @@ export default function EstablecimientoDetalle() {
                     <h2 className="text-lg font-medium mb-4">Información del Sistema</h2>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div>
+                        {/* <div>
                             <p className="text-sm text-gray-500">Fecha de Creación</p>
                             <p className="font-medium">
                                 {new Date(establecimiento.dt_register).toLocaleDateString("es-MX")}
                             </p>
-                        </div>
-                        <div>
+                        </div> */}
+                        {/* <div>
                             <p className="text-sm text-gray-500">Última Actualización</p>
                             <p className="font-medium">
                                 {new Date(establecimiento.dt_updated).toLocaleDateString("es-MX")}
                             </p>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>
