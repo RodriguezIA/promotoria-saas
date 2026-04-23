@@ -6,6 +6,7 @@ import { ProductPage, ProductoDetalle, ProductoForm } from '@/modules/productos'
 import { Establecimientos, Establecimiento, EstablecimientoDetalle } from '@/modules/establecimientos'
 import { ListadoPreguntas, PreguntaDetalle } from '@/modules/preguntas'
 import { CrearSolicitud, EditarSolicitud, SolicitudDetalle, SolicitudesList } from '@/modules/solicitudes'
+import { CrearPedido, PedidoDetalle, PedidosList } from '@/modules/pedidos'
 
 import PrivateRoute from "../components/PrivateRoute";
 import Layout from "../components/layout/Layout";
@@ -13,12 +14,6 @@ import Login from "../pages/Login";
 import Home from "../pages/inicio/Home";
 import RestorePassword from "../pages/auth/restore-password";
 
-
-
-// PEDIDOS
-import PedidosList from "../pages/pedidos/PedidoList";
-import { CrearPedido } from "../pages/pedidos/CrearPedido";
-import PedidoDetalle from "../pages/pedidos/PedidoDetalle";
 
 // FINANZAS
 import Finanzas from "../pages/finanzas/Finanzas";
@@ -65,11 +60,11 @@ export default function AppRouter() {
           <Route path="crearSolicitud" element={<CrearSolicitud />} />
           <Route path="detalle-solicitud/:id" element={<SolicitudDetalle />} />
           <Route path="editar-solicitud/:id" element={<EditarSolicitud />} />
-
-
           <Route path="pedidos" element={<PedidosList />} />
           <Route path="crearPedido" element={<CrearPedido />} />
           <Route path="detalle-pedido/:id" element={<PedidoDetalle />} />
+
+
           <Route path="finanzas" element={<Finanzas />} />
           <Route path="mi-negocio" element={<MiNegocio />} />
           <Route path="perfil" element={<Perfil />} />

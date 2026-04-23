@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Button } from "../../components/ui/button";
-import { Card } from "../../components/ui/card";
-import { Loader2, ArrowLeft, Store, User, MapPin, PlusCircle, X } from "lucide-react";
+import { useEffect, useState } from "react"
+import { useParams, useNavigate } from "react-router-dom"
+import { Loader2, ArrowLeft, Store, User, MapPin, PlusCircle, X } from "lucide-react"
 
-import { getOrderById, OrderData, assignPromoterTask, TaskData } from "../../Fetch/pedidos";
-// Importa tu función para traer usuarios/promotores (Ajusta la ruta)
-import { getAllPromoters, Promotor } from "../../Fetch/promotores"; 
 
-export default function PedidoDetalle() {
+import { Button, Card } from '@/components'
+import { getAllPromoters, Promotor } from "@/Fetch/promotores"
+import { getOrderById, OrderData, assignPromoterTask, TaskData } from "@/Fetch/pedidos" 
+
+
+export function PedidoDetalle() {
   const { id } = useParams();
   const navigate = useNavigate();
   

@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Loader2, Store as StoreIcon, FileText } from "lucide-react";
-import { Button } from '../../components/ui/button';
-import { Card } from '../../components/ui/card';
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Loader2, Store as StoreIcon, FileText } from "lucide-react"
 
-import { useAuthStore } from '../../store/authStore';
-import { getRequestsByClient, RequestData } from '../../Fetch/solicitudes';
-import { getStores, Store } from '../../Fetch/establecimientos';
-import { createOrder } from '../../Fetch/pedidos';
+
+import { useAuthStore } from '@/store'
+import { Button, Card } from '@/components'
+import { createOrder } from '@/Fetch/pedidos'
+import { getStores, Store } from '@/Fetch/establecimientos'
+import { getRequestsByClient, RequestData } from '@/Fetch/solicitudes'
+
 
 export const CrearPedido = () => {
     const navigate = useNavigate();

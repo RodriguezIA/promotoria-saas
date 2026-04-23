@@ -1,19 +1,16 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ColumnDef } from "@tanstack/react-table";
-import { Plus, Eye, Receipt } from "lucide-react";
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { ColumnDef } from "@tanstack/react-table"
+import { Plus, Eye, Receipt } from "lucide-react"
 
-import { Button } from "../../components/ui/button";
-import { DataTable } from "../../components/ui/datatble";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { PageWrapper } from "../../components/ui/page-wrapper";
-import { PageHeader } from "../../components/ui/page-header";
 
-import { useAuthStore } from "../../store/authStore";
-import { getOrdersByClient, OrderData } from "../../Fetch/pedidos";
-import { getCLientsList } from "../../Fetch/clientes";
+import { useAuthStore } from "@/store"
+import { getCLientsList } from "@/Fetch/clientes"
+import { getOrdersByClient, OrderData } from "@/Fetch/pedidos"
+import { Button, DataTable, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, PageHeader, PageWrapper } from "@/components"
 
-export default function PedidosList() {
+
+export function PedidosList() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   
