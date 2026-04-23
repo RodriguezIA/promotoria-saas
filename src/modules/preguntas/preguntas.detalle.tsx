@@ -1,64 +1,17 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import {
-    ArrowLeft,
-    Loader2,
-    HelpCircle,
-    DollarSign,
-    Users,
-    Calendar,
-    User,
-    Edit2,
-    Trash2,
-    ListChecks,
-    Hash,
-    CalendarDays,
-    Camera,
-    Type,
-    CheckCircle2,
-} from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { useState, useEffect } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import { ArrowLeft, Loader2, HelpCircle, DollarSign, Users, Calendar, User, Edit2, Trash2, ListChecks, Hash, CalendarDays, Camera, Type, CheckCircle2 } from "lucide-react"
 
-import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "../../components/ui/table";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "../../components/ui/alert-dialog";
 
-import { useAuthStore } from "../../store/authStore";
-import {
-    getQuestionById,
-    getClientsForQuestion,
-    getQuestionClientById,
-    deleteQuestion,
-    unassignQuestionFromClient,
-    Question,
-    QuestionClient,
-    ClientAssignment,
-    QUESTION_TYPE_LABELS,
-    QuestionType,
-} from "../../Fetch/questions";
+import { useAuthStore } from "@/store"
+import { CrearEditarPreguntaDialog, AsignarClienteDialog} from "./components"
+import { getQuestionById, getClientsForQuestion, getQuestionClientById, deleteQuestion, unassignQuestionFromClient, Question, QuestionClient, ClientAssignment, QUESTION_TYPE_LABELS, QuestionType } from "@/Fetch/questions"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,Badge, Button, Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components"
 
-import { CrearEditarPreguntaDialog } from "./components/CrearEditarPreguntaDialog";
-import { AsignarClienteDialog } from "./components/AsignarClienteDialog";
 
-export default function PreguntaDetalle() {
+
+export function PreguntaDetalle() {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     const { user } = useAuthStore();

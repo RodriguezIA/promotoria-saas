@@ -1,96 +1,45 @@
-import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { ColumnDef } from "@tanstack/react-table";
-import {
-    HelpCircle,
-    Plus,
-    Loader2,
-    MoreHorizontal,
-    Eye,
-    Edit2,
-    Trash2,
-    Users,
-    DollarSign,
-} from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { useNavigate } from "react-router-dom"
+import { ColumnDef } from "@tanstack/react-table"
+import { useState, useEffect, useMemo } from "react"
+import { HelpCircle, Plus, Loader2, MoreHorizontal, Eye, Edit2, Trash2, Users, DollarSign } from "lucide-react"
 
-import { Button } from "../../components/ui/button";
-import { DataTable } from "../../components/ui/datatble";
-import { Badge } from "../../components/ui/badge";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-    DropdownMenuSeparator,
-} from "../../components/ui/dropdown-menu";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "../../components/ui/select";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "../../components/ui/alert-dialog";
 
-import { useAuthStore } from "../../store/authStore";
-import {
-    getQuestions,
-    deleteQuestion,
-    getClientsForQuestion,
-    Question,
-    ClientAssignment,
-    QUESTION_TYPE_LABELS,
-} from "../../Fetch/questions";
-import { getCLientsList } from "../../Fetch/clientes";
+import { useAuthStore } from "@/store";
+import { getCLientsList } from "@/Fetch/clientes";
+import { AsignarClienteDialog, CrearEditarPreguntaDialog, ListaClientesDialog} from "./components";
+import { getQuestions, deleteQuestion, getClientsForQuestion, Question, ClientAssignment, QUESTION_TYPE_LABELS } from "@/Fetch/questions";
+import { Button, DataTable, Badge, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,} from "@/components";
 
-import { CrearEditarPreguntaDialog } from "./components/CrearEditarPreguntaDialog";
-import { AsignarClienteDialog } from "./components/AsignarClienteDialog";
-import { ListaClientesDialog } from "./components/ListaClientesDialog";
 
 interface Cliente {
     id_client: number;
     name: string;
 }
-
-// Extender Question para incluir clientes asignados
 interface QuestionWithClients extends Question {
     assignedClients?: ClientAssignment[];
 }
 
-export function PreguntasSuperAdmin() {
+
+export function Preguntas() {
     const navigate = useNavigate();
     const { user } = useAuthStore();
 
-    // Estados principales
     const [loading, setLoading] = useState(true);
-    const [preguntas, setPreguntas] = useState<QuestionWithClients[]>([]);
     const [clientes, setClientes] = useState<Cliente[]>([]);
+    const [preguntas, setPreguntas] = useState<QuestionWithClients[]>([]);
     const [selectedClientFilter, setSelectedClientFilter] = useState<string>("all");
 
     // Estados para dialogs
     const [showCrearDialog, setShowCrearDialog] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showAsignarDialog, setShowAsignarDialog] = useState(false);
     const [showClientesDialog, setShowClientesDialog] = useState(false);
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
+    
     // Pregunta seleccionada para operaciones
-    const [selectedPregunta, setSelectedPregunta] = useState<QuestionWithClients | null>(null);
     const [editMode, setEditMode] = useState(false);
+    const [selectedPregunta, setSelectedPregunta] = useState<QuestionWithClients | null>(null);
 
-    // Cargar datos iniciales
-    useEffect(() => {
-        fetchData();
-    }, []);
 
     const fetchData = async () => {
         try {
@@ -135,17 +84,6 @@ export function PreguntasSuperAdmin() {
             setLoading(false);
         }
     };
-
-    // Filtrar preguntas por cliente
-    const preguntasFiltradas = useMemo(() => {
-        if (selectedClientFilter === "all") {
-            return preguntas;
-        }
-        const clientId = parseInt(selectedClientFilter);
-        return preguntas.filter((p) =>
-            p.assignedClients?.some((c) => c.id_client === clientId)
-        );
-    }, [preguntas, selectedClientFilter]);
 
     // Handlers
     const handleCrear = () => {
@@ -198,6 +136,25 @@ export function PreguntasSuperAdmin() {
     const handleVerDetalle = (pregunta: QuestionWithClients) => {
         navigate(`/preguntas/detalle/${pregunta.id_question}`);
     };
+
+
+    // Filtrar preguntas por cliente
+    const preguntasFiltradas = useMemo(() => {
+        if (selectedClientFilter === "all") {
+            return preguntas;
+        }
+        const clientId = parseInt(selectedClientFilter);
+        return preguntas.filter((p) =>
+            p.assignedClients?.some((c) => c.id_client === clientId)
+        );
+    }, [preguntas, selectedClientFilter]);
+
+
+    // Cargar datos iniciales
+    useEffect(() => {
+        fetchData();
+    }, []);
+
 
     // Columnas de la tabla
     const columns: ColumnDef<QuestionWithClients>[] = [
@@ -477,3 +434,4 @@ export function PreguntasSuperAdmin() {
         </>
     );
 }
+

@@ -4,12 +4,12 @@ import { ColumnDef } from '@tanstack/react-table'
 import { Link, useNavigate } from "react-router-dom"
 import { Plus, Loader2, Store as StoreIcon, Eye, Trash2 } from "lucide-react"
 
+
 import { StoreDTO } from '@/dtos'
 import { api, ApiResponse } from '@/lib'
-import { Button, DataTable, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components'
 import { deleteStore } from '@/Fetch/establecimientos'
 import { EstablecimientoModalRegistroMasivo } from './EstablecimientoModalRegistroMasivo'
-
+import { Button, DataTable, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components'
 
 
 export function EstablecimientosSuperAdmin() {

@@ -4,14 +4,16 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { Clientes, ClienteDetalle, CrearCliente } from '@/modules/clientes' 
 import { ProductPage, ProductoDetalle, ProductoForm } from '@/modules/productos'
 import { Establecimientos, Establecimiento, EstablecimientoDetalle } from '@/modules/establecimientos'
+import { ListadoPreguntas, PreguntaDetalle } from '@/modules/preguntas'
 
 import PrivateRoute from "../components/PrivateRoute";
 import Layout from "../components/layout/Layout";
 import Login from "../pages/Login";
 import Home from "../pages/inicio/Home";
 import RestorePassword from "../pages/auth/restore-password";
-import Preguntas from "../pages/preguntas/Preguntas";
-import PreguntaDetalle from "../pages/preguntas/PreguntaDetalle";
+
+
+
 import Cotizaciones from "../pages/cotizaciones/Cotizaciones";
 import CotizacionDetalle from "../pages/cotizaciones/CotizacionDetalle";
 import Servicios from "../pages/servicios/servicios";
@@ -62,17 +64,15 @@ export default function AppRouter() {
           <Route path="producto" element={<ProductoForm />} />
           <Route path="producto/:id_product" element={<ProductoForm />} />
           <Route path="producto/detalle/:id_product" element={<ProductoDetalle />} />
-
-
           <Route path="establecimientos" element={<Establecimientos />} />
           <Route path="establecimiento" element={<Establecimiento />} />
           <Route path="establecimiento/detalle/:id_store_client" element={<EstablecimientoDetalle />} />
           {/* <Route path="establecimiento/:id_store_client" element={<Establecimiento />} /> */}
-          
+          <Route path="preguntas" element={<ListadoPreguntas />} />
+          <Route path="preguntas/detalle/:id" element={<PreguntaDetalle />} />
 
           
-          <Route path="preguntas" element={<Preguntas />} />
-          <Route path="preguntas/detalle/:id" element={<PreguntaDetalle />} />
+          
           <Route path="cotizaciones" element={<Cotizaciones />} />
           <Route path="cotizaciones/detalle/:id" element={<CotizacionDetalle />} />
           <Route path="servicios" element={<Servicios />} />

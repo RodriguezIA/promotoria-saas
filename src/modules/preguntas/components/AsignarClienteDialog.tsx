@@ -1,33 +1,14 @@
-import { useState, useEffect } from "react";
-import { Loader2, Search, Check } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { useState, useEffect } from "react"
+import { Loader2, Search, Check } from "lucide-react"
 
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "../../../components/ui/dialog";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Label } from "../../../components/ui/label";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "../../../components/ui/table";
 
-import { useAuthStore } from "../../../store/authStore";
-import {
-    assignQuestionToClient,
-    Question,
-} from "../../../Fetch/questions";
-import { getCLientsList } from "../../../Fetch/clientes";
+import { useAuthStore } from "@/store"
+import { getCLientsList } from "@/Fetch/clientes";
+import { assignQuestionToClient, Question } from "@/Fetch/questions";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components"
+
+
 
 interface Cliente {
     id_client: number;

@@ -1,39 +1,12 @@
-import { useState, useEffect } from "react";
-import { Loader2, Plus, Trash2, GripVertical } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { useState, useEffect } from "react"
+import { Loader2, Plus, Trash2, GripVertical } from "lucide-react"
 
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "../../../components/ui/dialog";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Label } from "../../../components/ui/label";
-import { Textarea } from "../../../components/ui/textarea";
-import { Checkbox } from "../../../components/ui/checkbox";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "../../../components/ui/select";
 
-import { useAuthStore } from "../../../store/authStore";
-import {
-    createQuestion,
-    updateQuestion,
-    Question,
-    CreateQuestionPayload,
-    UpdateQuestionPayload,
-    QuestionType,
-    QUESTION_TYPE_LABELS,
-    CreateOptionPayload,
-} from "../../../Fetch/questions";
+import { useAuthStore } from "@/store"
+import { createQuestion, updateQuestion, Question, CreateQuestionPayload, UpdateQuestionPayload, QuestionType, QUESTION_TYPE_LABELS, CreateOptionPayload } from "@/Fetch/questions";
+import { Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea} from "@/components"
+
 
 interface CrearEditarPreguntaDialogProps {
     open: boolean;

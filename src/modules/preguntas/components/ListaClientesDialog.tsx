@@ -1,40 +1,13 @@
-import { useState } from "react";
-import { Loader2, Trash2, DollarSign } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { useState } from "react"
+import { Loader2, Trash2, DollarSign } from "lucide-react"
 
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from "../../../components/ui/dialog";
-import { Button } from "../../../components/ui/button";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "../../../components/ui/table";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "../../../components/ui/alert-dialog";
 
-import { useAuthStore } from "../../../store/authStore";
-import {
-    unassignQuestionFromClient,
-    Question,
-    ClientAssignment,
-} from "../../../Fetch/questions";
+import { useAuthStore } from "@/store";
+import { unassignQuestionFromClient, Question, ClientAssignment } from "@/Fetch/questions";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components";
+
+
 
 interface QuestionWithClients extends Question {
     assignedClients?: ClientAssignment[];

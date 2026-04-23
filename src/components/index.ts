@@ -4,9 +4,13 @@
  * IMPORTANTE:: FAVOR DE AGREGAR EL COMENTARIO HEADER Y REGISTRARLO AQUI
  * A:
  *  ALERT: COMPONENTES RELACIONADOS CON ALERTAS, INCLUYENDO ALERTAS DE ERROR, ÉXITO, ADVERTENCIA, ETC.
+ *  ALERT DIALOG: COMPONENTE MODAL
  * B:
+ *  BADGE: COMPONENTE BADGE
  *  BUTTON: COMPONENTES RELACIONADOS CON BOTONES, INCLUYENDO BOTONES PRINCIPALES, SECUNDARIOS, DE ACCIÓN, ETC.
  * C:
+ *  CARD: COMPONENTE CARD
+ *  CHECKBOX: COMPONENTE CHECBOX
  *  CONFIRM-MODAL: COMPONENTES RELACIONADOS CON MODALES DE CONFIRMACIÓN, INCLUYENDO MODALES DE ELIMINACIÓN, MODALES DE ADVERTENCIA, ETC.
  * D:
  *  DATABLE: COMPONENTES RELACIONADOS CON LA TABLA DE DATOS, INCLUYENDO EL COMPONENTE PRINCIPAL, PAGINACIÓN, FILTROS, CABECERAS DE COLUMNA Y FUNCIONES AUXILIARES.
@@ -25,14 +29,29 @@
  * S:
  *  SELECT: COMPONENTES RELACIONADOS CON CAMPOS DE SELECCIÓN, INCLUYENDO SELECTORES DE OPCIONES, SELECTORES DE FECHA, ETC.
  * T:
+ *  TABLE: COMPONENTE TABLA SENCILLO
+ *  TEXTAREA:  TEXT AREA
  *  TOOLTIP: COMPONENTE TOOLTIP
  */
 
 // ALERT
-export { Alert, AlertDescription } from "./ui/alert";
+export { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+
+// ALERT DIALOG
+export { AlertDialog,AlertDialogAction, AlertDialogCancel,AlertDialogContent,AlertDialogDescription,AlertDialogFooter,AlertDialogHeader,AlertDialogOverlay,AlertDialogPortal,AlertDialogTitle,AlertDialogTrigger } from './ui/alert-dialog'
+
+// BADGE
+export { Badge, badgeVariants } from "./ui/badge";
+export type { BadgeProps } from "./ui/badge";
 
 // BUTTON
 export { Button } from "./ui/button";
+
+// CARD
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card"
+
+// CHECBOX
+export { Checkbox } from './ui/checkbox'
 
 // CONFIRM-MODAL
 export { ConfirmModal } from "./ui/confirm-modal";
@@ -70,6 +89,12 @@ export { PageWrapper } from "./ui/page-wrapper";
 
 // SELECT
 export { Select, SelectTrigger, SelectContent, SelectItem, SelectValue, SelectGroup,SelectLabel, SelectScrollDownButton, SelectScrollUpButton, SelectSeparator } from "./ui/select";
+
+// TABLE
+export { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from './ui/table'
+
+// TEXTAREA
+export { Textarea } from './ui/textarea'
 
 // TOOLTIP
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
