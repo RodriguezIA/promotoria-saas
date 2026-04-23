@@ -28,6 +28,7 @@
  *  PAGE-WRAPPER: COMPONENTES RELACIONADOS CON EL ENVOLTORIO DE PÁGINAS, INCLUYENDO LAYOUTS, CONTENEDORES, ETC.
  * S:
  *  SELECT: COMPONENTES RELACIONADOS CON CAMPOS DE SELECCIÓN, INCLUYENDO SELECTORES DE OPCIONES, SELECTORES DE FECHA, ETC.
+ *  SEPARATOR: COMPONENTE DE SEPARADOR
  * T:
  *  TABLE: COMPONENTE TABLA SENCILLO
  *  TEXTAREA:  TEXT AREA
@@ -89,6 +90,9 @@ export { PageWrapper } from "./ui/page-wrapper";
 
 // SELECT
 export { Select, SelectTrigger, SelectContent, SelectItem, SelectValue, SelectGroup,SelectLabel, SelectScrollDownButton, SelectScrollUpButton, SelectSeparator } from "./ui/select";
+
+// SEPARATOR
+export { Separator } from "./ui/separator"
 
 // TABLE
 export { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from './ui/table'

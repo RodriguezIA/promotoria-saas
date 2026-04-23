@@ -1,21 +1,16 @@
-import React, { useState, useEffect } from 'react';
-// IMPORTANTE: Ajusta estas rutas dependiendo de la estructura de tus carpetas
-import { useAuthStore } from '../store/authStore';
-import { getProductsByClient } from '../Fetch/products'; 
-import { getCLientsList } from '../Fetch/clientes'; 
-// NUEVAS IMPORTACIONES: Usando la lógica que sí funciona de tu otro componente
-import { getQuestions, getClientsForQuestion } from '../Fetch/questions'; 
-import { Loader2 } from "lucide-react";
+import { useState, useEffect } from 'react'
+import { Loader2 } from "lucide-react"
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../components/ui/select';
 
-import { createRequest } from '../Fetch/solicitudes';
+import { useAuthStore } from '@/store'
+import { getCLientsList } from '@/Fetch/clientes'
+import { createRequest } from '@/Fetch/solicitudes'
+import { getProductsByClient } from '@/Fetch/products'
+import { getQuestions, getClientsForQuestion } from '@/Fetch/questions'
+
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components'
+
 
 // --- INTERFACES LOCALES ---
 interface ProductoSeleccionado {

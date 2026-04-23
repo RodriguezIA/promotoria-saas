@@ -5,6 +5,7 @@ import { Clientes, ClienteDetalle, CrearCliente } from '@/modules/clientes'
 import { ProductPage, ProductoDetalle, ProductoForm } from '@/modules/productos'
 import { Establecimientos, Establecimiento, EstablecimientoDetalle } from '@/modules/establecimientos'
 import { ListadoPreguntas, PreguntaDetalle } from '@/modules/preguntas'
+import { CrearSolicitud, EditarSolicitud, SolicitudDetalle, SolicitudesList } from '@/modules/solicitudes'
 
 import PrivateRoute from "../components/PrivateRoute";
 import Layout from "../components/layout/Layout";
@@ -13,16 +14,6 @@ import Home from "../pages/inicio/Home";
 import RestorePassword from "../pages/auth/restore-password";
 
 
-
-import Cotizaciones from "../pages/cotizaciones/Cotizaciones";
-import CotizacionDetalle from "../pages/cotizaciones/CotizacionDetalle";
-import Servicios from "../pages/servicios/servicios";
-
-// Solicitudes Feature
-import SolicitudesList from "../pages/Solicitudes";
-import { CrearSolicitud } from "../components/CrearSolicitud";
-import SolicitudDetalle from "../pages/solicitudes/SolicitudDetalle";
-import { EditarSolicitud } from "../pages/solicitudes/EditarSolicitud";
 
 // PEDIDOS
 import PedidosList from "../pages/pedidos/PedidoList";
@@ -70,16 +61,12 @@ export default function AppRouter() {
           {/* <Route path="establecimiento/:id_store_client" element={<Establecimiento />} /> */}
           <Route path="preguntas" element={<ListadoPreguntas />} />
           <Route path="preguntas/detalle/:id" element={<PreguntaDetalle />} />
-
-          
-          
-          <Route path="cotizaciones" element={<Cotizaciones />} />
-          <Route path="cotizaciones/detalle/:id" element={<CotizacionDetalle />} />
-          <Route path="servicios" element={<Servicios />} />
           <Route path="solicitudes" element={<SolicitudesList />} />
           <Route path="crearSolicitud" element={<CrearSolicitud />} />
           <Route path="detalle-solicitud/:id" element={<SolicitudDetalle />} />
           <Route path="editar-solicitud/:id" element={<EditarSolicitud />} />
+
+
           <Route path="pedidos" element={<PedidosList />} />
           <Route path="crearPedido" element={<CrearPedido />} />
           <Route path="detalle-pedido/:id" element={<PedidoDetalle />} />

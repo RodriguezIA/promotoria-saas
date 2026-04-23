@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../store/authStore';
-import { getProductsByClient } from '../../Fetch/products'; 
-import { getQuestions, getClientsForQuestion } from '../../Fetch/questions'; 
-import { getRequestById, updateFullRequest } from '../../Fetch/solicitudes'; // <- Importamos lo nuevo
-import { Loader2, Save, ArrowLeft } from "lucide-react";
+import { useState, useEffect } from 'react'
+import { Loader2, Save, ArrowLeft } from 'lucide-react'
+import { useParams, useNavigate } from 'react-router-dom'
 
-import { Button } from '../../components/ui/button';
+
+import { Button } from '@/components'
+import { useAuthStore } from '@/store'
+import { getProductsByClient } from '@/Fetch/products'
+import { getQuestions, getClientsForQuestion } from '@/Fetch/questions' 
+import { getRequestById, updateFullRequest } from '@/Fetch/solicitudes'
+
 
 // --- INTERFACES ---
 interface ProductoSeleccionado {

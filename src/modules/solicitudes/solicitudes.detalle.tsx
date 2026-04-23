@@ -1,25 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Button } from "../../components/ui/button";
-import { Card } from "../../components/ui/card";
-import { Separator } from "../../components/ui/separator";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { useParams, useNavigate } from "react-router-dom"
 
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "../../components/ui/select";
 
-// Importamos tus stores y APIs reales
-import { useAuthStore } from "../../store/authStore";
-import { getRequestById } from "../../Fetch/solicitudes";
-import { getProductsByClient } from "../../Fetch/products";
-import { getCLientsList } from "../../Fetch/clientes";
+import { useAuthStore } from "@/store"
+import { getCLientsList } from "@/Fetch/clientes"
+import { getRequestById } from "@/Fetch/solicitudes"
+import { getProductsByClient } from "@/Fetch/products"
+import { Button, Card, Separator, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components"
 
-export default function SolicitudDetalle() {
+
+export function SolicitudDetalle() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuthStore();
