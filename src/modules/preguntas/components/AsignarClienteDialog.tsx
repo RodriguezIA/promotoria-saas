@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { Loader2, Search, Check } from "lucide-react"
 
 
-import { useAuthStore } from "@/store"
+import { useAuthStore } from "@/stores"
 import { getCLientsList } from "@/Fetch/clientes";
 import { assignQuestionToClient, Question } from "@/Fetch/questions";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components"

@@ -4,7 +4,7 @@ import { Store, MoreVertical, ChevronLeft, HomeIcon, ClipboardList, UsersRound, 
 
 
 import { cn } from "@/lib"
-import { useAuthStore } from "@/store"
+import { useAuthStore } from "@/stores"
 import { SidebarMenu, SidebarMenuItem, LogoutButton } from "@/components"
 
 

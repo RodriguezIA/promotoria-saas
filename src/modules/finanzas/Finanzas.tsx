@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/store";
+import { useAuthStore } from "@/stores";
 import FinanzasSuperAdmin from "./FinanzasSuperAdmin";
 import { FinanzasAdmin } from "./FinanzasAdmin";
 

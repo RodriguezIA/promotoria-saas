@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 
 
-import { useAuthStore } from "@/store"
+import { useAuthStore } from "@/stores"
 import { getCLientsList } from "@/Fetch/clientes"
 import { getRequestById } from "@/Fetch/solicitudes"
 import { getProductsByClient } from "@/Fetch/products"

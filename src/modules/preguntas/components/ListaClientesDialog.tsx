@@ -3,7 +3,7 @@ import { useState } from "react"
 import { Loader2, Trash2, DollarSign } from "lucide-react"
 
 
-import { useAuthStore } from "@/store";
+import { useAuthStore } from "@/stores";
 import { unassignQuestionFromClient, Question, ClientAssignment } from "@/Fetch/questions";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components";
 

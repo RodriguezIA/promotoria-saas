@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from "react"
 import { HelpCircle, Plus, Loader2, MoreHorizontal, Eye, Edit2, Trash2, Users, DollarSign } from "lucide-react"
 
 
-import { useAuthStore } from "@/store";
+import { useAuthStore } from "@/stores";
 import { getCLientsList } from "@/Fetch/clientes";
 import { AsignarClienteDialog, CrearEditarPreguntaDialog, ListaClientesDialog} from "./components";
 import { getQuestions, deleteQuestion, getClientsForQuestion, Question, ClientAssignment, QUESTION_TYPE_LABELS } from "@/Fetch/questions";

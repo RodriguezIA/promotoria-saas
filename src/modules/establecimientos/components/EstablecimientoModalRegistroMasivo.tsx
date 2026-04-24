@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Upload, Download, Loader2, FileSpreadsheet } from "lucide-react"
 
 
-import { useAuthStore } from '@/store'
+import { useAuthStore } from '@/stores'
 import { uploadStoresFromExcel } from '../../../Fetch/establecimientos';
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Input, Label } from "@/components"
 

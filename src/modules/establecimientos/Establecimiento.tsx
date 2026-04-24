@@ -6,7 +6,7 @@ import { GoogleMap } from "@react-google-maps/api"
 
 
 import { api, ApiResponse, useJsApiLoader, GOOGLE_MAPS_CONFIG } from '@/lib'
-import { useAuthStore } from '@/store'
+import { useAuthStore } from '@/stores'
 import { Button, Input, Label, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components'
 import { FormData, initialFormData } from './utils'
 import { CountryDTO, StateDTO, CityDTO, channelSalesDTO } from '@/dtos'

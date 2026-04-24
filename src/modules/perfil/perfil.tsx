@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { Pencil, KeyRound, ShieldCheck, Calendar, Mail, Loader2, CheckCircle2, Eye, EyeOff, X, Lock } from "lucide-react"
 
 
-import { useAuthStore } from "@/store"
+import { useAuthStore } from "@/stores"
 import { getPerfil, updateProfile, updateEmail, changePassword, PerfilUsuario } from "@/Fetch/perfil";
 import { Button, Card, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input, Label, PageWrapper } from "@/components"
 

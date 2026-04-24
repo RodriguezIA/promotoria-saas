@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Loader2 } from "lucide-react"
 
 
-import { useAuthStore } from '@/store'
+import { useAuthStore } from '@/stores'
 import { getCLientsList } from '@/Fetch/clientes'
 import { createRequest } from '@/Fetch/solicitudes'
 import { getProductsByClient } from '@/Fetch/products'

@@ -1,5 +1,5 @@
 import { LogOut } from "lucide-react";
-import { useAuthStore } from "../../store/authStore";
+import { useAuthStore } from "../../stores/authStore";
 import { useNavigate } from "react-router-dom";
 import { cn } from "../../lib/utils";
 

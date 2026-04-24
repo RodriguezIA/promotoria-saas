@@ -18,14 +18,10 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Ruta pública */}
         <Route path="/login" element={<Login />} />
         <Route path="/restore-pwd" element={<RestorePassword />} />
 
-        {/* Rutas privadas, protegidas por PrivateRoute */}
-        <Route
-          path="/"
-          element={
+        <Route path="/" element={
             <PrivateRoute>
               <Layout />
             </PrivateRoute>

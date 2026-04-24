@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Loader2, Store as StoreIcon, FileText } from "lucide-react"
 
 
-import { useAuthStore } from '@/store'
+import { useAuthStore } from '@/stores'
 import { Button, Card } from '@/components'
 import { createOrder } from '@/Fetch/pedidos'
 import { getStores, Store } from '@/Fetch/establecimientos'

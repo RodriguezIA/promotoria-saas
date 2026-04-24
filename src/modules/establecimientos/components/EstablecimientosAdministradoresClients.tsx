@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { Plus, Loader2, Store as StoreIcon, MoreHorizontal, Eye, Edit2, Trash2 } from "lucide-react"
 
 
-import { useAuthStore } from '@/store'
+import { useAuthStore } from '@/stores'
 import { getStoresForClient, deleteStoreClient, Store } from '@/Fetch/establecimientos'
 import { EstablecimientoModalRegistroMasivo } from './EstablecimientoModalRegistroMasivo'
 import { Button, DataTable, DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from '@/components'

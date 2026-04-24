@@ -3,7 +3,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 
-import { useAuthStore } from "@/store"
+import { useAuthStore } from "@/stores"
 import { loginUser } from "@/Fetch/login"
 import { Button, Input } from "@/components"
 import logo from "@/assets/promotorialogotipo_positivo.png"

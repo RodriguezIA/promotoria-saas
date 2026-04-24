@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { Loader2, Package, Plus, MoreHorizontal, Eye, Edit2, Trash2 } from "lucide-react"
 
 
-import { useAuthStore } from '@/store';
+import { useAuthStore } from '@/stores';
 import { ProductDTO, ClientDTO } from "@/dtos";
 import { api, ApiResponse, formatDate } from '@/lib'
 import { Button, DataTable, PageWrapper, PageHeader, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components';

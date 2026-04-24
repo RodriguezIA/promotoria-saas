@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react"
 import { Building2, Mail, MapPin, FileText, Users, Package, Store, Clock, TrendingUp, ChevronDown, CreditCard, Ticket, Loader2, Phone } from "lucide-react"
 
 
-import { useAuthStore } from "@/store"
+import { useAuthStore } from "@/stores"
 import { clientDetail } from "@/types/clients"
 import { getClientById } from "@/Fetch/clientes"
 import { registerUserInClient } from "@/Fetch/usuarios"

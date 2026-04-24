@@ -17,3 +17,8 @@ export const formatDate = (dateString?: string) => {
 export type FormErrors = {
   [key: string]: string | null;
 };
+
+export const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};

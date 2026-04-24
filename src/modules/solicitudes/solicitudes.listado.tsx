@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Plus, Loader2, MoreHorizontal, Eye, Edit2, ClipboardList } from "lucide-react"
 
 
-import { useAuthStore } from "@/store";
+import { useAuthStore } from "@/stores";
 import { getCLientsList } from "@/Fetch/clientes";
 import { getRequestsByClient, RequestData } from "@/Fetch/solicitudes";
 import { Button, DataTable, PageHeader, PageWrapper, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components"

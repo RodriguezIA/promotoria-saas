@@ -5,7 +5,7 @@ import { ArrowLeft, Building2, Mail, FileText, Save, AlertCircle,} from "lucide-
 
 
 import { ApiResponse, api } from "@/lib/api";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/stores/authStore";
 import { ClientDTO, CountryDTO, StateDTO, CityDTO } from "@/dtos";
 import { Input, MensajeConfirmacion, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components";
 

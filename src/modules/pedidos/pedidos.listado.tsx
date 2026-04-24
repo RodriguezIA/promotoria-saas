@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Plus, Eye, Receipt } from "lucide-react"
 
 
-import { useAuthStore } from "@/store"
+import { useAuthStore } from "@/stores"
 import { getCLientsList } from "@/Fetch/clientes"
 import { getOrdersByClient, OrderData } from "@/Fetch/pedidos"
 import { Button, DataTable, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, PageHeader, PageWrapper } from "@/components"

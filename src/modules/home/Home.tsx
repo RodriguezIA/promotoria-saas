@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { Users, Store, UserCheck, Briefcase, Loader2, ShoppingCart } from "lucide-react"
 
 
-import { useAuthStore } from "@/store"
+import { useAuthStore } from "@/stores"
 // import { PromoterHeatMap } from "../../pages/inicio/components"
 import { StatCard, DateRangePicker, PageWrapper } from "@/components"
 import { getDashboardAnalytics, getAdminDashboardStats, DashboardAnalytics, AdminDashboardStats } from "@/Fetch/inicio"

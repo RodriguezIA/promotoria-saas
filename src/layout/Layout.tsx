@@ -5,7 +5,7 @@ import { Outlet, useLocation } from "react-router-dom"
 
 import { cn } from "@/lib";
 import { Sidebar } from "./Sidebar"
-import { useAuthStore } from "@/store"
+import { useAuthStore } from "@/stores"
 import { SidebarProvider } from '@/components'
 
 

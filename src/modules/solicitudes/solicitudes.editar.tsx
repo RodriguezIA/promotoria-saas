@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 
 
 import { Button } from '@/components'
-import { useAuthStore } from '@/store'
+import { useAuthStore } from '@/stores'
 import { getProductsByClient } from '@/Fetch/products'
 import { getQuestions, getClientsForQuestion } from '@/Fetch/questions' 
 import { getRequestById, updateFullRequest } from '@/Fetch/solicitudes'

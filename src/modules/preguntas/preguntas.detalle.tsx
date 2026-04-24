@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom"
 import { ArrowLeft, Loader2, HelpCircle, DollarSign, Users, Calendar, User, Edit2, Trash2, ListChecks, Hash, CalendarDays, Camera, Type, CheckCircle2 } from "lucide-react"
 
 
-import { useAuthStore } from "@/store"
+import { useAuthStore } from "@/stores"
 import { CrearEditarPreguntaDialog, AsignarClienteDialog} from "./components"
 import { getQuestionById, getClientsForQuestion, getQuestionClientById, deleteQuestion, unassignQuestionFromClient, Question, QuestionClient, ClientAssignment, QUESTION_TYPE_LABELS, QuestionType } from "@/Fetch/questions"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,Badge, Button, Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components"

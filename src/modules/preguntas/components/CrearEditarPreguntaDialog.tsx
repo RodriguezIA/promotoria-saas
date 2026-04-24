@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { Loader2, Plus, Trash2, GripVertical } from "lucide-react"
 
 
-import { useAuthStore } from "@/store"
+import { useAuthStore } from "@/stores"
 import { createQuestion, updateQuestion, Question, CreateQuestionPayload, UpdateQuestionPayload, QuestionType, QUESTION_TYPE_LABELS, CreateOptionPayload } from "@/Fetch/questions";
 import { Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea} from "@/components"
 

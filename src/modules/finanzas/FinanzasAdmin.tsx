@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Loader2, CheckCircle2, Clock, DollarSign, Banknote } from "lucide-react"
 
 
-import { useAuthStore } from "@/store"
+import { useAuthStore } from "@/stores"
 import { DataTable, PageHeader, PageWrapper, StatCard } from "@/components"
 import { getMisPagos, MiPago, PromoterPaymentStatus } from "@/Fetch/finanzas"
 

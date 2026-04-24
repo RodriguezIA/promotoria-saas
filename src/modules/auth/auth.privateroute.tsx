@@ -1,7 +1,7 @@
 import { ReactNode } from "react"
 import { Navigate } from "react-router-dom"
 
-import { useAuthStore } from "@/store"
+import { useAuthStore } from "@/stores"
 
 interface Props {
   children: ReactNode;

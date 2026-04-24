@@ -5,7 +5,7 @@ import { ArrowLeft, Package, FileText, Save, AlertCircle, ImagePlus, X, Loader2 
 
 
 import { ProductDTO } from "@/dtos"
-import { useAuthStore } from '@/store'
+import { useAuthStore } from '@/stores'
 import { MensajeConfirmacion } from '@/components'
 import { api, ApiResponse, FormErrors } from '@/lib'
 

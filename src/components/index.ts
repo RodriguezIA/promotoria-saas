@@ -70,7 +70,7 @@ export { DataTable } from "./ui/datatble";
 export { DataTablePagination } from "./ui/datatable-pagination";
 export { DataTableFilters } from "./ui/datatable-filters";
 export { DataTableColumnHeader, DataTableSortableHeader} from "./ui/datatable-columnheader";
-export { exportToExcel, textFilter, selectFilter, multiselectFilter, numberRangeFilter, dateRangeFilter, booleanFilter, debounce, createSelectColumn, createActionsColumn } from "../utils/datatable";
+export { exportToExcel, textFilter, selectFilter, multiselectFilter, numberRangeFilter, dateRangeFilter, booleanFilter, debounce, createSelectColumn, createActionsColumn } from "../lib/datatable";
 export type { DataTableProps, PaginationConfig, PaginationMode, ExportConfig, FiltersConfig, FilterConfig, FilterType, FilterOption, RowSelectionConfig, ActionColumnConfig, DataTableInitialState, DataTablePaginationProps, DataTableFiltersProps, DataTableColumnHeaderProps, DataTableToolbarProps, TypedColumnDef, ExtractDataType, } from "../types/datable";
 
 // DIALOG

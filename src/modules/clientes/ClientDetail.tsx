@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { ArrowLeft, Mail, MapPin, Package, Camera, Clock, AlertCircle, Loader2 } from "lucide-react"
 
 
-import { useAuthStore } from "@/store"
+import { useAuthStore } from "@/stores"
 import { tabs, ROL_LABELS } from "./utils.clients"
 import { ApiResponse, api, formatDate} from "@/lib"
 import { Alert, AlertDescription, Input, Label, ModalCustom } from "@/components"
