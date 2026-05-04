@@ -19,6 +19,7 @@ export interface CreateRequestPayload {
   id_cliente: number;
   nombre_solicitud: string;
   costo_total: number;
+  vc_image?: string;
   productos: ProductPayload[];
 }
 

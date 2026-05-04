@@ -372,19 +372,7 @@ export default function NuevoCliente() {
                   <p className="mt-1 text-sm text-gray-500 truncate">{documentoFile.name}</p>
                 )}
               </div>
-            </div>
-          </div>
 
-          {/* Información de Contacto */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center gap-2 mb-6">
-              <Mail size={20} className="text-gray-600" />
-              <h2 className="text-lg font-medium text-gray-900">
-                Información de Contacto
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Email: TODO: agregar la nota que este correo sera donde lleguen todas las notificaciones (factuaracion, etc) debe ser el oficial */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -435,7 +423,19 @@ export default function NuevoCliente() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
 
+          {/* Información de Contacto */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <Mail size={20} className="text-gray-600" />
+              <h2 className="text-lg font-medium text-gray-900">
+                Direccion
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* País */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
