@@ -38,6 +38,10 @@ export default function ProductPage() {
   useEffect(() => {
     if (selectedClientId) {
       fetchProducts(selectedClientId);
+    } else {
+      setLoading(false);
+      setProducts([]);
+      setError(null);
     }
   }, [selectedClientId]);
 
@@ -225,38 +229,20 @@ export default function ProductPage() {
         </div>
       )}
 
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin" style={{ color: "var(--text-secondary)" }} />
-        </div>
-      )}
-
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm">
           {error}
         </div>
       )}
 
-      {!loading && !error && (
-        <>
-          <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
-            {products.length > 0 ? (
-              <DataTable columns={columns} data={products} />
-            ) : (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <Package size={32} className="mb-3" style={{ color: "var(--text-secondary)" }} />
-                <h4 className="font-medium mb-1" style={{ color: "var(--text-primary)" }}>Sin productos</h4>
-                <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
-                  Aún no hay productos registrados para este cliente.
-                </p>
-                <Link to="/producto" state={{ id_client: selectedClientId }}>
-                  <Button size="sm"><Plus size={14} className="mr-1" /> Agregar producto</Button>
-                </Link>
-              </div>
-            )}
-          </div>
-        </>
-      )}
+      <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+        <DataTable
+          columns={columns}
+          data={products}
+          isLoading={loading}
+          emptyMessage="No hay productos registrados."
+        />
+      </div>
     </PageWrapper>
   );
 }

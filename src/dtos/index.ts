@@ -4,3 +4,4 @@ export type { ProductDTO } from "./products"
 export type { UsuarioDTO } from "./users"
 export type { channelSalesDTO } from "./channel_sales"
 export type { StoreDTO } from './store'
+export type { QuestionOptionDTO, QuestionClintsDTO, QuestionDTO } from './questions'

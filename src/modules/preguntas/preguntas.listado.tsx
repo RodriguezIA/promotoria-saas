@@ -1,294 +1,177 @@
-import { toast } from "sonner"
-import { useNavigate } from "react-router-dom"
-import { ColumnDef } from "@tanstack/react-table"
-import { useState, useEffect, useMemo } from "react"
-import { HelpCircle, Plus, Loader2, MoreHorizontal, Eye, Edit2, Trash2, Users, DollarSign } from "lucide-react"
+import { toast } from 'sonner'
+import { Plus, Users } from 'lucide-react'
+import { ColumnDef } from '@tanstack/react-table'
+import { useEffect, useMemo, useState } from 'react'
 
 
-import { useAuthStore } from "@/stores";
-import { getCLientsList } from "@/Fetch/clientes";
-import { AsignarClienteDialog, CrearEditarPreguntaDialog, ListaClientesDialog} from "./components";
-import { getQuestions, deleteQuestion, getClientsForQuestion, Question, ClientAssignment, QUESTION_TYPE_LABELS } from "@/Fetch/questions";
-import { Button, DataTable, Badge, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,} from "@/components";
+import { ClientListDTO, QuestionDTO,  } from '@/dtos'
+import { useAuthStore } from '@/stores'
+import { api, ApiResponse } from '@/lib'
+import { ConectarClientesDialog, CrearEditarPreguntaDialog } from './components'
+import { Button, PageWrapper, PageHeader, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, DataTable, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components'
 
-
-interface Cliente {
-    id_client: number;
-    name: string;
-}
-interface QuestionWithClients extends Question {
-    assignedClients?: ClientAssignment[];
-}
 
 
 export function Preguntas() {
-    const navigate = useNavigate();
     const { user } = useAuthStore();
 
-    const [loading, setLoading] = useState(true);
-    const [clientes, setClientes] = useState<Cliente[]>([]);
-    const [preguntas, setPreguntas] = useState<QuestionWithClients[]>([]);
-    const [selectedClientFilter, setSelectedClientFilter] = useState<string>("all");
-
-    // Estados para dialogs
+    const [preguntas, setPreguntas] = useState<QuestionDTO[]>([]);
+    const [clientes, setClientes] = useState<ClientListDTO[]>([]);
+    const [selectedClientFilter, setSelectedClientFilter] = useState<string>("0");
     const [showCrearDialog, setShowCrearDialog] = useState(false);
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [showAsignarDialog, setShowAsignarDialog] = useState(false);
-    const [showClientesDialog, setShowClientesDialog] = useState(false);
-    
-    // Pregunta seleccionada para operaciones
-    const [editMode, setEditMode] = useState(false);
-    const [selectedPregunta, setSelectedPregunta] = useState<QuestionWithClients | null>(null);
+    const [showConectarDialog, setShowConectarDialog] = useState(false);
+    const [preguntaSeleccionada, setPreguntaSeleccionada] = useState<QuestionDTO | null>(null);
 
+    const handleNuevaPregunta = () => {
+        setShowCrearDialog(true);
+    };
+
+    const handleAbrirConectar = (pregunta: QuestionDTO) => {
+        setPreguntaSeleccionada(pregunta);
+        setShowConectarDialog(true);
+    };
 
     const fetchData = async () => {
         try {
-            setLoading(true);
-
-            // Cargar preguntas y clientes en paralelo
-            const [preguntasRes, clientesRes] = await Promise.all([
-                getQuestions(),
-                getCLientsList(),
-            ]);
-
-            if (preguntasRes.ok && preguntasRes.data) {
-                // Cargar clientes asignados para cada pregunta
-                const preguntasConClientes = await Promise.all(
-                    preguntasRes.data.map(async (pregunta) => {
-                        try {
-                            const clientesRes = await getClientsForQuestion(pregunta.id_question);
-                            return {
-                                ...pregunta,
-                                assignedClients: clientesRes.ok ? clientesRes.data || [] : [],
-                            };
-                        } catch {
-                            return { ...pregunta, assignedClients: [] };
-                        }
-                    })
-                );
-                setPreguntas(preguntasConClientes);
-            }
-
-            if (clientesRes?.data) {
-                setClientes(
-                    clientesRes.data.map((c: { id_client: number; name: string }) => ({
-                        id_client: c.id_client,
-                        name: c.name,
-                    }))
-                );
-            }
+            const res = await api.get<ApiResponse<QuestionDTO[]>>(`/questions/list/${user?.id_client}`);
+            setPreguntas(res.data);
         } catch (error) {
-            console.error("Error cargando datos:", error);
+            console.error("Error al cargar las preguntas:", error);
             toast.error("Error al cargar las preguntas");
-        } finally {
-            setLoading(false);
         }
     };
 
-    // Handlers
-    const handleCrear = () => {
-        setSelectedPregunta(null);
-        setEditMode(false);
-        setShowCrearDialog(true);
-    };
-
-    const handleEditar = (pregunta: QuestionWithClients) => {
-        setSelectedPregunta(pregunta);
-        setEditMode(true);
-        setShowCrearDialog(true);
-    };
-
-    const handleAsignar = (pregunta: QuestionWithClients) => {
-        setSelectedPregunta(pregunta);
-        setShowAsignarDialog(true);
-    };
-
-    const handleVerClientes = (pregunta: QuestionWithClients) => {
-        setSelectedPregunta(pregunta);
-        setShowClientesDialog(true);
-    };
-
-    const handleConfirmDelete = (pregunta: QuestionWithClients) => {
-        setSelectedPregunta(pregunta);
-        setShowDeleteConfirm(true);
-    };
-
-    const handleDelete = async () => {
-        if (!selectedPregunta || !user) return;
-
-        try {
-            const result = await deleteQuestion(selectedPregunta.id_question, user.id_user);
-            if (result.ok) {
-                toast.success("Pregunta eliminada correctamente");
-                fetchData();
-            } else {
-                toast.error(result.message || "Error al eliminar la pregunta");
-            }
-        } catch (error) {
-            console.error("Error eliminando pregunta:", error);
-            toast.error("Error al eliminar la pregunta");
-        } finally {
-            setShowDeleteConfirm(false);
-            setSelectedPregunta(null);
-        }
-    };
-
-    const handleVerDetalle = (pregunta: QuestionWithClients) => {
-        navigate(`/preguntas/detalle/${pregunta.id_question}`);
-    };
-
-
-    // Filtrar preguntas por cliente
     const preguntasFiltradas = useMemo(() => {
-        if (selectedClientFilter === "all") {
+        if (selectedClientFilter === "0") {
             return preguntas;
         }
+
         const clientId = parseInt(selectedClientFilter);
-        return preguntas.filter((p) =>
-            p.assignedClients?.some((c) => c.id_client === clientId)
+        return preguntas.filter((p: QuestionDTO) =>
+            p.questions_client?.some((c) => c.id_client === clientId)
         );
     }, [preguntas, selectedClientFilter]);
 
-
-    // Cargar datos iniciales
     useEffect(() => {
-        fetchData();
-    }, []);
+        const load = async () => {
+            try {
+                await fetchData();
+
+                const fetchClients = async () => {
+                    const res = await api.get<ApiResponse<ClientListDTO[]>>(`/clients/`);
+                    setClientes(res.data);
+                };
+                await fetchClients();
+            } catch (error) {
+                console.error("Error al cargar los datos:", error);
+                toast.error("Error al cargar los datos");
+            }
+        };
+        load();
+    }, []); 
 
 
     // Columnas de la tabla
-    const columns: ColumnDef<QuestionWithClients>[] = [
+    const columns: ColumnDef<QuestionDTO>[] = [
+        {
+            accessorKey: "id",
+            header: "#",
+            cell: ({ row }) => (
+                <div className="max-w-[250px]">
+                    <p className="font-medium truncate">{row.original.id_question}</p>
+                </div>
+            ),
+        },
         {
             accessorKey: "question",
             header: "Pregunta",
-            cell: ({ row }) => (
-                <div className="max-w-[250px]">
-                    <p className="font-medium truncate">{row.original.question}</p>
-                </div>
-            ),
         },
         {
             accessorKey: "question_type",
             header: "Tipo",
             cell: ({ row }) => {
-                const type = row.original.question_type || "open";
-                return (
-                    <Badge variant="outline" className="text-xs">
-                        {QUESTION_TYPE_LABELS[type] || type}
-                    </Badge>
-                );
+
+                switch (row.original.question_type) {
+                    case "open":
+                        return <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">Abierta</span>;
+                    case "closed":
+                        return <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Cerrada</span>;
+                    case "numeric":
+                        return <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded">Numérica</span>;
+                    case "boolean":
+                        return <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">Booleana</span>;
+                    default:
+                        return <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded">Desconocida</span>;
+                }
             },
         },
         {
-            accessorKey: "base_price",
-            header: "Precio Base",
-            cell: ({ row }) => (
-                <div className="flex items-center gap-1">
-                    <DollarSign className="h-4 w-4 text-gray-400" />
-                    <span className="font-medium">
-                        ${row.original.base_price.toFixed(2)}
-                    </span>
-                </div>
-            ),
-        },
-        {
-            accessorKey: "promoter_earns",
-            header: "Ganancia Promotor",
-            cell: ({ row }) => (
-                <span className="text-green-600 font-medium">
-                    ${row.original.promoter_earns.toFixed(2)}
-                </span>
-            ),
-        },
-        {
-            accessorKey: "i_status",
-            header: "Estado",
-            cell: ({ row }) => (
-                <Badge variant={row.original.i_status ? "default" : "secondary"}>
-                    {row.original.i_status ? "Activo" : "Inactivo"}
-                </Badge>
-            ),
-        },
-        {
-            id: "clientes",
-            header: "Clientes Asignados",
+            accessorKey: "clients",
+            header: "Clientes asociados",
             cell: ({ row }) => {
-                const clientes = row.original.assignedClients || [];
-                const count = clientes.length;
+                const clientAssignments = row.original.questions_client || [];
+                const total = clientAssignments.length;
 
-                if (count === 0) {
-                    return (
-                        <span className="text-gray-400 text-sm">Sin asignar</span>
-                    );
+                if (total === 0) {
+                    return <span className="text-sm text-gray-500">Sin clientes asociados</span>;
                 }
 
-                // Mostrar hasta 3 clientes, si hay más mostrar botón
-                const visibleClients = clientes.slice(0, 3);
-                const hasMore = count > 3;
+                const visible = clientAssignments.slice(0, 3);
+                const remaining = total - 3;
 
                 return (
-                    <div className="flex items-center gap-2">
-                        <div className="flex flex-wrap gap-1">
-                            {visibleClients.map((c) => (
-                                <Badge
-                                    key={c.id_question_client}
-                                    variant="outline"
-                                    className="text-xs"
-                                >
-                                    {c.client_name}
-                                </Badge>
-                            ))}
-                        </div>
-                        {hasMore && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 px-2 text-xs"
-                                onClick={() => handleVerClientes(row.original)}
+                    <div className="flex flex-wrap items-center gap-1">
+                        {visible.map((ca) => (
+                            <span
+                                key={ca.id_client}
+                                className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded"
                             >
-                                +{count - 3} mas
-                            </Button>
+                                {ca.clients.name}
+                            </span>
+                        ))}
+                        {remaining > 0 && (
+                            <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded font-medium">
+                                +{remaining} más
+                            </span>
                         )}
                     </div>
                 );
             },
         },
         {
-            id: "actions",
-            header: "Acciones",
+            accessorKey: "dt_register",
+            header: "Fecha de creación",
             cell: ({ row }) => {
-                const pregunta = row.original;
-
+                const date = new Date(row.original.dt_register);
                 return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleVerDetalle(pregunta)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Ver detalle
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEditar(pregunta)}>
-                                <Edit2 className="mr-2 h-4 w-4" />
-                                Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleAsignar(pregunta)}>
-                                <Users className="mr-2 h-4 w-4" />
-                                Asignar a cliente
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => handleConfirmDelete(pregunta)}
-                            >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Eliminar
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <span>
+                        {date.toLocaleDateString()} {date.toLocaleTimeString()}
+                    </span>
+                );
+            },
+        },
+        {
+            id: "operaciones",
+            header: "Operaciones",
+            cell: ({ row }) => {
+                return (
+                    <TooltipProvider delayDuration={100}>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => handleAbrirConectar(row.original)}
+                                >
+                                    <Users size={16} />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                                <p>Conectar clientes</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                 );
             },
         },
@@ -296,141 +179,72 @@ export function Preguntas() {
 
     return (
         <>
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h1 className="text-2xl font-semibold text-gray-900">Preguntas</h1>
-                    <p className="text-sm text-gray-500 mt-1">
-                        Administra las preguntas y su asignacion a clientes
-                    </p>
-                </div>
+            <PageWrapper>
+                <PageHeader title="Preguntas" />
 
-                <Button onClick={handleCrear} className="flex items-center gap-2">
-                    <Plus size={18} />
-                    Nueva Pregunta
-                </Button>
-            </div>
-
-            {/* Filtro por cliente */}
-            <div className="mb-4 flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Filtrar por cliente:</span>
-                    <Select
-                        value={selectedClientFilter}
-                        onValueChange={setSelectedClientFilter}
-                    >
-                        <SelectTrigger className="w-[250px]">
-                            <SelectValue placeholder="Todos los clientes" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Todos los clientes</SelectItem>
-                            {clientes.map((cliente) => (
-                                <SelectItem
-                                    key={cliente.id_client}
-                                    value={cliente.id_client.toString()}
-                                >
-                                    {cliente.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                {selectedClientFilter !== "all" && (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedClientFilter("all")}
-                    >
-                        Limpiar filtro
-                    </Button>
-                )}
-            </div>
-
-            {/* Loading state */}
-            {loading && (
-                <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-                </div>
-            )}
-
-            {/* Tabla */}
-            {!loading && (
-                <div className="bg-white rounded-lg border border-gray-200 p-4">
-                    {preguntasFiltradas.length > 0 ? (
-                        <DataTable columns={columns} data={preguntasFiltradas} />
-                    ) : (
-                        <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                                <HelpCircle size={32} className="text-gray-400" />
-                            </div>
-                            <h4 className="text-lg font-medium text-gray-900 mb-1">
-                                Sin preguntas
-                            </h4>
-                            <p className="text-gray-500 mb-4">
-                                {selectedClientFilter === "all"
-                                    ? "No hay preguntas registradas aun."
-                                    : "No hay preguntas asignadas a este cliente."}
-                            </p>
-                            {selectedClientFilter === "all" && (
-                                <Button onClick={handleCrear}>
-                                    <Plus size={16} className="mr-2" />
-                                    Crear primera pregunta
-                                </Button>
-                            )}
+                <div className="mb-4 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-600">Filtrar por cliente:</span>
+                            <Select
+                                value={selectedClientFilter}
+                                onValueChange={setSelectedClientFilter}
+                                disabled={clientes.length === 0}
+                            >
+                                <SelectTrigger className="w-[250px]">
+                                    <SelectValue placeholder="Todos los clientes" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="0">Todos los clientes</SelectItem>
+                                    {clientes.map((cliente) => (
+                                        <SelectItem
+                                            key={cliente.id_client}
+                                            value={cliente.id_client.toString()}
+                                        >
+                                            {cliente.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
-                    )}
-                </div>
-            )}
+                        {selectedClientFilter !== "0" && (
+                            <button
+                                className="text-sm text-gray-500 hover:text-gray-700 underline"
+                                onClick={() => setSelectedClientFilter("0")}
+                            >
+                                Limpiar filtro
+                            </button>
+                        )}
+                    </div>
 
-            {/* Dialogs */}
+                    <Button onClick={handleNuevaPregunta} className="flex items-center gap-2">
+                        <Plus size={18} />
+                        Nueva pregunta
+                    </Button>
+                </div>
+                <DataTable columns={columns} data={preguntasFiltradas} />
+            </PageWrapper>
+
+            
+
             <CrearEditarPreguntaDialog
                 open={showCrearDialog}
                 onOpenChange={setShowCrearDialog}
-                pregunta={editMode ? selectedPregunta : null}
+                id_question={null}
                 onSuccess={() => {
                     setShowCrearDialog(false);
                     fetchData();
                 }}
             />
 
-            <AsignarClienteDialog
-                open={showAsignarDialog}
-                onOpenChange={setShowAsignarDialog}
-                pregunta={selectedPregunta}
+            <ConectarClientesDialog
+                open={showConectarDialog}
+                onOpenChange={setShowConectarDialog}
+                pregunta={preguntaSeleccionada}
                 onSuccess={() => {
-                    setShowAsignarDialog(false);
                     fetchData();
                 }}
             />
-
-            <ListaClientesDialog
-                open={showClientesDialog}
-                onOpenChange={setShowClientesDialog}
-                pregunta={selectedPregunta}
-                onUnassign={() => fetchData()}
-            />
-
-            {/* Confirmacion de eliminacion */}
-            <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Eliminar pregunta</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Esta seguro de eliminar la pregunta "{selectedPregunta?.question}"?
-                            Esta accion no se puede deshacer.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleDelete}
-                            className="bg-red-600 hover:bg-red-700"
-                        >
-                            Eliminar
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </>
     );
 }

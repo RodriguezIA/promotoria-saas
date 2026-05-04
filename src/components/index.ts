@@ -79,6 +79,9 @@ export { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 // DROPDOWN-MENU
 export { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,DropdownMenuCheckboxItem, DropdownMenuGroup, DropdownMenuPortal,DropdownMenuRadioGroup,DropdownMenuRadioItem,DropdownMenuShortcut,DropdownMenuSub,DropdownMenuSubContent,DropdownMenuSubTrigger } from "./ui/dropdown-menu";
 
+// FORM
+export { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage, useFormField } from "./ui/form";
+
 
 // INPUT
 export { Input } from "./ui/input";
@@ -96,6 +99,12 @@ export { PageHeader } from "./ui/page-header";
 
 // PAGE-WRAPPER
 export { PageWrapper } from "./ui/page-wrapper";
+
+// POPOVER
+export { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
+
+// SCROLL AREA
+export { ScrollArea, ScrollBar } from "./ui/scroll-area";
 
 // SELECT
 export { Select, SelectTrigger, SelectContent, SelectItem, SelectValue, SelectGroup,SelectLabel, SelectScrollDownButton, SelectScrollUpButton, SelectSeparator } from "./ui/select";

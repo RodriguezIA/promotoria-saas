@@ -34,10 +34,9 @@ export const useSolicitudStore = create<SolicitudState>((set, get) => ({
 
   calcularPrecioTotal: () => {
     const base = 45
-    const extraProductos = Math.max(get().productos.length - 3, 0) * 15
-    const extraPreguntas = get().productos.flatMap(p =>
-      p.preguntas.filter(preg => preg.precio > 0)
-    ).reduce((sum, preg) => sum + preg.precio, 0)
-    return base + extraProductos + extraPreguntas
+    const totalPreguntas = get().productos.reduce((sum, p) => sum + p.preguntas.length, 0)
+    const preguntasExtra = Math.max(totalPreguntas - 3, 0)
+    const costoExtra = preguntasExtra * 15
+    return Math.min(base + costoExtra, 90)
   }
 }))

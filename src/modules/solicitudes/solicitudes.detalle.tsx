@@ -189,30 +189,38 @@ export function SolicitudDetalle() {
                 <div>
                     <Card className="p-5 sticky top-4 shadow-md border-gray-200">
                         <h2 className="text-lg font-bold mb-4 text-gray-900 border-b pb-2">Resumen Financiero</h2>
-                        <div className="space-y-3 text-sm mb-4">
-                            
-                            {/* La lógica estática que ya tenías la conservamos para tu UI */}
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Costo base (hasta 3 prod):</span>
-                                <span className="font-medium">$45.00</span>
-                            </div>
 
-                            {solicitud.productos.length > 3 && (
-                                <div className="flex justify-between text-amber-600 font-medium">
-                                    <span>Productos extra ({solicitud.productos.length - 3}):</span>
-                                    <span>+ ${(solicitud.productos.length - 3) * 15}.00</span>
-                                </div>
-                            )}
-
-                            {solicitud.productos.map((p: any) =>
-                                p.precio_extra > 0 ? (
-                                    <div key={`extra-${p.id_producto}`} className="flex justify-between text-green-600 font-medium">
-                                        <span>Extras {p.nombre.substring(0, 15)}...:</span>
-                                        <span>+ ${Number(p.precio_extra).toFixed(2)}</span>
+                        {(() => {
+                            const totalPreguntas = solicitud.productos.reduce((sum: number, p: any) => sum + (p.preguntas?.length || 0), 0);
+                            const preguntasExtra = Math.max(totalPreguntas - 3, 0);
+                            const costoExtra = Math.min(preguntasExtra * 15, 45);
+                            return (
+                                <div className="space-y-3 text-sm mb-4">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Costo base (hasta 3 preguntas):</span>
+                                        <span className="font-medium">$45.00</span>
                                     </div>
-                                ) : null
-                            )}
-                        </div>
+
+                                    {preguntasExtra > 0 && (
+                                        <div className="flex justify-between text-amber-600 font-medium">
+                                            <span>Preguntas extra ({preguntasExtra}):</span>
+                                            <span>+ ${costoExtra.toFixed(2)}</span>
+                                        </div>
+                                    )}
+
+                                    {Number(solicitud.total) >= 90 && totalPreguntas > 6 && (
+                                        <div className="text-xs text-gray-500 italic">
+                                            Precio máximo alcanzado. Preguntas adicionales sin costo extra.
+                                        </div>
+                                    )}
+
+                                    <div className="flex justify-between text-sm pt-2">
+                                        <span className="text-muted-foreground">Total preguntas configuradas:</span>
+                                        <span className="font-medium">{totalPreguntas}</span>
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         <Separator className="my-4" />
 
