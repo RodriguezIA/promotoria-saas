@@ -4,9 +4,11 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Plus, Loader2, MoreHorizontal, Eye, Edit2, ClipboardList } from "lucide-react"
 
 
+import { api, ApiResponse } from '@/lib'
+import { RequestDTO } from '@/dtos'
 import { useAuthStore } from "@/stores";
 import { getCLientsList } from "@/Fetch/clientes";
-import { getRequestsByClient, RequestData } from "@/Fetch/solicitudes";
+// import { getRequestsByClient, RequestData } from "@/Fetch/solicitudes";
 import { Button, DataTable, PageHeader, PageWrapper, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components"
 
 
@@ -18,7 +20,7 @@ export function SolicitudesList() {
   const isSuperAdmin = user?.id_client === 0 || user?.i_rol === 1;
 
   // Estados
-  const [solicitudes, setSolicitudes] = useState<RequestData[]>([]);
+  const [solicitudes, setSolicitudes] = useState<RequestDTO[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Estados para el selector de clientes (Super Admin)
@@ -58,9 +60,9 @@ export function SolicitudesList() {
     const fetchSolicitudes = async () => {
       setLoading(true);
       try {
-        const res = await getRequestsByClient(selectedClientId);
-        if (res.ok && res.data) {
-          setSolicitudes(res.data);
+        const res = await api.get<ApiResponse<{ data: RequestDTO[]; meta: any }>>(`/requests?${new URLSearchParams({ id_client: selectedClientId.toString() })}`);
+        if (res.ok && res.data?.data) {
+          setSolicitudes(res.data.data);
         } else {
           setSolicitudes([]);
         }
@@ -80,7 +82,7 @@ export function SolicitudesList() {
   };
 
   // --- DEFINICIÓN DE COLUMNAS ---
-  const columns: ColumnDef<RequestData>[] = [
+  const columns: ColumnDef<RequestDTO>[] = [
     {
       accessorKey: "vc_name",
       header: "Nombre de la Solicitud",
@@ -111,26 +113,6 @@ export function SolicitudesList() {
       cell: ({ row }) => {
         const total = Number(row.original.f_value);
         return <span className="font-semibold">${total.toFixed(2)} MXN</span>;
-      },
-    },
-    {
-      accessorKey: "id_status",
-      header: "Estatus",
-      cell: ({ row }) => {
-        const statusId = row.original.id_status;
-        const estatus = statusId === 1 ? "Pendiente" : statusId === 2 ? "Completada" : "Cancelada";
-        const colorClass =
-          statusId === 1
-            ? "bg-amber-100 text-amber-800"
-            : statusId === 2
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800";
-              
-        return (
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colorClass}`}>
-            {estatus}
-          </span>
-        );
       },
     },
     // --- NUEVA COLUMNA DE ACCIONES ---

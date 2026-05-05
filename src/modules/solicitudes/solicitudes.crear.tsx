@@ -211,59 +211,54 @@ export const CrearSolicitud = () => {
   // --- GUARDAR ---
   const handleGuardar = async () => {
     if (!nombre.trim()) {
-      alert("Por favor ingresa un nombre para la solicitud.");
+      toast.error("Por favor ingresa un nombre para la solicitud.");
       return;
     }
     if (productosSeleccionados.length === 0) {
-      alert("Selecciona al menos un producto.");
+      toast.error("Selecciona al menos un producto.");
       return;
     }
     if (!selectedClientId) {
-      alert("No hay un cliente seleccionado.");
-      return;
-    }
-    
-    // Validamos que exista un usuario en el store para mandar su ID
-    if (!user || !user.id_user) {
-      alert("Error de sesión: No se encontró el ID de usuario.");
+      toast.error("No hay un cliente seleccionado.");
       return;
     }
 
-    // Usamos disabled o un estado de "guardando" para evitar doble click
+    if (!user || !user.id_user) {
+      toast.error("Error de sesión: No se encontró el ID de usuario.");
+      return;
+    }
+
     setCargando(true);
 
     try {
-      const imagenBase64 = await convertirImagenABase64();
+      const formData = new FormData();
+      formData.append("id_user", user.id_user.toString());
+      formData.append("id_client", selectedClientId.toString());
+      formData.append("vc_name", nombre.trim());
+      formData.append("f_value", granTotal.toString());
 
-      const payload = {
-        id_user: user.id_user,
-        id_cliente: selectedClientId,
-        nombre_solicitud: nombre.trim(),
-        costo_total: granTotal,
-        ...(imagenBase64 ? { vc_image: imagenBase64 } : {}),
-        productos: productosSeleccionados.map(prod => ({
-          id_product: prod.id_product,
-          subtotal: 0,
-          preguntas: prod.preguntas.map(q => ({
-            id_pregunta: q.id_pregunta,
-            precio_aplicado: 0
-          }))
-        }))
-      };
-
-      console.log("Enviando al Backend:", payload);
-      const respuesta = await createRequest(payload);
-      
-      if (respuesta.ok) {
-        alert("¡Solicitud guardada con éxito!");
-        setNombre('');
-        setProductosSeleccionados([]);
-        setImagenAnaquel(null);
-        setPreviewAnaquel(null);
+      if (imagenAnaquel) {
+        formData.append("rackImage", imagenAnaquel);
       }
+
+      formData.append("products", JSON.stringify(productosSeleccionados.map(prod => ({
+        id_product: prod.id_product,
+        questions: prod.preguntas.map(q => ({
+          id_question: q.id_pregunta,
+        }))
+      }))));
+
+      await api.upload<ApiResponse>('/requests/', formData);
+
+      toast.success("¡Solicitud guardada con éxito!");
+      setNombre('');
+      setProductosSeleccionados([]);
+      setImagenAnaquel(null);
+      setPreviewAnaquel(null);
+      setBusquedaPreguntas({});
     } catch (error: any) {
       console.error("Error al guardar:", error);
-      alert(error.message || "Ocurrió un error al guardar la solicitud.");
+      toast.error(error.message || "Ocurrió un error al guardar la solicitud.");
     } finally {
       setCargando(false);
     }
