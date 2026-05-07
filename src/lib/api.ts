@@ -126,7 +126,9 @@ export const api = {
      * Maneja la respuesta de la API
      */
     async handleResponse<T>(response: Response): Promise<T> {
-        if (!response.ok) {
+        // 304 Not Modified: el navegador devuelve la respuesta cacheada.
+        // Aunque response.ok es false para 304, el cuerpo sigue disponible.
+        if (!response.ok && response.status !== 304) {
             const contentType = response.headers.get("content-type") || "";
             const data: ApiError = contentType.includes("application/json")
                 ? await response.json()
