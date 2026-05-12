@@ -211,6 +211,9 @@ export const CrearPedido = () => {
           })),
       }
 
+      const resp = await api.post<ApiResponse<any>>('/orders', payload);
+      console.log("respuesta: ", resp);
+
       console.log('BODY A ENVIAR:', JSON.stringify(payload, null, 2))
       toast.success('Body impreso en consola. Revisa el navegador.')
     } catch (error: any) {
