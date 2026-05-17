@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { ColumnDef } from "@tanstack/react-table"
-import { Plus, Eye, Receipt } from "lucide-react"
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ColumnDef } from '@tanstack/react-table'
+import { Plus, Eye, Receipt } from 'lucide-react'
 
 
-import { useAuthStore } from "@/stores"
-import { getCLientsList } from "@/Fetch/clientes"
-import { getOrdersByClient, OrderData } from "@/Fetch/pedidos"
-import { Button, DataTable, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, PageHeader, PageWrapper } from "@/components"
+import { useAuthStore } from '@/stores'
+import { getCLientsList } from '@/Fetch/clientes'
+import { getOrdersByClient, OrderData } from '@/Fetch/pedidos'
+import { Button, DataTable, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, PageHeader, PageWrapper } from '@/components'
+import { api, ApiResponse } from '@/lib'
+import { OderListDTO, OrderDTO } from '@/dtos'
 
 
 export function PedidosList() {
@@ -16,7 +18,7 @@ export function PedidosList() {
   
   const isSuperAdmin = user?.id_client === 0 || user?.i_rol === 1;
 
-  const [pedidos, setPedidos] = useState<OrderData[]>([]);
+  const [pedidos, setPedidos] = useState<OrderDTO[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [clientes, setClientes] = useState<any[]>([]);
@@ -35,15 +37,21 @@ export function PedidosList() {
   }, [isSuperAdmin, user]);
 
   useEffect(() => {
-    if (!selectedClientId) return;
-    setLoading(true);
-    getOrdersByClient(selectedClientId)
-      .then(res => setPedidos(res.data || []))
-      .catch(() => setPedidos([]))
-      .finally(() => setLoading(false));
+    try {
+      console.log("carga de pedidos")
+      const fetch = async() => {
+       const resp = await api.get<ApiResponse<OderListDTO>>(`/orders/?id_client=${selectedClientId}`);
+       console.log("respuesta de get all orders: ", resp)
+       setPedidos(resp.data.data);
+      }
+
+      fetch();
+    } catch (error) {
+      console.error(error);
+    }
   }, [selectedClientId]);
 
-  const columns: ColumnDef<OrderData>[] = [
+  const columns: ColumnDef<OrderDTO>[] = [
     {
       accessorKey: "id_order",
       header: "ID Pedido",
