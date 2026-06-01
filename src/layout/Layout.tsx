@@ -7,6 +7,7 @@ import { cn } from "@/lib";
 import { Sidebar } from "./Sidebar"
 import { useAuthStore } from "@/stores"
 import { SidebarProvider } from '@/components'
+import { useAuthCheck } from '@/hooks'
 
 
 const ROUTE_LABELS: Record<string, string> = {
@@ -65,6 +66,8 @@ export function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const { user } = useAuthStore();
+  useAuthCheck();
+
 
   const pageLabel = getRouteLabel(location.pathname);
   const userName = [user?.name, user?.lastname].filter(Boolean).join(" ") || "Usuario";

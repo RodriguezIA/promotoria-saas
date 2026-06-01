@@ -24,10 +24,21 @@ export interface OrderDTO {
     id_client: number
     f_total: number
     dt_register: string
-    dt_updated: string
+    dt_update: string
     id_status: number
-    user?: UsuarioDTO
-    client?: ClientDTO
+    // user?: UsuarioDTO
+    // client?: ClientDTO
+}
+
+export interface OrderItemsDTO {
+    // Esta es la tabal estructura que arma las request qeu se estan agregando 
+    id_order_item: number
+    id_order: number
+    id_request: number
+    id_store: number
+    f_values: number
+    dt_register: string
+    dt_update: string
 }
 
 export interface OderListDTO {
