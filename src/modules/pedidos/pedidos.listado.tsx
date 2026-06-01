@@ -37,18 +37,20 @@ export function PedidosList() {
   }, [isSuperAdmin, user]);
 
   useEffect(() => {
-    try {
-      console.log("carga de pedidos")
-      const fetch = async() => {
-       const resp = await api.get<ApiResponse<OderListDTO>>(`/orders/?id_client=${selectedClientId}`);
-       console.log("respuesta de get all orders: ", resp)
-       setPedidos(resp.data.data);
+    if (!selectedClientId) return;
+    
+    const fetchPedidos = async() => {
+      try {
+        const resp = await api.get<ApiResponse<OderListDTO>>(`/orders/?id_client=${selectedClientId}`);
+        setPedidos(resp.data.data || []);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
       }
-
-      fetch();
-    } catch (error) {
-      console.error(error);
     }
+
+    fetchPedidos();
   }, [selectedClientId]);
 
   const columns: ColumnDef<OrderDTO>[] = [
@@ -58,38 +60,42 @@ export function PedidosList() {
       cell: ({ row }) => <span className="font-bold text-gray-700">#{row.getValue("id_order")}</span>,
     },
     {
-      accessorKey: "request_name",
-      header: "Solicitud Base (Template)",
-      cell: ({ row }) => (
-        <span className="font-medium text-blue-600 cursor-pointer hover:underline" onClick={() => navigate(`/detalle-pedido/${row.original.id_order}`)}>
-          {row.getValue("request_name")}
-        </span>
-      ),
+      accessorKey: "request_nums",
+      header: "Cantidad de solicitudes utilizadas",
+      cell: ({ row }) => {
+        console.log("row: ", row);
+
+        return (
+          <span className="font-medium text-blue-600 cursor-pointer hover:underline" onClick={() => navigate(`/detalle-pedido/${row.original.id_order}`)}>
+            {row.getValue("request_nums")}
+          </span>
+        )
+      },
     },
-    {
-      accessorKey: "total_tasks",
-      header: "Tiendas a visitar",
-      cell: ({ row }) => <span className="bg-gray-100 px-2 py-1 rounded font-medium">{row.getValue("total_tasks")} Tareas</span>,
-    },
-    {
-      accessorKey: "f_total",
-      header: "Costo Total",
-      cell: ({ row }) => <span className="font-semibold text-green-600">${Number(row.getValue("f_total")).toFixed(2)}</span>,
-    },
-    {
-      accessorKey: "dt_register",
-      header: "Fecha",
-      cell: ({ row }) => new Date(row.original.dt_register).toLocaleDateString("es-MX"),
-    },
-    {
-      id: "actions",
-      header: "Acciones",
-      cell: ({ row }) => (
-        <Button variant="ghost" size="sm" onClick={() => navigate(`/detalle-pedido/${row.original.id_order}`)}>
-          <Eye className="w-4 h-4 mr-2" /> Ver Detalles
-        </Button>
-      ),
-    },
+    // {
+    //   accessorKey: "total_tasks",
+    //   header: "Tiendas a visitar",
+    //   cell: ({ row }) => <span className="bg-gray-100 px-2 py-1 rounded font-medium">{row.getValue("total_tasks")} Tareas</span>,
+    // },
+    // {
+    //   accessorKey: "f_total",
+    //   header: "Costo Total",
+    //   cell: ({ row }) => <span className="font-semibold text-green-600">${Number(row.getValue("f_total")).toFixed(2)}</span>,
+    // },
+    // {
+    //   accessorKey: "dt_register",
+    //   header: "Fecha",
+    //   cell: ({ row }) => new Date(row.original.dt_register).toLocaleDateString("es-MX"),
+    // },
+    // {
+    //   id: "actions",
+    //   header: "Acciones",
+    //   cell: ({ row }) => (
+    //     <Button variant="ghost" size="sm" onClick={() => navigate(`/detalle-pedido/${row.original.id_order}`)}>
+    //       <Eye className="w-4 h-4 mr-2" /> Ver Detalles
+    //     </Button>
+    //   ),
+    // },
   ];
 
   return (

@@ -101,6 +101,19 @@ export default function ProductPage() {
 
   const columns: ColumnDef<ProductDTO>[] = [
     {
+      accessorKey: "vc_image",
+      header: "#",
+      cell: ({ row }) => (
+        <div className="flex items-center justify-start">
+          <img
+            src={row.getValue("vc_image")}
+            alt={row.getValue("name")}
+            className="w-12 h-12 object-cover rounded-lg border border-gray-200"
+          />
+        </div>
+      ),
+    },
+    {
       accessorKey: "name",
       header: "Nombre",
       cell: ({ row }) => (
@@ -154,37 +167,40 @@ export default function ProductPage() {
       cell: ({ row }) => {
         const product = row.original;
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => navigate(`/producto/detalle/${product.id_product}`)}
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                Ver detalle
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => navigate(`/producto/${product.id_product}`)}
-              >
-                <Edit2 className="mr-2 h-4 w-4" />
-                Editar
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-red-600"
-                onClick={() => handleDelete(product.id_product)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Eliminar
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-1">
+            {/* Botón Ver */}
+            <Button
+              size="icon"
+              variant="default"
+              className="bg-gray-400 border-gray-200 text-white hover:bg-gray-600 border-gray-300 hover:text-blue-300"
+              onClick={() => navigate(`/producto/detalle/${product.id_product}`)}
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+
+            {/* Botón Editar */}
+            <Button
+              size="icon"
+              variant="default"
+              className="bg-gray-400 border-gray-200 text-white hover:bg-gray-600 border-gray-300 hover:text-amber-300"
+              onClick={() => navigate(`/producto/${product.id_product}`)}
+            >
+              <Edit2 className="h-4 w-4" />
+            </Button>
+
+            {/* Botón Eliminar */}
+            <Button
+              size="icon"
+              variant="default"
+              className="bg-red-300 border-gray-200 text-white hover:bg-red-600 border-gray-300"
+              onClick={() => handleDelete(product.id_product)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         );
       },
-    },
+    }
   ];
 
   if (isSuperAdmin && loadingClients) {
