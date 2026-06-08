@@ -2,13 +2,13 @@ import { toast } from "sonner"
 import { useState, useEffect } from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { Link, useNavigate } from "react-router-dom"
-import { Loader2, Package, Plus, MoreHorizontal, Eye, Edit2, Trash2 } from "lucide-react"
+import { Loader2, Package, Plus, Edit2, Trash2, Glasses } from "lucide-react"
 
 
 import { useAuthStore } from '@/stores';
 import { ProductDTO, ClientDTO } from "@/dtos";
 import { api, ApiResponse, formatDate } from '@/lib'
-import { Button, DataTable, PageWrapper, PageHeader, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components';
+import { Button, DataTable, PageWrapper, PageHeader, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, ConfirmModal } from '@/components';
 
 
 export default function ProductPage() {
@@ -22,6 +22,7 @@ export default function ProductPage() {
   const [products, setProducts] = useState<ProductDTO[]>([]);
   const [clients, setClients] = useState<ClientDTO[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: number | null; loading: boolean }>({ open: false, id: null, loading: false });
 
 
   const isSuperAdmin = user?.i_rol === 1;
@@ -84,18 +85,22 @@ export default function ProductPage() {
   };
 
 
-  const handleDelete = async (id_product: number) => {
-    if (!confirm("¿Estás seguro de eliminar este producto?")) return;
+  const handleDelete = (id_product: number) => {
+    setDeleteModal({ open: true, id: id_product, loading: false });
+  };
 
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.id) return;
+    setDeleteModal((prev) => ({ ...prev, loading: true }));
     try {
-      await api.delete<ApiResponse>(`/products/${id_product}`);
+      await api.delete<ApiResponse>(`/products/${deleteModal.id}`);
       toast.success("Producto eliminado exitosamente");
-      if (selectedClientId) {
-        fetchProducts(selectedClientId);
-      }
+      setDeleteModal({ open: false, id: null, loading: false });
+      if (selectedClientId) fetchProducts(selectedClientId);
     } catch (error) {
       console.error(error);
       toast.error("Error al eliminar producto");
+      setDeleteModal((prev) => ({ ...prev, loading: false }));
     }
   };
 
@@ -172,17 +177,17 @@ export default function ProductPage() {
             <Button
               size="icon"
               variant="default"
-              className="bg-gray-400 border-gray-200 text-white hover:bg-gray-600 border-gray-300 hover:text-blue-300"
+              className="bg-gray-600 text-white hover:bg-gray-950 border-gray-300 hover:text-blue-300"
               onClick={() => navigate(`/producto/detalle/${product.id_product}`)}
             >
-              <Eye className="h-4 w-4" />
+              <Glasses className="h-4 w-4" />
             </Button>
 
             {/* Botón Editar */}
             <Button
               size="icon"
               variant="default"
-              className="bg-gray-400 border-gray-200 text-white hover:bg-gray-600 border-gray-300 hover:text-amber-300"
+              className="bg-gray-600 text-white hover:bg-gray-950 border-gray-300 hover:text-amber-300"
               onClick={() => navigate(`/producto/${product.id_product}`)}
             >
               <Edit2 className="h-4 w-4" />
@@ -192,7 +197,7 @@ export default function ProductPage() {
             <Button
               size="icon"
               variant="default"
-              className="bg-red-300 border-gray-200 text-white hover:bg-red-600 border-gray-300"
+              className="bg-red-500 text-white hover:bg-red-950 border-gray-300"
               onClick={() => handleDelete(product.id_product)}
             >
               <Trash2 className="h-4 w-4" />
@@ -259,6 +264,19 @@ export default function ProductPage() {
           emptyMessage="No hay productos registrados."
         />
       </div>
+
+      <ConfirmModal
+        open={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, id: null, loading: false })}
+        onConfirm={handleConfirmDelete}
+        title="Eliminar producto"
+        description="¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        loading={deleteModal.loading}
+        variant="danger"
+        icon={<Trash2 className="h-5 w-5" />}
+      />
     </PageWrapper>
   );
 }

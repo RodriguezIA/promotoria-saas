@@ -1,244 +1,380 @@
+import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { Loader2, ArrowLeft, Store, User, MapPin, PlusCircle, X } from "lucide-react"
+import { Loader2, ArrowLeft, Receipt, Store, User, ClipboardList, Eye } from "lucide-react"
 
+import { OrderDTO, TaskDTO, PromoterDTO } from "@/dtos"
+import { api, ApiResponse, formatDate } from "@/lib"
+import {
+  Button, Card, CardContent,
+  PageWrapper, PageHeader,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components"
 
-import { Button, Card } from '@/components'
-import { getAllPromoters, Promotor } from "@/Fetch/promotores"
-import { getOrderById, OrderData, assignPromoterTask, TaskData } from "@/Fetch/pedidos" 
+const formatCurrency = (v: number) =>
+  new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(v)
 
+const TASK_STATUS: Record<number, { label: string; color: string }> = {
+  0: { label: "Cancelada",    color: "bg-red-50 text-red-700" },
+  1: { label: "Pendiente",    color: "bg-amber-50 text-amber-700" },
+  2: { label: "En progreso",  color: "bg-blue-50 text-blue-700" },
+  3: { label: "Completada",   color: "bg-green-50 text-green-700" },
+}
 
 export function PedidoDetalle() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  
-  const [pedido, setPedido] = useState<OrderData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { id } = useParams()
+  const navigate = useNavigate()
 
-  // --- ESTADOS PARA EL MODAL DE ASIGNACIÓN ---
-  const [modalOpen, setModalOpen] = useState(false);
-  const [tareaActiva, setTareaActiva] = useState<TaskData | null>(null);
-  const [promotores, setPromotores] = useState<Promotor[]>([]);
-  const [selectedPromoter, setSelectedPromoter] = useState<number | "">("");
-  const [asignando, setAsignando] = useState(false);
+  const [order, setOrder] = useState<OrderDTO | null>(null)
+  const [tasks, setTasks] = useState<TaskDTO[]>([])
+  const [promotores, setPromotores] = useState<PromoterDTO[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // 1. Cargar el pedido inicial
+  const [assignModal, setAssignModal] = useState<{ open: boolean; task: TaskDTO | null; saving: boolean }>({
+    open: false, task: null, saving: false,
+  })
+  const [selectedPromoter, setSelectedPromoter] = useState<string>("")
+
   useEffect(() => {
-    const fetchDatos = async () => {
-      if (!id) return;
-      setLoading(true);
+    if (!id) return
+    const orderId = Number(id)
+
+    const fetchAll = async () => {
       try {
-        const res = await getOrderById(Number(id));
-        if (res.ok && res.data) {
-          setPedido(res.data);
-          
-          // Pre-cargamos la lista de promotores para este cliente/negocio
-          try {
-            const resPromotores = await getAllPromoters();
-            if (resPromotores.ok && resPromotores.data) {
-              setPromotores(resPromotores.data);
-            }
-          } catch (e) {
-            console.error("Error cargando promotores:", e);
-          }
-        }
-      } catch (error) {
-        console.error("Error cargando el pedido", error);
+        setLoading(true)
+        const [orderResp, tasksResp, promotoresResp] = await Promise.all([
+          api.get<ApiResponse<OrderDTO>>(`/orders/${orderId}`),
+          api.get<ApiResponse<TaskDTO[]>>(`/tasks?id_order=${orderId}`),
+          api.get<ApiResponse<PromoterDTO[]>>("/promoters"),
+        ])
+        setOrder(orderResp.data)
+        setTasks(tasksResp.data || [])
+        setPromotores(promotoresResp.data || [])
+      } catch {
+        toast.error("Error al cargar el pedido")
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-    fetchDatos();
-  }, [id]);
-
-  // 2. Abrir Modal
-  const handleOpenAssignModal = (task: TaskData) => {
-    setTareaActiva(task);
-    setSelectedPromoter(task.id_promoter || "");
-    setModalOpen(true);
-  };
-
-  // 3. Guardar Asignación
-  const handleGuardarAsignacion = async () => {
-    if (!tareaActiva) return;
-    if (selectedPromoter === "") {
-      alert("Por favor, selecciona un promotor.");
-      return;
     }
 
-    setAsignando(true);
+    fetchAll()
+  }, [id])
+
+  const openAssignModal = (task: TaskDTO) => {
+    setAssignModal({ open: true, task, saving: false })
+    setSelectedPromoter(task.id_promoter ? String(task.id_promoter) : "")
+  }
+
+  const handleAssign = async () => {
+    if (!assignModal.task || !selectedPromoter) {
+      toast.error("Selecciona un promotor")
+      return
+    }
+
+    setAssignModal((prev) => ({ ...prev, saving: true }))
     try {
-      await assignPromoterTask(tareaActiva.id_task, Number(selectedPromoter));
-      
-      // Actualizamos el estado local para reflejar el cambio sin recargar
-      const promotorAsignado = promotores.find(p => p.id_promoter === Number(selectedPromoter));
-      
-      setPedido(prev => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          tasks: prev.tasks?.map(t => 
-            t.id_task === tareaActiva.id_task 
-              ? { ...t, id_promoter: Number(selectedPromoter), promoter_name: promotorAsignado?.vc_name || "Promotor asignado" } 
-              : t
-          )
-        };
-      });
+      await api.put<ApiResponse>(`/tasks/${assignModal.task.id_task}/assign`, {
+        id_promoter: Number(selectedPromoter),
+      })
 
-      setModalOpen(false);
-      alert("¡Promotor asignado con éxito!");
-    } catch (error: any) {
-      alert(error.message || "Hubo un error al asignar la tarea.");
-    } finally {
-      setAsignando(false);
+      const promotor = promotores.find((p) => p.id === Number(selectedPromoter))
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id_task === assignModal.task!.id_task
+            ? {
+                ...t,
+                id_promoter: Number(selectedPromoter),
+                promoter: {
+                  id: Number(selectedPromoter),
+                  name: promotor?.name ?? "",
+                  lastname: promotor?.lastname ?? "",
+                  phone: promotor?.phone ?? "",
+                },
+              }
+            : t
+        )
+      )
+
+      toast.success("Promotor asignado correctamente")
+      setAssignModal({ open: false, task: null, saving: false })
+    } catch {
+      toast.error("Error al asignar el promotor")
+      setAssignModal((prev) => ({ ...prev, saving: false }))
     }
-  };
+  }
 
-  if (loading) return <div className="p-12 text-center"><Loader2 className="animate-spin mx-auto mb-4" />Cargando desglose del pedido...</div>;
-  if (!pedido) return <div className="p-12 text-center">Pedido no encontrado.</div>;
+  if (loading) {
+    return (
+      <PageWrapper>
+        <div className="flex items-center justify-center py-20 gap-3">
+          <Loader2 size={24} className="animate-spin" style={{ color: "var(--text-secondary)" }} />
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Cargando pedido...</p>
+        </div>
+      </PageWrapper>
+    )
+  }
+
+  if (!order) {
+    return (
+      <PageWrapper>
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Pedido no encontrado.</p>
+          <Button variant="outline" onClick={() => navigate("/pedidos")}>
+            <ArrowLeft size={16} className="mr-2" /> Volver
+          </Button>
+        </div>
+      </PageWrapper>
+    )
+  }
+
+  const uniqueRequests = [...new Map(
+    (order.order_items ?? []).map((i) => [i.id_request, i.request?.vc_name])
+  ).entries()]
+
+  const pendientes = tasks.filter((t) => t.id_status === 1).length
+  const enProgreso = tasks.filter((t) => t.id_status === 2).length
+  const completadas = tasks.filter((t) => t.id_status === 3).length
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6 relative">
-      
-      {/* CABECERA DEL PEDIDO */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Pedido #{pedido.id_order}</h1>
-          <p className="text-gray-500 mt-1">Configuración base: <span className="font-semibold text-blue-600">{pedido.request_name}</span></p>
-        </div>
-        <Button variant="outline" onClick={() => navigate("/pedidos")}>
-          <ArrowLeft size={16} className="mr-2" /> Volver a Pedidos
-        </Button>
-      </div>
+    <PageWrapper>
+      <PageHeader
+        title={`Pedido #${String(order.id_order).padStart(4, "0")}`}
+        subtitle={`Creado el ${formatDate(order.dt_register)}`}
+        icon={Receipt}
+        actions={
+          <Button variant="outline" onClick={() => navigate("/pedidos")}>
+            <ArrowLeft size={16} className="mr-2" /> Volver a Pedidos
+          </Button>
+        }
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* RESUMEN FINANCIERO */}
-        <Card className="p-5 md:col-span-1 bg-gray-900 text-white shadow-lg h-fit sticky top-6">
-          <h2 className="text-lg font-bold text-gray-300 mb-4 border-b border-gray-700 pb-2">Resumen de Operación</h2>
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-400">Total de Tareas:</span>
-              <span className="font-bold">{pedido.tasks?.length || 0} Tiendas</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Fecha creación:</span>
-              <span className="font-medium">{new Date(pedido.dt_register).toLocaleDateString()}</span>
-            </div>
-            <div className="pt-4 mt-2 border-t border-gray-700 flex justify-between items-center">
-              <span className="text-xl font-bold">Total Cobrado:</span>
-              <span className="text-2xl font-black text-green-400">${Number(pedido.f_total).toFixed(2)}</span>
-            </div>
-          </div>
-        </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
-        {/* LISTADO DE TAREAS */}
-        <div className="md:col-span-2 space-y-4">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <Store size={24} className="text-blue-600"/> Tareas en Establecimientos
-          </h2>
-          
-          <div className="grid gap-3">
-            {pedido.tasks?.map((task) => (
-              <Card key={task.id_task} className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-shadow border-l-4 border-l-blue-500">
-                
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded">ID: {task.id_task}</span>
-                    <h3 className="font-bold text-gray-900 text-lg">{task.store_name}</h3>
-                  </div>
-                  <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                    <MapPin size={14} /> {task.street} {task.ext_number}, {task.neighborhood}
-                  </p>
-                </div>
+        {/* ── Sidebar resumen ── */}
+        <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-6">
+          <Card>
+            <CardContent className="p-5 space-y-4">
+              <h3 className="font-semibold text-sm uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>
+                Resumen del pedido
+              </h3>
 
-                <div className="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
-                  {/* ESTADO */}
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    task.id_status === 1 ? 'bg-amber-100 text-amber-800' :
-                    task.id_status === 2 ? 'bg-blue-100 text-blue-800' :
-                    'bg-green-100 text-green-800'
-                  }`}>
-                    {task.id_status === 1 ? 'Pendiente' : task.id_status === 2 ? 'En Progreso' : 'Completada'}
+              {/* Estado */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Estado</span>
+                {order.id_status === 1 ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-sm rounded-full">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full" /> Activo
                   </span>
-
-                  {/* PROMOTOR ASIGNADO */}
-                  <div className="flex items-center gap-1 text-sm mt-1">
-                    <User size={14} className={task.promoter_name ? "text-blue-600" : "text-gray-400"} />
-                    {task.promoter_name ? (
-                      <span className="font-medium text-blue-700">{task.promoter_name}</span>
-                    ) : (
-                      <span className="text-red-500 italic font-medium">Sin asignar</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* BOTÓN ASIGNAR */}
-                <Button 
-                  variant={task.promoter_name ? "outline" : "default"} 
-                  size="sm" 
-                  className="w-full sm:w-auto mt-2 sm:mt-0"
-                  onClick={() => handleOpenAssignModal(task)}
-                >
-                  {task.promoter_name ? "Cambiar Promotor" : "Asignar Promotor"}
-                </Button>
-
-              </Card>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* --- MODAL FLOTANTE DE ASIGNACIÓN --- */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-lg text-gray-800">Asignar Promotor</h3>
-              <button onClick={() => setModalOpen(false)} className="text-gray-500 hover:text-red-500 transition-colors">
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-4">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Establecimiento:</p>
-                <p className="font-semibold text-gray-900">{tareaActiva?.store_name}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Selecciona al encargado:</label>
-                {promotores.length > 0 ? (
-                  <select 
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    value={selectedPromoter}
-                    onChange={(e) => setSelectedPromoter(e.target.value === "" ? "" : Number(e.target.value))}
-                  >
-                    <option value="" disabled>-- Seleccione un promotor --</option>
-                    {promotores.map(p => (
-                      <option key={p.id_promoter} value={p.id_promoter}>{p.vc_name}</option>
-                    ))}
-                  </select>
                 ) : (
-                    <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded border border-amber-200">
-                        No hay promotores registrados en el sistema. Por favor, da de alta un promotor en el panel de administración primero.
-                    </p>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 text-red-700 text-sm rounded-full">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full" /> Cancelado
+                  </span>
                 )}
               </div>
-            </div>
 
-            <div className="p-4 border-t bg-gray-50 flex justify-end gap-3">
-              <Button variant="ghost" onClick={() => setModalOpen(false)} disabled={asignando}>
-                Cancelar
-              </Button>
-              <Button onClick={handleGuardarAsignacion} disabled={asignando || promotores.length === 0}>
-                {asignando ? <Loader2 className="animate-spin mr-2" size={16}/> : <PlusCircle className="mr-2" size={16}/>}
-                Confirmar Asignación
-              </Button>
-            </div>
-          </div>
+              {/* Total */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Total cobrado</span>
+                <span className="font-bold text-green-600 text-lg">{formatCurrency(Number(order.f_total))}</span>
+              </div>
+
+              {/* Tareas */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Total de tiendas</span>
+                <span className="font-semibold">{tasks.length}</span>
+              </div>
+
+              {/* Progreso tareas */}
+              {tasks.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs" style={{ color: "var(--text-secondary)" }}>
+                    <span>Pendientes</span><span className="font-medium text-amber-600">{pendientes}</span>
+                  </div>
+                  <div className="flex justify-between text-xs" style={{ color: "var(--text-secondary)" }}>
+                    <span>En progreso</span><span className="font-medium text-blue-600">{enProgreso}</span>
+                  </div>
+                  <div className="flex justify-between text-xs" style={{ color: "var(--text-secondary)" }}>
+                    <span>Completadas</span><span className="font-medium text-green-600">{completadas}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Solicitudes */}
+              {uniqueRequests.length > 0 && (
+                <div>
+                  <p className="text-xs mb-2" style={{ color: "var(--text-secondary)" }}>Solicitudes</p>
+                  <div className="flex flex-wrap gap-1">
+                    {uniqueRequests.map(([id, name]) => (
+                      <span key={id} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                        {name ?? `#${id}`}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Logs */}
+          {(order.order_logs ?? []).length > 0 && (
+            <Card>
+              <CardContent className="p-5">
+                <h3 className="font-semibold text-sm uppercase tracking-wide mb-3" style={{ color: "var(--text-secondary)" }}>
+                  Actividad
+                </h3>
+                <div className="space-y-3">
+                  {order.order_logs!.map((log, i) => (
+                    <div key={i} className="flex gap-2 text-sm">
+                      <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
+                      <div>
+                        <p style={{ color: "var(--text-primary)" }}>{log.vc_log}</p>
+                        <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                          {formatDate(log.dt_registro)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
-      )}
 
-    </div>
-  );
+        {/* ── Lista de tareas ── */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="flex items-center gap-2">
+            <Store size={20} style={{ color: "var(--text-secondary)" }} />
+            <h2 className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>
+              Tareas en establecimientos
+            </h2>
+          </div>
+
+          {tasks.length === 0 ? (
+            <div className="rounded-xl border p-10 text-center" style={{ borderColor: "var(--border)" }}>
+              <ClipboardList size={32} className="mx-auto mb-2 opacity-40" />
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>No hay tareas en este pedido.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {tasks.map((task) => {
+                const status = TASK_STATUS[task.id_status] ?? TASK_STATUS[1]
+                const promotorNombre = task.promoter
+                  ? `${task.promoter.name} ${task.promoter.lastname}`.trim()
+                  : null
+
+                return (
+                  <Card key={task.id_task} className="border-l-4 border-l-blue-500">
+                    <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ backgroundColor: "var(--hover)", color: "var(--text-secondary)" }}>
+                            #{task.id_task}
+                          </span>
+                          <span className="font-semibold truncate" style={{ color: "var(--text-primary)" }}>
+                            {task.store?.name ?? `Tienda #${task.id_store}`}
+                          </span>
+                        </div>
+                        {task.request && (
+                          <p className="text-sm truncate" style={{ color: "var(--text-secondary)" }}>
+                            {task.request.vc_name}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:flex-col sm:items-end">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${status.color}`}>
+                          {status.label}
+                        </span>
+
+                        <div className="flex items-center gap-1 text-sm">
+                          <User size={14} style={{ color: promotorNombre ? "var(--accent)" : "var(--text-secondary)" }} />
+                          {promotorNombre ? (
+                            <span className="font-medium" style={{ color: "var(--accent)" }}>{promotorNombre}</span>
+                          ) : (
+                            <span className="italic text-red-500 text-xs font-medium">Sin asignar</span>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => navigate(`/tareas/${task.id_task}`)}
+                          >
+                            <Eye size={14} className="mr-1.5" /> Ver detalle
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={promotorNombre ? "outline" : "default"}
+                            onClick={() => openAssignModal(task)}
+                          >
+                            {promotorNombre ? "Cambiar promotor" : "Asignar promotor"}
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Modal asignación ── */}
+      <Dialog
+        open={assignModal.open}
+        onOpenChange={(v) => !v && setAssignModal({ open: false, task: null, saving: false })}
+      >
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Asignar promotor</DialogTitle>
+            <DialogDescription>
+              {assignModal.task?.store?.name ?? `Tarea #${assignModal.task?.id_task}`}
+              {assignModal.task?.request && ` · ${assignModal.task.request.vc_name}`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-2">
+            {promotores.length === 0 ? (
+              <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                No hay promotores registrados. Da de alta un promotor primero.
+              </p>
+            ) : (
+              <Select value={selectedPromoter} onValueChange={setSelectedPromoter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona un promotor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {promotores.map((p) => (
+                    <SelectItem key={p.id} value={String(p.id)}>
+                      {p.name} {p.lastname}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setAssignModal({ open: false, task: null, saving: false })}
+              disabled={assignModal.saving}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleAssign}
+              disabled={assignModal.saving || !selectedPromoter || promotores.length === 0}
+            >
+              {assignModal.saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </PageWrapper>
+  )
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { ColumnDef } from "@tanstack/react-table"
-import { Plus, Loader2, MoreHorizontal, Eye, Edit2, ClipboardList } from "lucide-react"
+import { Plus, Loader2, Edit2, ClipboardList, Glasses } from "lucide-react"
 
 
 import { api, ApiResponse } from '@/lib'
@@ -9,7 +9,7 @@ import { RequestDTO } from '@/dtos'
 import { useAuthStore } from "@/stores";
 import { getCLientsList } from "@/Fetch/clientes";
 // import { getRequestsByClient, RequestData } from "@/Fetch/solicitudes";
-import { Button, DataTable, PageHeader, PageWrapper, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components"
+import { Button, DataTable, PageHeader, PageWrapper, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components"
 
 
 export function SolicitudesList() {
@@ -116,41 +116,82 @@ export function SolicitudesList() {
       },
     },
     // --- NUEVA COLUMNA DE ACCIONES ---
+    // {
+    //   id: "actions",
+    //   header: "Acciones",
+    //   cell: ({ row }) => {
+    //     const id = row.original.id_request;
+
+    //     return (
+    //       <DropdownMenu>
+    //         <DropdownMenuTrigger asChild>
+    //           <Button variant="ghost" className="h-8 w-8 p-0">
+    //             <span className="sr-only">Abrir menú</span>
+    //             <MoreHorizontal className="h-4 w-4 text-gray-500" />
+    //           </Button>
+    //         </DropdownMenuTrigger>
+    //         <DropdownMenuContent align="end">
+    //           <DropdownMenuItem 
+    //             onClick={() => navigate(`/detalle-solicitud/${id}`)}
+    //             className="cursor-pointer"
+    //           >
+    //             <Eye className="mr-2 h-4 w-4 text-blue-600" />
+    //             <span>Ver Detalle</span>
+    //           </DropdownMenuItem>
+              
+    //           <DropdownMenuItem 
+    //             onClick={() => navigate(`/editar-solicitud/${id}`)}
+    //             className="cursor-pointer"
+    //           >
+    //             <Edit2 className="mr-2 h-4 w-4 text-amber-600" />
+    //             <span>Editar Solicitud</span>
+    //           </DropdownMenuItem>
+    //         </DropdownMenuContent>
+    //       </DropdownMenu>
+    //     );
+    //   },
+    // },
     {
       id: "actions",
-      header: "Acciones",
+      header: "",
       cell: ({ row }) => {
         const id = row.original.id_request;
-
+        
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menú</span>
-                <MoreHorizontal className="h-4 w-4 text-gray-500" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem 
-                onClick={() => navigate(`/detalle-solicitud/${id}`)}
-                className="cursor-pointer"
-              >
-                <Eye className="mr-2 h-4 w-4 text-blue-600" />
-                <span>Ver Detalle</span>
-              </DropdownMenuItem>
-              
-              <DropdownMenuItem 
-                onClick={() => navigate(`/editar-solicitud/${id}`)}
-                className="cursor-pointer"
-              >
-                <Edit2 className="mr-2 h-4 w-4 text-amber-600" />
-                <span>Editar Solicitud</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-1">
+            {/* Botón Ver */}
+            <Button
+              size="icon"
+              variant="default"
+              className="bg-gray-600 text-white hover:bg-gray-950 border-gray-300 hover:text-blue-300"
+              onClick={() => navigate(`/detalle-solicitud/${id}`)}
+            >
+              <Glasses className="h-4 w-4" />
+            </Button>
+
+            {/* Botón Editar */}
+            <Button
+              size="icon"
+              variant="default"
+              className="bg-gray-600 text-white hover:bg-gray-950 border-gray-300 hover:text-amber-300"
+              onClick={() => navigate(`/editar-solicitud/${id}`)}
+            >
+              <Edit2 className="h-4 w-4" />
+            </Button>
+
+            {/* Botón Eliminar */}
+            {/* <Button
+              size="icon"
+              variant="default"
+              className="bg-red-500 border-gray-200 text-white hover:bg-red-950 border-gray-300"
+              onClick={() => handleDelete(product.id_product)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button> */}
+          </div>
         );
       },
-    },
+    }
   ];
 
   if (isSuperAdmin && loadingClientes) {

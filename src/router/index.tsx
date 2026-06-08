@@ -9,6 +9,7 @@ import { PrivateRoute, Login, RestorePassword } from '@/modules/auth'
 import { ListadoPreguntas, PreguntaDetalle } from '@/modules/preguntas'
 import { Clientes, ClienteDetalle, CrearCliente } from '@/modules/clientes'
 import { CrearPedido, PedidoDetalle, PedidosList } from '@/modules/pedidos'
+import { TareasListado, TareaDetalle } from '@/modules/tareas'
 import { ProductPage, ProductoDetalle, ProductoForm } from '@/modules/productos'
 import { Establecimientos, Establecimiento, EstablecimientoDetalle } from '@/modules/establecimientos'
 import { CrearSolicitud, EditarSolicitud, SolicitudDetalle, SolicitudesList } from '@/modules/solicitudes'
@@ -48,6 +49,8 @@ export default function AppRouter() {
           <Route path="pedidos" element={<PedidosList />} />
           <Route path="crearPedido" element={<CrearPedido />} />
           <Route path="detalle-pedido/:id" element={<PedidoDetalle />} />
+          <Route path="tareas" element={<TareasListado />} />
+          <Route path="tareas/:id_task" element={<TareaDetalle />} />
           <Route path="finanzas" element={<Finanzas />} />
           <Route path="perfil" element={<Perfil />} />
           <Route path="mi-negocio" element={<MiNegocio />} />

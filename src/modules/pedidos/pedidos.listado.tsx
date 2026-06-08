@@ -1,102 +1,177 @@
+import { toast } from "sonner"
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ColumnDef } from '@tanstack/react-table'
-import { Plus, Eye, Receipt } from 'lucide-react'
-
+import { Loader2, Receipt, Plus, Eye } from 'lucide-react'
 
 import { useAuthStore } from '@/stores'
-import { getCLientsList } from '@/Fetch/clientes'
-import { getOrdersByClient, OrderData } from '@/Fetch/pedidos'
+import { ClientDTO, OderListDTO, OrderDTO } from '@/dtos'
+import { api, ApiResponse, formatDate } from '@/lib'
 import { Button, DataTable, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, PageHeader, PageWrapper } from '@/components'
-import { api, ApiResponse } from '@/lib'
-import { OderListDTO, OrderDTO } from '@/dtos'
 
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(value)
 
 export function PedidosList() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  
-  const isSuperAdmin = user?.id_client === 0 || user?.i_rol === 1;
+
+  const isSuperAdmin = user?.i_rol === 1;
 
   const [pedidos, setPedidos] = useState<OrderDTO[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  const [clientes, setClientes] = useState<any[]>([]);
+  const [clientes, setClientes] = useState<ClientDTO[]>([]);
+  const [loadingClientes, setLoadingClientes] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
 
   useEffect(() => {
     if (isSuperAdmin) {
-      getCLientsList().then(res => {
-        const clients = res.data || [];
-        setClientes(clients);
-        if (clients.length > 0) setSelectedClientId(clients[0].id_client);
-      });
+      fetchClientes();
     } else {
       setSelectedClientId(user?.id_client || null);
     }
   }, [isSuperAdmin, user]);
 
   useEffect(() => {
-    if (!selectedClientId) return;
-    
-    const fetchPedidos = async() => {
-      try {
-        const resp = await api.get<ApiResponse<OderListDTO>>(`/orders/?id_client=${selectedClientId}`);
-        setPedidos(resp.data.data || []);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
+    if (!selectedClientId) {
+      setLoading(false);
+      setPedidos([]);
+      return;
     }
-
-    fetchPedidos();
+    fetchPedidos(selectedClientId);
   }, [selectedClientId]);
+
+  const fetchClientes = async () => {
+    try {
+      setLoadingClientes(true);
+      const resp = await api.get<ApiResponse<ClientDTO[]>>('/clients');
+      const list = resp.data || [];
+      setClientes(list);
+      if (list.length > 0) setSelectedClientId(list[0].id_client);
+    } catch {
+      toast.error("Error al cargar los clientes");
+    } finally {
+      setLoadingClientes(false);
+    }
+  };
+
+  const fetchPedidos = async (clientId: number) => {
+    try {
+      setLoading(true);
+      const resp = await api.get<ApiResponse<OderListDTO>>(`/orders/?id_client=${clientId}`);
+      setPedidos(resp.data.data || []);
+    } catch {
+      toast.error("Error al cargar los pedidos");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const columns: ColumnDef<OrderDTO>[] = [
     {
       accessorKey: "id_order",
-      header: "ID Pedido",
-      cell: ({ row }) => <span className="font-bold text-gray-700">#{row.getValue("id_order")}</span>,
+      header: "# Pedido",
+      cell: ({ row }) => (
+        <span className="font-bold text-gray-700">
+          #{String(row.getValue<number>("id_order")).padStart(4, "0")}
+        </span>
+      ),
     },
     {
-      accessorKey: "request_nums",
-      header: "Cantidad de solicitudes utilizadas",
+      id: "solicitudes",
+      header: "Solicitudes",
       cell: ({ row }) => {
-        console.log("row: ", row);
-
+        const items = row.original.order_items ?? [];
+        const unique = [...new Map(items.map(i => [i.id_request, i.request?.vc_name])).entries()];
+        if (unique.length === 0) return <span className="text-gray-400 text-sm">—</span>;
         return (
-          <span className="font-medium text-blue-600 cursor-pointer hover:underline" onClick={() => navigate(`/detalle-pedido/${row.original.id_order}`)}>
-            {row.getValue("request_nums")}
-          </span>
-        )
+          <div className="flex flex-wrap gap-1">
+            {unique.slice(0, 2).map(([id, name]) => (
+              <span key={id} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                {name ?? `#${id}`}
+              </span>
+            ))}
+            {unique.length > 2 && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                +{unique.length - 2} más
+              </span>
+            )}
+          </div>
+        );
       },
     },
-    // {
-    //   accessorKey: "total_tasks",
-    //   header: "Tiendas a visitar",
-    //   cell: ({ row }) => <span className="bg-gray-100 px-2 py-1 rounded font-medium">{row.getValue("total_tasks")} Tareas</span>,
-    // },
-    // {
-    //   accessorKey: "f_total",
-    //   header: "Costo Total",
-    //   cell: ({ row }) => <span className="font-semibold text-green-600">${Number(row.getValue("f_total")).toFixed(2)}</span>,
-    // },
-    // {
-    //   accessorKey: "dt_register",
-    //   header: "Fecha",
-    //   cell: ({ row }) => new Date(row.original.dt_register).toLocaleDateString("es-MX"),
-    // },
-    // {
-    //   id: "actions",
-    //   header: "Acciones",
-    //   cell: ({ row }) => (
-    //     <Button variant="ghost" size="sm" onClick={() => navigate(`/detalle-pedido/${row.original.id_order}`)}>
-    //       <Eye className="w-4 h-4 mr-2" /> Ver Detalles
-    //     </Button>
-    //   ),
-    // },
+    {
+      id: "tiendas",
+      header: "Tiendas",
+      cell: ({ row }) => {
+        const count = (row.original.order_items ?? []).length;
+        return (
+          <span className="bg-gray-100 px-2.5 py-1 rounded-full text-sm font-medium text-gray-700">
+            {count} tienda{count !== 1 ? "s" : ""}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: "f_total",
+      header: "Total",
+      cell: ({ row }) => (
+        <span className="font-semibold text-green-600">
+          {formatCurrency(Number(row.getValue("f_total")))}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "dt_register",
+      header: "Fecha",
+      cell: ({ row }) => (
+        <span className="text-gray-500">{formatDate(row.getValue("dt_register"))}</span>
+      ),
+    },
+    {
+      accessorKey: "id_status",
+      header: "Estado",
+      cell: ({ row }) => {
+        const status = row.getValue<number>("id_status");
+        return status === 1 ? (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-sm rounded-full">
+            <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+            Activo
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 text-red-700 text-sm rounded-full">
+            <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+            Cancelado
+          </span>
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }) => (
+        <Button
+          size="icon"
+          variant="default"
+          className="bg-gray-600 text-white hover:bg-gray-950 hover:text-blue-300"
+          onClick={() => navigate(`/detalle-pedido/${row.original.id_order}`)}
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+      ),
+    },
   ];
+
+  if (isSuperAdmin && loadingClientes) {
+    return (
+      <PageWrapper>
+        <div className="flex items-center justify-center py-20 gap-3">
+          <Loader2 size={24} className="animate-spin" style={{ color: "var(--text-secondary)" }} />
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Cargando clientes...</p>
+        </div>
+      </PageWrapper>
+    );
+  }
 
   return (
     <PageWrapper>
@@ -114,10 +189,12 @@ export function PedidosList() {
       {isSuperAdmin && clientes.length > 0 && (
         <div className="flex items-center gap-3 p-4 rounded-xl border" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
           <label className="text-sm font-medium flex-shrink-0" style={{ color: "var(--text-secondary)" }}>Cliente:</label>
-          <Select value={selectedClientId?.toString() || ""} onValueChange={(val) => setSelectedClientId(Number(val))}>
+          <Select value={selectedClientId?.toString() ?? ""} onValueChange={(val) => setSelectedClientId(Number(val))}>
             <SelectTrigger className="w-64"><SelectValue placeholder="Selecciona un cliente" /></SelectTrigger>
             <SelectContent>
-              {clientes.map((c) => <SelectItem key={c.id_client} value={c.id_client.toString()}>{c.name}</SelectItem>)}
+              {clientes.map((c) => (
+                <SelectItem key={c.id_client} value={c.id_client.toString()}>{c.name}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
