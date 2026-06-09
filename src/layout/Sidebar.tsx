@@ -105,6 +105,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       icon: UserCircle,
       label: "Mi perfil",
       show: true,
+      mobileOnly: true,
     },
   ];
 
@@ -115,7 +116,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         <SidebarMenu>
           {menuItems.map(
             (item) =>
-              item.show && (
+              item.show && (!item.mobileOnly || isMobile) && (
                 <SidebarMenuItem key={item.route} asChild>
                   <Link
                     to={item.route}
@@ -139,23 +140,12 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         </SidebarMenu>
       </div>
 
-      <div className="space-y-3 flex-shrink-0">
-        <div className="border-t border-border"></div>
-
-        {/* <div className={cn("px-2", !isMobile && !isExpanded && "px-1")}>
-          <ThemeToggle
-            size="md"
-            variant="sidebar"
-            showLabel={isMobile || isExpanded}
-            className={cn(
-              "w-full font-medium transition-all duration-200",
-              isMobile || isExpanded ? "justify-start" : "justify-center",
-            )}
-          />
-        </div> */}
-
-        <LogoutButton isExpanded={isMobile || isExpanded} />
-      </div>
+      {isMobile && (
+        <div className="space-y-3 flex-shrink-0">
+          <div className="border-t border-border"></div>
+          <LogoutButton isExpanded={true} />
+        </div>
+      )}
     </>
   );
 

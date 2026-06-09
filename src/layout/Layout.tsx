@@ -1,12 +1,11 @@
 import { useState } from "react"
-import { Menu, X } from "lucide-react"
-import { Outlet, useLocation } from "react-router-dom"
-
+import { Menu, X, LogOut, User } from "lucide-react"
+import { Outlet, useLocation, useNavigate } from "react-router-dom"
 
 import { cn } from "@/lib";
 import { Sidebar } from "./Sidebar"
 import { useAuthStore } from "@/stores"
-import { SidebarProvider } from '@/components'
+import { SidebarProvider, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components'
 import { useAuthCheck } from '@/hooks'
 
 
@@ -65,8 +64,14 @@ function UserAvatar({ name }: { name: string }) {
 export function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
   useAuthCheck();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
 
   const pageLabel = getRouteLabel(location.pathname);
@@ -132,17 +137,32 @@ export function Layout() {
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-xs font-medium leading-none" style={{ color: "var(--text-primary)" }}>
-                  {userName}
-                </p>
-                <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
-                  {user?.i_rol === 1 ? "Super Admin" : "Administrador"}
-                </p>
-              </div>
-              <UserAvatar name={userName} />
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-accent transition-colors outline-none">
+                  <div className="text-right">
+                    <p className="text-xs font-medium leading-none" style={{ color: "var(--text-primary)" }}>
+                      {userName}
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                      {user?.i_rol === 1 ? "Super Admin" : "Administrador"}
+                    </p>
+                  </div>
+                  <UserAvatar name={userName} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem onClick={() => navigate("/perfil")} className="cursor-pointer gap-2">
+                  <User className="w-4 h-4" />
+                  Mi Perfil
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer gap-2 text-destructive focus:text-destructive">
+                  <LogOut className="w-4 h-4" />
+                  Cerrar sesión
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Main content */}
