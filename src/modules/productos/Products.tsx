@@ -119,6 +119,18 @@ export default function ProductPage() {
       ),
     },
     {
+      accessorKey: "vc_folio",
+      header: "Folio",
+      cell: ({ row }) => {
+        const folio = row.getValue("vc_folio") as string | null | undefined;
+        return folio ? (
+          <span className="font-bold text-gray-700">{folio}</span>
+        ) : (
+          <span className="text-gray-400 text-sm">—</span>
+        );
+      },
+    },
+    {
       accessorKey: "name",
       header: "Nombre",
       cell: ({ row }) => (

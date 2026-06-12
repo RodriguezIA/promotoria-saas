@@ -73,6 +73,18 @@ export function TareasListado() {
 
   const columns: ColumnDef<TaskDTO>[] = [
     {
+      accessorKey: "vc_folio",
+      header: "Folio",
+      cell: ({ row }) => {
+        const folio = row.getValue<string | null>("vc_folio")
+        return folio ? (
+          <span className="font-bold text-gray-700">{folio}</span>
+        ) : (
+          <span className="text-gray-400 text-sm">—</span>
+        )
+      },
+    },
+    {
       accessorKey: "id_task",
       header: "# Tarea",
       cell: ({ row }) => (

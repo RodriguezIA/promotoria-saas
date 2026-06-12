@@ -4,6 +4,7 @@ export interface ProductDTO {
   name: string;
   description: string | null;
   vc_image: string | null;
+  vc_folio?: string | null;
   i_status: number;
   dt_created: string;
   dt_updated: string;

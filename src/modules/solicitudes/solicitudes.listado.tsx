@@ -84,6 +84,17 @@ export function SolicitudesList() {
   // --- DEFINICIÓN DE COLUMNAS ---
   const columns: ColumnDef<RequestDTO>[] = [
     {
+      accessorKey: "vc_folio",
+      header: "Folio",
+      cell: ({ row }) => {
+        const folio = row.original.vc_folio;
+        if (!folio) {
+          return <span className="text-gray-400 text-sm">—</span>;
+        }
+        return <span className="font-bold text-gray-700">{folio}</span>;
+      },
+    },
+    {
       accessorKey: "vc_name",
       header: "Nombre de la Solicitud",
       cell: ({ row }) => (

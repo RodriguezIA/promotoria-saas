@@ -4,6 +4,7 @@ export interface RequestDTO {
     id_user: number;
     id_client: number;
     vc_name: string;
+    vc_folio?: string | null;
     f_value: number;
     url_rack_image?: string;
     id_status: number;

@@ -69,6 +69,15 @@ export function PedidosList() {
 
   const columns: ColumnDef<OrderDTO>[] = [
     {
+      accessorKey: "vc_folio",
+      header: "Folio",
+      cell: ({ row }) => {
+        const folio = row.original.vc_folio;
+        if (!folio) return <span className="text-gray-400 text-sm">—</span>;
+        return <span className="font-bold text-gray-700">{folio}</span>;
+      },
+    },
+    {
       accessorKey: "id_order",
       header: "# Pedido",
       cell: ({ row }) => (

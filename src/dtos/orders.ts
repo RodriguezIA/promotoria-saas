@@ -10,6 +10,7 @@ export interface OrderItemSummaryDTO {
 
 export interface OrderDTO {
     id_order: number
+    vc_folio?: string | null
     id_user: number
     id_client: number
     f_total: number
