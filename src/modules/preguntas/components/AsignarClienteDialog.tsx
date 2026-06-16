@@ -183,10 +183,10 @@ export function AsignarClienteDialog({
 
                 {/* Info de la pregunta */}
                 {pregunta && (
-                    <div className="bg-gray-50 p-3 rounded-lg mb-4">
-                        <p className="text-sm font-medium text-gray-700">Pregunta:</p>
-                        <p className="text-sm text-gray-600">{pregunta.question}</p>
-                        <div className="flex gap-4 mt-2 text-xs text-gray-500">
+                    <div className="bg-muted/50 p-3 rounded-lg mb-4">
+                        <p className="text-sm font-medium text-foreground">Pregunta:</p>
+                        <p className="text-sm text-muted-foreground">{pregunta.question}</p>
+                        <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
                             <span>Precio base: ${pregunta.base_price.toFixed(2)}</span>
                             <span>Ganancia promotor: ${pregunta.promoter_earns.toFixed(2)}</span>
                         </div>
@@ -198,7 +198,7 @@ export function AsignarClienteDialog({
                     <div className="space-y-4">
                         {/* Buscador */}
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
                             <Input
                                 placeholder="Buscar cliente por nombre o email..."
                                 value={searchTerm}
@@ -211,10 +211,10 @@ export function AsignarClienteDialog({
                         <div className="border rounded-lg max-h-[300px] overflow-auto">
                             {loadingClientes ? (
                                 <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/70" />
                                 </div>
                             ) : clientesFiltrados.length === 0 ? (
-                                <div className="text-center py-8 text-gray-500">
+                                <div className="text-center py-8 text-muted-foreground">
                                     {searchTerm
                                         ? "No se encontraron clientes"
                                         : "No hay clientes disponibles"}
@@ -232,13 +232,13 @@ export function AsignarClienteDialog({
                                         {clientesFiltrados.map((cliente) => (
                                             <TableRow
                                                 key={cliente.id_client}
-                                                className="cursor-pointer hover:bg-gray-50"
+                                                className="cursor-pointer hover:bg-accent"
                                                 onClick={() => handleSelectCliente(cliente)}
                                             >
                                                 <TableCell className="font-medium">
                                                     {cliente.name}
                                                 </TableCell>
-                                                <TableCell className="text-gray-500">
+                                                <TableCell className="text-muted-foreground">
                                                     {cliente.email || "-"}
                                                 </TableCell>
                                                 <TableCell>
@@ -257,13 +257,13 @@ export function AsignarClienteDialog({
                     // Paso 2: Configurar precios
                     <div className="space-y-4">
                         {/* Cliente seleccionado */}
-                        <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                            <Check className="h-5 w-5 text-green-600" />
+                        <div className="flex items-center gap-2 p-3 bg-success/10 border border-success/30 rounded-lg">
+                            <Check className="h-5 w-5 text-success" />
                             <div>
-                                <p className="font-medium text-green-800">
+                                <p className="font-medium text-success">
                                     {selectedCliente?.name}
                                 </p>
-                                <p className="text-sm text-green-600">
+                                <p className="text-sm text-success">
                                     {selectedCliente?.email}
                                 </p>
                             </div>
@@ -275,7 +275,7 @@ export function AsignarClienteDialog({
                                 Precio para este cliente (MXN)
                             </Label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                                     $
                                 </span>
                                 <Input
@@ -289,7 +289,7 @@ export function AsignarClienteDialog({
                                     className="pl-7"
                                 />
                             </div>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                                 Si no especificas, se usara el precio base: $
                                 {pregunta?.base_price.toFixed(2)}
                             </p>
@@ -301,7 +301,7 @@ export function AsignarClienteDialog({
                                 Ganancia del promotor para este cliente (MXN)
                             </Label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                                     $
                                 </span>
                                 <Input
@@ -315,7 +315,7 @@ export function AsignarClienteDialog({
                                     className="pl-7"
                                 />
                             </div>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                                 Si no especificas, se usara la ganancia base: $
                                 {pregunta?.promoter_earns.toFixed(2)}
                             </p>

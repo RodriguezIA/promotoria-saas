@@ -1,6 +1,8 @@
 import React from 'react';
+import { Eye, Pencil, Trash2, HelpCircle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './table';
 import { StatusBadge } from './status-badge';
+import { Badge } from './badge';
 import { LoadingButton } from './loading-button';
 import { Button } from './button';
 import { Card, CardContent } from './card';
@@ -18,7 +20,7 @@ interface PreguntasTableProps {
 
 const formatDate = (timestamp?: number) => {
   if (!timestamp) return "No disponible";
-  
+
   const date = new Date(timestamp * 1000);
   return date.toLocaleDateString('es-ES', {
     year: 'numeric',
@@ -40,17 +42,6 @@ const getTipoLabel = (tipo: string) => {
   return tipos[tipo as keyof typeof tipos] || tipo;
 };
 
-const getTipoIcon = (tipo: string) => {
-  const iconos = {
-    'text': '📝',
-    'number': '🔢',
-    'date': '📅',
-    'select': '📋',
-    'boolean': '✅'
-  };
-  return iconos[tipo as keyof typeof iconos] || '❓';
-};
-
 export const PreguntasTable: React.FC<PreguntasTableProps> = ({
   preguntas,
   loading = false,
@@ -62,7 +53,7 @@ export const PreguntasTable: React.FC<PreguntasTableProps> = ({
 }) => {
   if (loading) {
     return (
-      <Card className="custom-card">
+      <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
@@ -107,13 +98,13 @@ export const PreguntasTable: React.FC<PreguntasTableProps> = ({
 
   if (preguntas.length === 0) {
     return (
-      <Card className="custom-card">
+      <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
-          <div className="text-6xl mb-4">❓</div>
-          <h3 className="text-xl font-semibold text-primary mb-2">
+          <HelpCircle className="w-12 h-12 mb-4 text-muted-foreground/50" />
+          <h3 className="text-xl font-semibold text-foreground mb-2">
             No hay preguntas
           </h3>
-          <p className="text-secondary text-center max-w-md">
+          <p className="text-muted-foreground text-center max-w-md">
             No se encontraron preguntas. Crea la primera para comenzar.
           </p>
         </CardContent>
@@ -122,12 +113,12 @@ export const PreguntasTable: React.FC<PreguntasTableProps> = ({
   }
 
   return (
-    <Card className={`custom-card ${className || ''}`}>
+    <Card className={className}>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="hover:bg-transparent border-b-2 border-accent">
+              <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[50px] text-center font-semibold">#</TableHead>
                 <TableHead className="font-semibold">Pregunta</TableHead>
                 <TableHead className="font-semibold">Tipo</TableHead>
@@ -140,80 +131,64 @@ export const PreguntasTable: React.FC<PreguntasTableProps> = ({
             </TableHeader>
             <TableBody>
               {preguntas.map((pregunta, index) => (
-                <TableRow 
+                <TableRow
                   key={pregunta.id_pregunta || index}
-                  className="hover:bg-hover transition-colors duration-200 fade-in border-b border-border"
-                  style={{ animationDelay: `${index * 50}ms` }}
+                  className="hover:bg-muted/50 transition-colors duration-200 border-b border-border"
                 >
-                  <TableCell className="text-center font-medium text-secondary">
+                  <TableCell className="text-center font-medium text-muted-foreground">
                     {index + 1}
                   </TableCell>
-                  
+
                   <TableCell className="max-w-xs">
                     <div className="flex flex-col">
-                      <span className="font-medium text-primary leading-tight">
-                        {pregunta.vc_pregunta.length > 60 
+                      <span className="font-medium text-foreground leading-tight">
+                        {pregunta.vc_pregunta.length > 60
                           ? `${pregunta.vc_pregunta.substring(0, 60)}...`
                           : pregunta.vc_pregunta
                         }
                       </span>
                       {pregunta.id_pregunta && (
-                        <span className="text-xs text-secondary">
+                        <span className="text-xs text-muted-foreground">
                           ID: {pregunta.id_pregunta}
                         </span>
                       )}
                     </div>
                   </TableCell>
-                  
+
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{getTipoIcon(pregunta.vc_tipo)}</span>
-                      <span className="text-primary font-medium">
-                        {getTipoLabel(pregunta.vc_tipo)}
-                      </span>
-                    </div>
+                    <span className="text-foreground font-medium">
+                      {getTipoLabel(pregunta.vc_tipo)}
+                    </span>
                   </TableCell>
-                  
+
                   <TableCell>
                     <div className="flex items-center justify-center">
-                      {pregunta.b_evidencia ? (
-                        <span className="bg-info text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                          📷 Sí
-                        </span>
-                      ) : (
-                        <span className="bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">
-                          📝 No
-                        </span>
-                      )}
+                      <Badge variant={pregunta.b_evidencia ? 'secondary' : 'outline'}>
+                        {pregunta.b_evidencia ? 'Sí' : 'No'}
+                      </Badge>
                     </div>
                   </TableCell>
-                  
+
                   <TableCell>
                     <div className="flex items-center justify-center">
-                      {pregunta.b_requerido ? (
-                        <span className="bg-warning text-black px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                          ⚠️ Sí
-                        </span>
-                      ) : (
-                        <span className="bg-success text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                          ✅ No
-                        </span>
-                      )}
+                      <Badge variant={pregunta.b_requerido ? 'secondary' : 'outline'}>
+                        {pregunta.b_requerido ? 'Sí' : 'No'}
+                      </Badge>
                     </div>
                   </TableCell>
-                  
+
                   <TableCell>
                     <StatusBadge
                       status={pregunta.b_estatus !== false ? 'active' : 'inactive'}
                     />
                   </TableCell>
-                  
+
                   <TableCell>
-                    <span className="text-sm text-secondary">
+                    <span className="text-sm text-muted-foreground">
                       {formatDate(pregunta.dt_registro)}
                     </span>
                   </TableCell>
-                  
+
                   <TableCell>
                     <div className="flex items-center gap-1">
                       {onView && (
@@ -221,25 +196,25 @@ export const PreguntasTable: React.FC<PreguntasTableProps> = ({
                           size="sm"
                           variant="ghost"
                           onClick={() => onView(pregunta)}
-                          className="h-8 w-8 p-0 hover:bg-info hover:text-white transition-colors"
+                          className="h-8 w-8 p-0"
                           title="Ver detalles"
                         >
-                          👁️
+                          <Eye className="w-4 h-4" />
                         </Button>
                       )}
-                      
+
                       {onEdit && (
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => onEdit(pregunta)}
-                          className="h-8 w-8 p-0 hover:bg-warning hover:text-black transition-colors"
+                          className="h-8 w-8 p-0"
                           title="Editar"
                         >
-                          ✏️
+                          <Pencil className="w-4 h-4" />
                         </Button>
                       )}
-                      
+
                       {onDelete && (
                         <LoadingButton
                           size="sm"
@@ -247,10 +222,10 @@ export const PreguntasTable: React.FC<PreguntasTableProps> = ({
                           onClick={() => onDelete(pregunta.id_pregunta!)}
                           loading={deletingId === pregunta.id_pregunta}
                           disabled={deletingId === pregunta.id_pregunta}
-                          className="h-8 w-8 p-0 hover:bg-error hover:text-white transition-colors"
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                           title="Eliminar"
                         >
-                          🗑️
+                          <Trash2 className="w-4 h-4" />
                         </LoadingButton>
                       )}
                     </div>

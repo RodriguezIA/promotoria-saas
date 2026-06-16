@@ -225,22 +225,22 @@ export default function NuevoCliente() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+    <div className="min-h-screen bg-muted/50">
+      <div className="sticky top-0 z-10 bg-white border-b border-border shadow-sm">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={handleCancel}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-accent rounded-lg transition-colors"
               >
-                <ArrowLeft size={20} className="text-gray-600" />
+                <ArrowLeft size={20} className="text-muted-foreground" />
               </button>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">
+                <h1 className="text-xl font-semibold text-foreground">
                   Nuevo Cliente
                 </h1>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Completa la información del cliente
                 </p>
               </div>
@@ -251,7 +251,7 @@ export default function NuevoCliente() {
               type="submit"
               form="cliente-form"
               disabled={loading}
-              className="px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {loading ? (
                 <>
@@ -274,10 +274,10 @@ export default function NuevoCliente() {
         {/* Form - agregar id para conectar con el botón del topbar */}
         <form id="cliente-form" onSubmit={handleSubmit} className="space-y-6">
           {/* Información Básica */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-lg border border-border p-6">
             <div className="flex items-center gap-2 mb-6">
-              <Building2 size={20} className="text-gray-600" />
-              <h2 className="text-lg font-medium text-gray-900">
+              <Building2 size={20} className="text-muted-foreground" />
+              <h2 className="text-lg font-medium text-foreground">
                 Información Básica
               </h2>
             </div>
@@ -285,7 +285,7 @@ export default function NuevoCliente() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Nombre */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Nombre de la Empresa *
                 </label>
                 <input
@@ -294,14 +294,14 @@ export default function NuevoCliente() {
                   value={formData.vc_nombre}
                   onChange={handleChange}
                   placeholder="Ej: Liverpool S.A. de C.V."
-                  className={`w-full px-4 py-2.5 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
+                  className={`w-full px-4 py-2.5 bg-card border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors ${
                     errors.vc_nombre
-                      ? "border-red-300 bg-red-50"
-                      : "border-gray-200"
+                      ? "border-destructive/30 bg-destructive/10"
+                      : "border-border"
                   }`}
                 />
                 {errors.vc_nombre && (
-                  <div className="flex items-center gap-1 mt-1 text-sm text-red-600">
+                  <div className="flex items-center gap-1 mt-1 text-sm text-destructive">
                     <AlertCircle size={14} />
                     {errors.vc_nombre}
                   </div>
@@ -310,7 +310,7 @@ export default function NuevoCliente() {
 
               {/* RFC */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   RFC
                 </label>
                 <input
@@ -320,14 +320,14 @@ export default function NuevoCliente() {
                   onChange={handleChange}
                   placeholder="ABC123456XYZ"
                   maxLength={13}
-                  className={`w-full px-4 py-2.5 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
+                  className={`w-full px-4 py-2.5 bg-card border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors ${
                     errors.vc_rfc
-                      ? "border-red-300 bg-red-50"
-                      : "border-gray-200"
+                      ? "border-destructive/30 bg-destructive/10"
+                      : "border-border"
                   }`}
                 />
                 {errors.vc_rfc && (
-                  <div className="flex items-center gap-1 mt-1 text-sm text-red-600">
+                  <div className="flex items-center gap-1 mt-1 text-sm text-destructive">
                     <AlertCircle size={14} />
                     {errors.vc_rfc}
                   </div>
@@ -336,7 +336,7 @@ export default function NuevoCliente() {
 
               {/* Estado */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Estado
                 </label>
                 <div className="flex items-center h-[42px]">
@@ -348,8 +348,8 @@ export default function NuevoCliente() {
                       onChange={handleChange}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-gray-900 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-900"></div>
-                    <span className="ml-3 text-sm text-gray-700">
+                    <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-ring rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-input after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    <span className="ml-3 text-sm text-foreground">
                       {formData.b_activo ? "Activo" : "Inactivo"}
                     </span>
                   </label>
@@ -359,7 +359,7 @@ export default function NuevoCliente() {
 
               {/* Documento situacion fiscal:  */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Documento: carta de situacion fiscal 
                 </label>
                 <Input
@@ -369,13 +369,13 @@ export default function NuevoCliente() {
                   className="cursor-pointer"
                 />
                 {documentoFile && (
-                  <p className="mt-1 text-sm text-gray-500 truncate">{documentoFile.name}</p>
+                  <p className="mt-1 text-sm text-muted-foreground truncate">{documentoFile.name}</p>
                 )}
               </div>
 
               {/* Email: TODO: agregar la nota que este correo sera donde lleguen todas las notificaciones (factuaracion, etc) debe ser el oficial */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Email *
                 </label>
                 <input
@@ -384,15 +384,15 @@ export default function NuevoCliente() {
                   value={formData.vc_email}
                   onChange={handleChange}
                   placeholder="contacto@empresa.com.mx"
-                  className={`w-full px-4 py-2.5 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
+                  className={`w-full px-4 py-2.5 bg-card border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors ${
                     errors.vc_email
-                      ? "border-red-300 bg-red-50"
-                      : "border-gray-200"
+                      ? "border-destructive/30 bg-destructive/10"
+                      : "border-border"
                   }`}
                 />
                 <span>Este correo llegaran las notificaciones del sistema</span>
                 {errors.vc_email && (
-                  <div className="flex items-center gap-1 mt-1 text-sm text-red-600">
+                  <div className="flex items-center gap-1 mt-1 text-sm text-destructive">
                     <AlertCircle size={14} />
                     {errors.vc_email}
                   </div>
@@ -401,7 +401,7 @@ export default function NuevoCliente() {
 
               {/* Teléfono */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Teléfono *
                 </label>
                 <input
@@ -410,14 +410,14 @@ export default function NuevoCliente() {
                   value={formData.vc_telefono}
                   onChange={handleChange}
                   placeholder="8188889999"
-                  className={`w-full px-4 py-2.5 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
+                  className={`w-full px-4 py-2.5 bg-card border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors ${
                     errors.vc_telefono
-                      ? "border-red-300 bg-red-50"
-                      : "border-gray-200"
+                      ? "border-destructive/30 bg-destructive/10"
+                      : "border-border"
                   }`}
                 />
                 {errors.vc_telefono && (
-                  <div className="flex items-center gap-1 mt-1 text-sm text-red-600">
+                  <div className="flex items-center gap-1 mt-1 text-sm text-destructive">
                     <AlertCircle size={14} />
                     {errors.vc_telefono}
                   </div>
@@ -427,10 +427,10 @@ export default function NuevoCliente() {
           </div>
 
           {/* Información de Contacto */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-lg border border-border p-6">
             <div className="flex items-center gap-2 mb-6">
-              <Mail size={20} className="text-gray-600" />
-              <h2 className="text-lg font-medium text-gray-900">
+              <Mail size={20} className="text-muted-foreground" />
+              <h2 className="text-lg font-medium text-foreground">
                 Direccion
               </h2>
             </div>
@@ -438,7 +438,7 @@ export default function NuevoCliente() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* País */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   País
                 </label>
                 <Select
@@ -462,7 +462,7 @@ export default function NuevoCliente() {
 
               {/* Estado */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Estado
                 </label>
                 <Select
@@ -487,7 +487,7 @@ export default function NuevoCliente() {
 
               {/* Ciudad */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Ciudad
                 </label>
                 <Select
@@ -512,7 +512,7 @@ export default function NuevoCliente() {
 
               {/* Colonia */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Colonia
                 </label>
                 <input
@@ -521,13 +521,13 @@ export default function NuevoCliente() {
                   value={formData.vc_colonia}
                   onChange={handleChange}
                   placeholder="Col. Centro"
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+                  className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
                 />
               </div>
 
               {/* Calle */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Calle
                 </label>
                 <input
@@ -536,13 +536,13 @@ export default function NuevoCliente() {
                   value={formData.vc_calle}
                   onChange={handleChange}
                   placeholder="Av. Constitución"
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+                  className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
                 />
               </div>
 
               {/* Número exterior */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Número exterior
                 </label>
                 <input
@@ -551,13 +551,13 @@ export default function NuevoCliente() {
                   value={formData.vc_num_ext}
                   onChange={handleChange}
                   placeholder="2211"
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+                  className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
                 />
               </div>
 
               {/* Número interior */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Número interior
                 </label>
                 <input
@@ -566,13 +566,13 @@ export default function NuevoCliente() {
                   value={formData.vc_num_int}
                   onChange={handleChange}
                   placeholder="Piso 3, Depto B"
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+                  className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
                 />
               </div>
 
               {/* Código postal */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Código postal
                 </label>
                 <input
@@ -581,7 +581,7 @@ export default function NuevoCliente() {
                   value={formData.vc_cp}
                   onChange={handleChange}
                   placeholder="64000"
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+                  className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
                 />
               </div>
 
@@ -590,16 +590,16 @@ export default function NuevoCliente() {
           </div>
 
           {/* Observaciones */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-lg border border-border p-6">
             <div className="flex items-center gap-2 mb-6">
-              <FileText size={20} className="text-gray-600" />
-              <h2 className="text-lg font-medium text-gray-900">
+              <FileText size={20} className="text-muted-foreground" />
+              <h2 className="text-lg font-medium text-foreground">
                 Observaciones
               </h2>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Notas adicionales
               </label>
               <textarea
@@ -608,7 +608,7 @@ export default function NuevoCliente() {
                 onChange={handleChange}
                 rows={4}
                 placeholder="Información adicional sobre el cliente..."
-                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors resize-none"
+                className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors resize-none"
               />
             </div>
           </div>

@@ -34,21 +34,21 @@ export default function ClienteDetalle() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-gray-50">
-        <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+        <div className="min-h-screen bg-muted/50">
+        <div className="sticky top-0 z-10 bg-white border-b border-border shadow-sm">
             <div className="max-w-6xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                     <Link to="/clientes">
-                        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                            <ArrowLeft size={20} className="text-gray-600" />
+                        <button className="p-2 hover:bg-accent rounded-lg transition-colors">
+                            <ArrowLeft size={20} className="text-muted-foreground" />
                         </button>
                     </Link>
                 <div>
-                    <h1 className="text-xl font-semibold text-gray-900">
+                    <h1 className="text-xl font-semibold text-foreground">
                     Detalle del Cliente
                     </h1>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                     Información completa y gestión
                     </p>
                 </div>
@@ -62,8 +62,8 @@ export default function ClienteDetalle() {
 
         {/* Content */}
         <div className="max-w-6xl mx-auto p-6 space-y-6">
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="h-32 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900" />
+            <div className="bg-white rounded-xl border border-border overflow-hidden">
+                <div className="h-32 bg-primary" />
 
                 <div className="px-6 pb-6 pt-6">
                     <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-16">
@@ -73,7 +73,7 @@ export default function ClienteDetalle() {
                             onMouseLeave={() => setImageHover(false)}
                         >
                             <div className="w-32 h-32 bg-white rounded-2xl border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
-                                <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
+                                <div className="w-full h-full bg-primary flex items-center justify-center">
                                     <span className="text-4xl font-semibold text-white">
                                         {initials}
                                     </span>
@@ -91,29 +91,29 @@ export default function ClienteDetalle() {
                         {/* Name and Status */}
                         <div className="flex-1 md:mb-2 md:pt-4">
                             <div className="flex items-center gap-3 flex-wrap">
-                                <h2 className="text-2xl font-bold text-gray-900">
+                                <h2 className="text-2xl font-bold text-foreground">
                                     {cliente?.name}
                                 </h2>
                                 {cliente?.i_status ? (
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-sm font-medium rounded-full">
-                                        <div className="w-2 h-2 bg-green-500 rounded-full" />
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-success/10 text-success text-sm font-medium rounded-full">
+                                        <div className="w-2 h-2 bg-success rounded-full" />
                                         Activo
                                     </span>
                                 ) : (
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 text-sm font-medium rounded-full">
-                                        <div className="w-2 h-2 bg-red-500 rounded-full" />
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-destructive/10 text-destructive text-sm font-medium rounded-full">
+                                        <div className="w-2 h-2 bg-destructive rounded-full" />
                                         Inactivo
                                     </span>
                                 )}
                             </div>
-                            <p className="text-gray-500 mt-1">{cliente?.rfc}</p>
+                            <p className="text-muted-foreground mt-1">{cliente?.rfc}</p>
                         </div>
                     </div>
                 </div>
             </div>
             {/* Tabs */}
-            <div className="bg-white rounded-xl border border-gray-200">
-                <div className="border-b border-gray-200">
+            <div className="bg-white rounded-xl border border-border">
+                <div className="border-b border-border">
                     <div className="flex overflow-x-auto">
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
@@ -124,8 +124,8 @@ export default function ClienteDetalle() {
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                                     isActive
-                                        ? "border-gray-900 text-gray-900"
-                                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                                        ? "border-primary text-foreground"
+                                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-input"
                                     }`}
                                 >
                                     <Icon size={18} />
@@ -155,67 +155,67 @@ function TabInfo({ cliente }: { cliente: ClientDTO | null }) {
       <div className="lg:col-span-2 space-y-6">
         {/* Información de Contacto */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <Mail size={20} className="text-gray-400" />
+          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <Mail size={20} className="text-muted-foreground/70" />
             Información de Contacto
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Email</p>
-              <p className="font-medium text-gray-900">{cliente?.email}</p>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Email</p>
+              <p className="font-medium text-foreground">{cliente?.email}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Teléfono</p>
-              <p className="font-medium text-gray-900">{cliente?.phone}</p>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Teléfono</p>
+              <p className="font-medium text-foreground">{cliente?.phone}</p>
             </div>
           </div>
         </div>
 
         {/* Dirección */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <MapPin size={20} className="text-gray-400" />
+          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <MapPin size={20} className="text-muted-foreground/70" />
             Dirección
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* País y Estado en una fila */}
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">País</p>
-              <p className="font-medium text-gray-900">{cliente?.address?.country?.name || "No registrado"}</p>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">País</p>
+              <p className="font-medium text-foreground">{cliente?.address?.country?.name || "No registrado"}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Estado</p>
-              <p className="font-medium text-gray-900">{cliente?.address?.state?.name || "No registrado"}</p>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Estado</p>
+              <p className="font-medium text-foreground">{cliente?.address?.state?.name || "No registrado"}</p>
             </div>
 
             {/* Ciudad y Colonia */}
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Ciudad</p>
-              <p className="font-medium text-gray-900">{cliente?.address?.city?.name || "No registrado"}</p>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Ciudad</p>
+              <p className="font-medium text-foreground">{cliente?.address?.city?.name || "No registrado"}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Colonia</p>
-              <p className="font-medium text-gray-900">{cliente?.address?.neighborhood || "No registrado"}</p>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Colonia</p>
+              <p className="font-medium text-foreground">{cliente?.address?.neighborhood || "No registrado"}</p>
             </div>
 
             {/* Calle ocupa toda la fila */}
-            <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
-              <p className="text-sm text-gray-500 mb-1">Calle</p>
-              <p className="font-medium text-gray-900">{cliente?.address?.street || "No registrado"}</p>
+            <div className="p-4 bg-muted/50 rounded-lg md:col-span-2">
+              <p className="text-sm text-muted-foreground mb-1">Calle</p>
+              <p className="font-medium text-foreground">{cliente?.address?.street || "No registrado"}</p>
             </div>
 
             {/* Números y CP en una fila de 3 */}
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Núm. Exterior</p>
-              <p className="font-medium text-gray-900">{cliente?.address?.ext_number || "—"}</p>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Núm. Exterior</p>
+              <p className="font-medium text-foreground">{cliente?.address?.ext_number || "—"}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Núm. Interior</p>
-              <p className="font-medium text-gray-900">{cliente?.address?.int_number || "—"}</p>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Núm. Interior</p>
+              <p className="font-medium text-foreground">{cliente?.address?.int_number || "—"}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
-              <p className="text-sm text-gray-500 mb-1">Código Postal</p>
-              <p className="font-medium text-gray-900">{cliente?.address?.postal_code || "—"}</p>
+            <div className="p-4 bg-muted/50 rounded-lg md:col-span-2">
+              <p className="text-sm text-muted-foreground mb-1">Código Postal</p>
+              <p className="font-medium text-foreground">{cliente?.address?.postal_code || "—"}</p>
             </div>
           </div>
         </div>
@@ -224,21 +224,21 @@ function TabInfo({ cliente }: { cliente: ClientDTO | null }) {
       {/* Columna Lateral */}
       <div className="space-y-6">
         {/* Fechas */}
-        <div className="p-4 bg-gray-50 rounded-lg space-y-4">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-            <Clock size={18} className="text-gray-400" />
+        <div className="p-4 bg-muted/50 rounded-lg space-y-4">
+          <h3 className="font-semibold text-foreground flex items-center gap-2">
+            <Clock size={18} className="text-muted-foreground/70" />
             Fechas
           </h3>
           <div className="space-y-3">
             <div>
-              <p className="text-sm text-gray-500">Fecha de registro</p>
-              <p className="font-medium text-gray-900">
+              <p className="text-sm text-muted-foreground">Fecha de registro</p>
+              <p className="font-medium text-foreground">
                 {formatDate(cliente?.dt_register)}
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Última actualización</p>
-              <p className="font-medium text-gray-900">
+              <p className="text-sm text-muted-foreground">Última actualización</p>
+              <p className="font-medium text-foreground">
                 {formatDate(cliente?.dt_updated)}
               </p>
             </div>
@@ -312,10 +312,10 @@ function TabUsers({ cliente }: { cliente: ClientDTO | null }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-foreground">
           Usuarios del Cliente
           {users.length > 0 && (
-            <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full font-normal">
+            <span className="ml-2 px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded-full font-normal">
               {users.length}
             </span>
           )}
@@ -355,60 +355,60 @@ function TabUsers({ cliente }: { cliente: ClientDTO | null }) {
 
       {loadingUsers ? (
         <div className="flex items-center justify-center py-10">
-          <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground/70" />
         </div>
       ) : (
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className="border border-border rounded-lg overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-muted/50">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Usuario</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Rol</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Estado</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Registro</th>
-                {/* <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Acciones</th> */}
+                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Usuario</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Rol</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Estado</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Registro</th>
+                {/* <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Acciones</th> */}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-border">
               {users.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-500">
+                  <td colSpan={5} className="px-4 py-10 text-center text-sm text-muted-foreground">
                     No hay usuarios registrados para este cliente
                   </td>
                 </tr>
               ) : (
                 users.map((u) => (
-                  <tr key={u.id_user} className="hover:bg-gray-50">
+                  <tr key={u.id_user} className="hover:bg-accent">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-medium text-sm">
+                        <div className="w-9 h-9 bg-muted rounded-full flex items-center justify-center text-muted-foreground font-medium text-sm">
                           {u.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{u.name} {u.lastname}</p>
-                          <p className="text-sm text-gray-500">{u.email}</p>
+                          <p className="font-medium text-foreground">{u.name} {u.lastname}</p>
+                          <p className="text-sm text-muted-foreground">{u.email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="px-2.5 py-1 bg-gray-100 text-gray-700 text-sm rounded-md">
+                      <span className="px-2.5 py-1 bg-muted text-foreground text-sm rounded-md">
                         {ROL_LABELS[u.i_rol] ?? `Rol ${u.i_rol}`}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       {u.i_status === 1 ? (
-                        <span className="inline-flex items-center gap-1.5 text-sm text-green-700">
-                          <div className="w-2 h-2 bg-green-500 rounded-full" />
+                        <span className="inline-flex items-center gap-1.5 text-sm text-success">
+                          <div className="w-2 h-2 bg-success rounded-full" />
                           Activo
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 text-sm text-red-700">
-                          <div className="w-2 h-2 bg-red-500 rounded-full" />
+                        <span className="inline-flex items-center gap-1.5 text-sm text-destructive">
+                          <div className="w-2 h-2 bg-destructive rounded-full" />
                           Inactivo
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
                       {new Date(u.dt_register).toLocaleDateString("es-MX", {
                         year: "numeric",
                         month: "short",
@@ -416,8 +416,8 @@ function TabUsers({ cliente }: { cliente: ClientDTO | null }) {
                       })}
                     </td>
                     {/* <td className="px-4 py-3 text-right">
-                      <button className="p-2 hover:bg-gray-100 rounded-lg">
-                        <MoreVertical size={16} className="text-gray-500" />
+                      <button className="p-2 hover:bg-accent rounded-lg">
+                        <MoreVertical size={16} className="text-muted-foreground" />
                       </button>
                     </td> */}
                   </tr>
@@ -450,10 +450,10 @@ function TabProducts({ cliente }: { cliente: any | null }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-foreground">
           Productos Asignados
           {products.length > 0 && (
-            <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full font-normal">
+            <span className="ml-2 px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded-full font-normal">
               {products.length}
             </span>
           )}
@@ -467,54 +467,54 @@ function TabProducts({ cliente }: { cliente: any | null }) {
       )}
       {loading ? (
         <div className="flex items-center justify-center py-10">
-          <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground/70" />
         </div>
       ) : (
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className="border border-border rounded-lg overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-muted/50">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Producto</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Descripción</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Estado</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Creado</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Producto</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Descripción</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Estado</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Creado</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-border">
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-4 py-10 text-center text-sm text-gray-500">
+                  <td colSpan={4} className="px-4 py-10 text-center text-sm text-muted-foreground">
                     No hay productos asignados a este cliente
                   </td>
                 </tr>
               ) : (
                 products.map((p) => (
-                  <tr key={p.id_product} className="hover:bg-gray-50">
+                  <tr key={p.id_product} className="hover:bg-accent">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Package size={16} className="text-gray-500" />
+                        <div className="w-9 h-9 bg-muted rounded-lg flex items-center justify-center shrink-0">
+                          <Package size={16} className="text-muted-foreground" />
                         </div>
-                        <p className="font-medium text-gray-900">{p.name}</p>
+                        <p className="font-medium text-foreground">{p.name}</p>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
-                      {p.description ?? <span className="italic text-gray-400">Sin descripción</span>}
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                      {p.description ?? <span className="italic text-muted-foreground/70">Sin descripción</span>}
                     </td>
                     <td className="px-4 py-3">
                       {p.i_status === 1 ? (
-                        <span className="inline-flex items-center gap-1.5 text-sm text-green-700">
-                          <div className="w-2 h-2 bg-green-500 rounded-full" />
+                        <span className="inline-flex items-center gap-1.5 text-sm text-success">
+                          <div className="w-2 h-2 bg-success rounded-full" />
                           Activo
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 text-sm text-red-700">
-                          <div className="w-2 h-2 bg-red-500 rounded-full" />
+                        <span className="inline-flex items-center gap-1.5 text-sm text-destructive">
+                          <div className="w-2 h-2 bg-destructive rounded-full" />
                           Inactivo
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
                       {new Date(p.dt_created).toLocaleDateString("es-MX", {
                         year: "numeric",
                         month: "short",

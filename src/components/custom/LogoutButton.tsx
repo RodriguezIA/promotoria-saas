@@ -27,7 +27,7 @@ export function LogoutButton({ isExpanded = true }: LogoutButtonProps) {
       )}
       title={!isExpanded ? "Cerrar sesión" : undefined}
     >
-      <LogOut className="w-5 h-5 flex-shrink-0" />
+      <LogOut className="w-5 h-5 shrink-0" />
       {isExpanded && <span>Cerrar sesión</span>}
     </button>
   );

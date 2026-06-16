@@ -391,7 +391,7 @@ export function CrearEditarPreguntaDialog({ open, onOpenChange, id_question, onS
                 </div>
 
                 {fields.length === 0 && (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     No hay opciones. Presiona "Agregar opción" para crear una.
                   </p>
                 )}
@@ -458,7 +458,7 @@ export function CrearEditarPreguntaDialog({ open, onOpenChange, id_question, onS
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="text-red-600 hover:text-red-700"
+                        className="text-destructive hover:text-destructive"
                         onClick={() => remove(index)}
                       >
                         <Trash2 size={16} />
@@ -472,17 +472,17 @@ export function CrearEditarPreguntaDialog({ open, onOpenChange, id_question, onS
             {/* Clientes asignados */}
             <div className="space-y-3 rounded-lg border p-4">
               <h4 className="text-sm font-medium">Clientes asignados</h4>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Selecciona los clientes a los que se asignará esta pregunta.
               </p>
 
               {loadingClients ? (
-                <div className="flex items-center gap-2 py-2 text-sm text-gray-500">
+                <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
                   <Loader2 size={16} className="animate-spin" />
                   Cargando clientes...
                 </div>
               ) : clientes.length === 0 ? (
-                <p className="text-sm text-gray-500">No hay clientes disponibles.</p>
+                <p className="text-sm text-muted-foreground">No hay clientes disponibles.</p>
               ) : (
                 <ScrollArea className="h-40 rounded-md border p-2">
                   <div className="space-y-2">

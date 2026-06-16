@@ -100,8 +100,8 @@ export function SolicitudDetalle() {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center p-12">
-                <Loader2 size={32} className="animate-spin text-blue-500 mb-4" />
-                <p className="text-gray-500 font-medium">Cargando detalles de la solicitud...</p>
+                <Loader2 size={32} className="animate-spin text-info mb-4" />
+                <p className="text-muted-foreground font-medium">Cargando detalles de la solicitud...</p>
             </div>
         );
     }
@@ -109,7 +109,7 @@ export function SolicitudDetalle() {
     if (!solicitud) {
         return (
             <div className="p-8 text-center bg-white m-4 rounded-lg shadow">
-                <h2 className="text-xl font-bold mb-4 text-gray-800">Solicitud no encontrada</h2>
+                <h2 className="text-xl font-bold mb-4 text-foreground">Solicitud no encontrada</h2>
                 <Button onClick={() => navigate("/solicitudes")}>Volver a la lista</Button>
             </div>
         );
@@ -119,7 +119,7 @@ export function SolicitudDetalle() {
         <div className="p-4 max-w-4xl mx-auto">
             <div className="flex justify-between items-start mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">{solicitud.nombre}</h1>
+                    <h1 className="text-2xl font-bold text-foreground">{solicitud.nombre}</h1>
                     <p className="text-sm text-muted-foreground mt-1">
                         Solicitud ID: #{solicitud.id} | Fecha: {new Date(solicitud.dt_registro).toLocaleDateString()}
                     </p>
@@ -131,8 +131,8 @@ export function SolicitudDetalle() {
 
             {/* SELECTOR DE CLIENTES (Exclusivo Super Admin) */}
             {isSuperAdmin && (
-                <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <div className="mb-6 p-4 bg-muted/50 border border-border rounded-lg">
+                    <label className="block text-sm font-semibold text-foreground mb-2">
                         Cliente Propietario de la Solicitud:
                     </label>
                     <Select
@@ -155,23 +155,23 @@ export function SolicitudDetalle() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="col-span-2 space-y-4">
-                    <h2 className="text-lg font-semibold text-gray-800">Productos a Revisar</h2>
+                    <h2 className="text-lg font-semibold text-foreground">Productos a Revisar</h2>
                     {solicitud.productos.map((prod: any) => (
-                        <Card key={prod.id_producto} className="p-4 shadow-sm border-gray-200">
+                        <Card key={prod.id_producto} className="p-4 shadow-sm border-border">
                             <div className="flex justify-between items-start mb-3">
-                                <h3 className="font-semibold text-base text-gray-900">{prod.nombre}</h3>
-                                <span className="text-sm font-medium bg-gray-100 px-2 py-1 rounded">Cant: {prod.cantidad}</span>
+                                <h3 className="font-semibold text-base text-foreground">{prod.nombre}</h3>
+                                <span className="text-sm font-medium bg-muted px-2 py-1 rounded">Cant: {prod.cantidad}</span>
                             </div>
                             <Separator className="mb-3" />
                             <div className="space-y-2">
                                 <h4 className="text-sm font-medium text-muted-foreground">Checklist ({prod.preguntas.length} items)</h4>
-                                <ul className="text-sm border rounded-md divide-y divide-gray-100">
+                                <ul className="text-sm border rounded-md divide-y divide-border">
                                     {prod.preguntas.length > 0 ? (
                                         prod.preguntas.map((q: any) => (
-                                            <li key={q.id_pregunta} className="p-3 flex justify-between hover:bg-gray-50 transition-colors">
-                                                <span className="text-gray-700">{q.texto}</span>
+                                            <li key={q.id_pregunta} className="p-3 flex justify-between hover:bg-accent transition-colors">
+                                                <span className="text-foreground">{q.texto}</span>
                                                 {q.precio > 0 ? (
-                                                    <span className="text-green-600 font-bold">+${Number(q.precio).toFixed(2)}</span>
+                                                    <span className="text-success font-bold">+${Number(q.precio).toFixed(2)}</span>
                                                 ) : (
                                                     <span className="text-muted-foreground italic">Gratis</span>
                                                 )}
@@ -187,8 +187,8 @@ export function SolicitudDetalle() {
                 </div>
 
                 <div>
-                    <Card className="p-5 sticky top-4 shadow-md border-gray-200">
-                        <h2 className="text-lg font-bold mb-4 text-gray-900 border-b pb-2">Resumen Financiero</h2>
+                    <Card className="p-5 sticky top-4 shadow-md border-border">
+                        <h2 className="text-lg font-bold mb-4 text-foreground border-b pb-2">Resumen Financiero</h2>
 
                         {(() => {
                             const totalPreguntas = solicitud.productos.reduce((sum: number, p: any) => sum + (p.preguntas?.length || 0), 0);
@@ -202,14 +202,14 @@ export function SolicitudDetalle() {
                                     </div>
 
                                     {preguntasExtra > 0 && (
-                                        <div className="flex justify-between text-amber-600 font-medium">
+                                        <div className="flex justify-between text-warning-foreground dark:text-warning font-medium">
                                             <span>Preguntas extra ({preguntasExtra}):</span>
                                             <span>+ ${costoExtra.toFixed(2)}</span>
                                         </div>
                                     )}
 
                                     {Number(solicitud.total) >= 90 && totalPreguntas > 6 && (
-                                        <div className="text-xs text-gray-500 italic">
+                                        <div className="text-xs text-muted-foreground italic">
                                             Precio máximo alcanzado. Preguntas adicionales sin costo extra.
                                         </div>
                                     )}
@@ -225,15 +225,15 @@ export function SolicitudDetalle() {
                         <Separator className="my-4" />
 
                         <div className="flex justify-between items-center mb-6">
-                            <span className="font-bold text-lg text-gray-800">Total Solicitud</span>
-                            <span className="font-black text-2xl text-blue-700">${Number(solicitud.total).toFixed(2)}</span>
+                            <span className="font-bold text-lg text-foreground">Total Solicitud</span>
+                            <span className="font-black text-2xl text-info">${Number(solicitud.total).toFixed(2)}</span>
                         </div>
 
                         <div className="flex gap-2 mt-4">
                             <span className={`w-full text-center px-4 py-3 rounded-md border font-bold ${
-                                solicitud.estatus === "Pendiente" ? "bg-amber-100 text-amber-800 border-amber-300" :
-                                solicitud.estatus === "Completada" ? "bg-green-100 text-green-800 border-green-300" :
-                                "bg-gray-100 text-gray-800 border-gray-300"
+                                solicitud.estatus === "Pendiente" ? "bg-warning/20 text-warning-foreground dark:text-warning border-warning/40" :
+                                solicitud.estatus === "Completada" ? "bg-success/15 text-success border-success/30" :
+                                "bg-muted text-foreground border-input"
                             }`}>
                                 Estado actual: {solicitud.estatus}
                             </span>

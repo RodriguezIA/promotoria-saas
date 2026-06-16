@@ -10,10 +10,10 @@ import { api, ApiResponse, formatDate } from "@/lib"
 import { Button, DataTable, PageHeader, PageWrapper, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components"
 
 const TASK_STATUS: Record<number, { label: string; color: string }> = {
-  0: { label: "Cancelada",   color: "bg-red-50 text-red-700" },
-  1: { label: "Pendiente",   color: "bg-amber-50 text-amber-700" },
-  2: { label: "En progreso", color: "bg-blue-50 text-blue-700" },
-  3: { label: "Completada",  color: "bg-green-50 text-green-700" },
+  0: { label: "Cancelada",   color: "bg-destructive/10 text-destructive" },
+  1: { label: "Pendiente",   color: "bg-warning/15 text-warning-foreground dark:text-warning" },
+  2: { label: "En progreso", color: "bg-info/10 text-info" },
+  3: { label: "Completada",  color: "bg-success/10 text-success" },
 }
 
 export function TareasListado() {
@@ -78,9 +78,9 @@ export function TareasListado() {
       cell: ({ row }) => {
         const folio = row.getValue<string | null>("vc_folio")
         return folio ? (
-          <span className="font-bold text-gray-700">{folio}</span>
+          <span className="font-bold text-foreground">{folio}</span>
         ) : (
-          <span className="text-gray-400 text-sm">—</span>
+          <span className="text-muted-foreground/70 text-sm">—</span>
         )
       },
     },
@@ -88,7 +88,7 @@ export function TareasListado() {
       accessorKey: "id_task",
       header: "# Tarea",
       cell: ({ row }) => (
-        <span className="font-bold text-gray-700">
+        <span className="font-bold text-foreground">
           #{String(row.getValue<number>("id_task")).padStart(4, "0")}
         </span>
       ),
@@ -116,7 +116,7 @@ export function TareasListado() {
       header: "Pedido",
       cell: ({ row }) => (
         <button
-          className="font-medium text-blue-600 hover:underline"
+          className="font-medium text-info hover:underline"
           onClick={() => navigate(`/detalle-pedido/${row.getValue("id_order")}`)}
         >
           #{String(row.getValue<number>("id_order")).padStart(4, "0")}
@@ -133,7 +133,7 @@ export function TareasListado() {
             {p.name} {p.lastname}
           </span>
         ) : (
-          <span className="text-xs italic text-red-500 font-medium">Sin asignar</span>
+          <span className="text-xs italic text-destructive font-medium">Sin asignar</span>
         )
       },
     },
@@ -165,7 +165,7 @@ export function TareasListado() {
         <Button
           size="icon"
           variant="default"
-          className="bg-gray-600 text-white hover:bg-gray-950 hover:text-blue-300"
+          className="text-muted-foreground hover:text-foreground hover:bg-accent"
           onClick={() => navigate(`/tareas/${row.original.id_task}`)}
         >
           <Eye className="h-4 w-4" />
@@ -195,7 +195,7 @@ export function TareasListado() {
 
       {isSuperAdmin && clientes.length > 0 && (
         <div className="flex items-center gap-3 p-4 rounded-xl border" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
-          <label className="text-sm font-medium flex-shrink-0" style={{ color: "var(--text-secondary)" }}>Cliente:</label>
+          <label className="text-sm font-medium shrink-0" style={{ color: "var(--text-secondary)" }}>Cliente:</label>
           <Select value={selectedClientId?.toString() ?? ""} onValueChange={(v) => setSelectedClientId(Number(v))}>
             <SelectTrigger className="w-64"><SelectValue placeholder="Selecciona un cliente" /></SelectTrigger>
             <SelectContent>

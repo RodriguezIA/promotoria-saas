@@ -169,25 +169,25 @@ export function PreguntaDetalle() {
                 return (
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500">Seleccion:</span>
+                            <span className="text-sm text-muted-foreground">Seleccion:</span>
                             <Badge variant="outline">
                                 {q.is_multiple ? "Multiple" : "Unica"}
                             </Badge>
                         </div>
                         {q.options && q.options.length > 0 && (
                             <div>
-                                <p className="text-sm text-gray-500 mb-1">Opciones:</p>
+                                <p className="text-sm text-muted-foreground mb-1">Opciones:</p>
                                 <div className="flex flex-wrap gap-1">
                                     {q.options.map((opt, idx) => (
                                         <Badge key={idx} variant="secondary" className="text-xs">
                                             {opt.option_text}
                                             {opt.option_value_numeric !== undefined && opt.option_value_numeric !== null && (
-                                                <span className="ml-1 text-gray-400">
+                                                <span className="ml-1 text-muted-foreground/70">
                                                     ({opt.option_value_numeric})
                                                 </span>
                                             )}
                                             {opt.option_value_text && (
-                                                <span className="ml-1 text-gray-400">
+                                                <span className="ml-1 text-muted-foreground/70">
                                                     ({opt.option_value_text})
                                                 </span>
                                             )}
@@ -203,40 +203,40 @@ export function PreguntaDetalle() {
                     <div className="flex items-center gap-4">
                         {q.min_value !== undefined && q.min_value !== null && (
                             <div>
-                                <span className="text-sm text-gray-500">Min: </span>
+                                <span className="text-sm text-muted-foreground">Min: </span>
                                 <span className="font-medium">{q.min_value}</span>
                             </div>
                         )}
                         {q.max_value !== undefined && q.max_value !== null && (
                             <div>
-                                <span className="text-sm text-gray-500">Max: </span>
+                                <span className="text-sm text-muted-foreground">Max: </span>
                                 <span className="font-medium">{q.max_value}</span>
                             </div>
                         )}
                         {(q.min_value === undefined || q.min_value === null) &&
                          (q.max_value === undefined || q.max_value === null) && (
-                            <span className="text-sm text-gray-400">Sin restricciones de rango</span>
+                            <span className="text-sm text-muted-foreground/70">Sin restricciones de rango</span>
                         )}
                     </div>
                 );
             case "photo":
                 return (
                     <div>
-                        <span className="text-sm text-gray-500">Max fotos: </span>
+                        <span className="text-sm text-muted-foreground">Max fotos: </span>
                         <span className="font-medium">{q.max_photos || 1}</span>
                     </div>
                 );
             case "yes_no":
                 return (
-                    <span className="text-sm text-gray-400">Respuesta: Si / No</span>
+                    <span className="text-sm text-muted-foreground/70">Respuesta: Si / No</span>
                 );
             case "date":
                 return (
-                    <span className="text-sm text-gray-400">El promotor seleccionara una fecha</span>
+                    <span className="text-sm text-muted-foreground/70">El promotor seleccionara una fecha</span>
                 );
             default:
                 return (
-                    <span className="text-sm text-gray-400">Respuesta de texto libre</span>
+                    <span className="text-sm text-muted-foreground/70">Respuesta de texto libre</span>
                 );
         }
     };
@@ -244,7 +244,7 @@ export function PreguntaDetalle() {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground/70" />
             </div>
         );
     }
@@ -277,8 +277,8 @@ export function PreguntaDetalle() {
                     <Card className="lg:col-span-2">
                         <CardHeader>
                             <div className="flex items-start gap-3">
-                                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <HelpCircle className="h-6 w-6 text-blue-600" />
+                                <div className="w-12 h-12 bg-info/15 rounded-lg flex items-center justify-center">
+                                    <HelpCircle className="h-6 w-6 text-info" />
                                 </div>
                                 <div className="flex-1">
                                     <CardTitle className="text-xl">
@@ -300,8 +300,8 @@ export function PreguntaDetalle() {
                         </CardHeader>
                         <CardContent>
                             {/* Type configuration */}
-                            <div className="p-3 bg-gray-50 rounded-lg">
-                                <p className="text-sm font-medium text-gray-700 mb-2">
+                            <div className="p-3 bg-muted/50 rounded-lg">
+                                <p className="text-sm font-medium text-foreground mb-2">
                                     Tipo de respuesta
                                 </p>
                                 {renderTypeConfig(preguntaClient)}
@@ -319,25 +319,25 @@ export function PreguntaDetalle() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
-                                <p className="text-sm text-gray-500">Tu precio</p>
+                                <p className="text-sm text-muted-foreground">Tu precio</p>
                                 <p className="text-2xl font-bold">
                                     ${efectivePrice.toFixed(2)}
                                 </p>
                                 {preguntaClient.client_price > 0 &&
                                  preguntaClient.client_price !== preguntaClient.base_price && (
-                                    <p className="text-xs text-gray-400">
+                                    <p className="text-xs text-muted-foreground/70">
                                         Precio base: ${preguntaClient.base_price.toFixed(2)}
                                     </p>
                                 )}
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">Ganancia del promotor</p>
-                                <p className="text-xl font-bold text-green-600">
+                                <p className="text-sm text-muted-foreground">Ganancia del promotor</p>
+                                <p className="text-xl font-bold text-success">
                                     ${efectiveEarns.toFixed(2)}
                                 </p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">Fecha de asignacion</p>
+                                <p className="text-sm text-muted-foreground">Fecha de asignacion</p>
                                 <p className="text-sm font-medium">
                                     {formatDate(preguntaClient.assigned_at)}
                                 </p>
@@ -353,8 +353,8 @@ export function PreguntaDetalle() {
     if (!pregunta) {
         return (
             <div className="text-center py-12">
-                <HelpCircle size={48} className="mx-auto text-gray-300 mb-4" />
-                <p className="text-gray-500">Pregunta no encontrada</p>
+                <HelpCircle size={48} className="mx-auto text-muted-foreground/50 mb-4" />
+                <p className="text-muted-foreground">Pregunta no encontrada</p>
                 <Button className="mt-4" onClick={() => navigate("/preguntas")}>
                     Volver a preguntas
                 </Button>
@@ -376,7 +376,7 @@ export function PreguntaDetalle() {
                         Volver
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-semibold text-gray-900">
+                        <h1 className="text-2xl font-semibold text-foreground">
                             Detalle de Pregunta
                         </h1>
                     </div>
@@ -402,8 +402,8 @@ export function PreguntaDetalle() {
                 <Card className="lg:col-span-2">
                     <CardHeader>
                         <div className="flex items-start gap-3">
-                            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <HelpCircle className="h-6 w-6 text-blue-600" />
+                            <div className="w-12 h-12 bg-info/15 rounded-lg flex items-center justify-center">
+                                <HelpCircle className="h-6 w-6 text-info" />
                             </div>
                             <div className="flex-1">
                                 <CardTitle className="text-xl">{pregunta.question}</CardTitle>
@@ -423,19 +423,19 @@ export function PreguntaDetalle() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {/* Type configuration */}
-                        <div className="p-3 bg-gray-50 rounded-lg">
-                            <p className="text-sm font-medium text-gray-700 mb-2">
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                            <p className="text-sm font-medium text-foreground mb-2">
                                 Configuracion de respuesta
                             </p>
                             {renderTypeConfig(pregunta)}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div className="flex items-center gap-2 text-gray-500">
+                            <div className="flex items-center gap-2 text-muted-foreground">
                                 <User className="h-4 w-4" />
                                 <span>Creado por: {pregunta.created_by_name || "N/A"}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-gray-500">
+                            <div className="flex items-center gap-2 text-muted-foreground">
                                 <Calendar className="h-4 w-4" />
                                 <span>Creado: {formatDate(pregunta.dt_register)}</span>
                             </div>
@@ -453,14 +453,14 @@ export function PreguntaDetalle() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
-                            <p className="text-sm text-gray-500">Precio base</p>
+                            <p className="text-sm text-muted-foreground">Precio base</p>
                             <p className="text-2xl font-bold">
                                 ${pregunta.base_price.toFixed(2)}
                             </p>
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">Ganancia promotor</p>
-                            <p className="text-xl font-bold text-green-600">
+                            <p className="text-sm text-muted-foreground">Ganancia promotor</p>
+                            <p className="text-xl font-bold text-success">
                                 ${pregunta.promoter_earns.toFixed(2)}
                             </p>
                         </div>
@@ -480,8 +480,8 @@ export function PreguntaDetalle() {
                     </CardHeader>
                     <CardContent>
                         {clientesAsignados.length === 0 ? (
-                            <div className="text-center py-8 text-gray-500">
-                                <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                            <div className="text-center py-8 text-muted-foreground">
+                                <Users className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
                                 <p>No hay clientes asignados a esta pregunta</p>
                                 <Button
                                     variant="outline"
@@ -516,17 +516,17 @@ export function PreguntaDetalle() {
                                                     </Badge>
                                                 )}
                                             </TableCell>
-                                            <TableCell className="text-green-600">
+                                            <TableCell className="text-success">
                                                 ${cliente.client_promoter_earns.toFixed(2)}
                                             </TableCell>
-                                            <TableCell className="text-gray-500">
+                                            <TableCell className="text-muted-foreground">
                                                 {formatDate(cliente.assigned_at)}
                                             </TableCell>
                                             <TableCell>
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    className="text-red-600 hover:text-red-700"
+                                                    className="text-destructive hover:text-destructive"
                                                     onClick={() => {
                                                         setSelectedClientToUnassign(cliente);
                                                         setShowUnassignConfirm(true);
@@ -579,7 +579,7 @@ export function PreguntaDetalle() {
                         <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
-                            className="bg-red-600 hover:bg-red-700"
+                            className="bg-destructive hover:bg-destructive/90"
                             disabled={deleting}
                         >
                             {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -603,7 +603,7 @@ export function PreguntaDetalle() {
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleUnassign}
-                            className="bg-red-600 hover:bg-red-700"
+                            className="bg-destructive hover:bg-destructive/90"
                         >
                             Desasignar
                         </AlertDialogAction>

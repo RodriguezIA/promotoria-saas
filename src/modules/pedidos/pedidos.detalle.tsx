@@ -16,10 +16,10 @@ const formatCurrency = (v: number) =>
   new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(v)
 
 const TASK_STATUS: Record<number, { label: string; color: string }> = {
-  0: { label: "Cancelada",    color: "bg-red-50 text-red-700" },
-  1: { label: "Pendiente",    color: "bg-amber-50 text-amber-700" },
-  2: { label: "En progreso",  color: "bg-blue-50 text-blue-700" },
-  3: { label: "Completada",   color: "bg-green-50 text-green-700" },
+  0: { label: "Cancelada",    color: "bg-destructive/10 text-destructive" },
+  1: { label: "Pendiente",    color: "bg-warning/15 text-warning-foreground dark:text-warning" },
+  2: { label: "En progreso",  color: "bg-info/10 text-info" },
+  3: { label: "Completada",   color: "bg-success/10 text-success" },
 }
 
 export function PedidoDetalle() {
@@ -108,8 +108,8 @@ export function PedidoDetalle() {
     return (
       <PageWrapper>
         <div className="flex items-center justify-center py-20 gap-3">
-          <Loader2 size={24} className="animate-spin" style={{ color: "var(--text-secondary)" }} />
-          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Cargando pedido...</p>
+          <Loader2 size={24} className="animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Cargando pedido...</p>
         </div>
       </PageWrapper>
     )
@@ -119,7 +119,7 @@ export function PedidoDetalle() {
     return (
       <PageWrapper>
         <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Pedido no encontrado.</p>
+          <p className="text-sm text-muted-foreground">Pedido no encontrado.</p>
           <Button variant="outline" onClick={() => navigate("/pedidos")}>
             <ArrowLeft size={16} className="mr-2" /> Volver
           </Button>
@@ -155,47 +155,47 @@ export function PedidoDetalle() {
         <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-6">
           <Card>
             <CardContent className="p-5 space-y-4">
-              <h3 className="font-semibold text-sm uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>
+              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
                 Resumen del pedido
               </h3>
 
               {/* Estado */}
               <div className="flex justify-between items-center">
-                <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Estado</span>
+                <span className="text-sm text-muted-foreground">Estado</span>
                 {order.id_status === 1 ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-sm rounded-full">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full" /> Activo
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-success/10 text-success text-sm rounded-full">
+                    <div className="w-1.5 h-1.5 bg-success rounded-full" /> Activo
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 text-red-700 text-sm rounded-full">
-                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full" /> Cancelado
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-destructive/10 text-destructive text-sm rounded-full">
+                    <div className="w-1.5 h-1.5 bg-destructive rounded-full" /> Cancelado
                   </span>
                 )}
               </div>
 
               {/* Total */}
               <div className="flex justify-between items-center">
-                <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Total cobrado</span>
-                <span className="font-bold text-green-600 text-lg">{formatCurrency(Number(order.f_total))}</span>
+                <span className="text-sm text-muted-foreground">Total cobrado</span>
+                <span className="font-semibold text-foreground text-lg">{formatCurrency(Number(order.f_total))}</span>
               </div>
 
               {/* Tareas */}
               <div className="flex justify-between items-center">
-                <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Total de tiendas</span>
+                <span className="text-sm text-muted-foreground">Total de tiendas</span>
                 <span className="font-semibold">{tasks.length}</span>
               </div>
 
               {/* Progreso tareas */}
               {tasks.length > 0 && (
                 <div className="space-y-2">
-                  <div className="flex justify-between text-xs" style={{ color: "var(--text-secondary)" }}>
-                    <span>Pendientes</span><span className="font-medium text-amber-600">{pendientes}</span>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Pendientes</span><span className="font-medium text-foreground">{pendientes}</span>
                   </div>
-                  <div className="flex justify-between text-xs" style={{ color: "var(--text-secondary)" }}>
-                    <span>En progreso</span><span className="font-medium text-blue-600">{enProgreso}</span>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>En progreso</span><span className="font-medium text-foreground">{enProgreso}</span>
                   </div>
-                  <div className="flex justify-between text-xs" style={{ color: "var(--text-secondary)" }}>
-                    <span>Completadas</span><span className="font-medium text-green-600">{completadas}</span>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Completadas</span><span className="font-medium text-foreground">{completadas}</span>
                   </div>
                 </div>
               )}
@@ -203,10 +203,10 @@ export function PedidoDetalle() {
               {/* Solicitudes */}
               {uniqueRequests.length > 0 && (
                 <div>
-                  <p className="text-xs mb-2" style={{ color: "var(--text-secondary)" }}>Solicitudes</p>
+                  <p className="text-xs mb-2 text-muted-foreground">Solicitudes</p>
                   <div className="flex flex-wrap gap-1">
                     {uniqueRequests.map(([id, name]) => (
-                      <span key={id} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                      <span key={id} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
                         {name ?? `#${id}`}
                       </span>
                     ))}
@@ -220,16 +220,16 @@ export function PedidoDetalle() {
           {(order.order_logs ?? []).length > 0 && (
             <Card>
               <CardContent className="p-5">
-                <h3 className="font-semibold text-sm uppercase tracking-wide mb-3" style={{ color: "var(--text-secondary)" }}>
+                <h3 className="font-semibold text-sm uppercase tracking-wide mb-3 text-muted-foreground">
                   Actividad
                 </h3>
                 <div className="space-y-3">
                   {order.order_logs!.map((log, i) => (
                     <div key={i} className="flex gap-2 text-sm">
-                      <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
+                      <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-muted-foreground/60 shrink-0" />
                       <div>
-                        <p style={{ color: "var(--text-primary)" }}>{log.vc_log}</p>
-                        <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                        <p className="text-foreground">{log.vc_log}</p>
+                        <p className="text-xs mt-0.5 text-muted-foreground">
                           {formatDate(log.dt_registro)}
                         </p>
                       </div>
@@ -244,16 +244,16 @@ export function PedidoDetalle() {
         {/* ── Lista de tareas ── */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center gap-2">
-            <Store size={20} style={{ color: "var(--text-secondary)" }} />
-            <h2 className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>
+            <Store size={20} className="text-muted-foreground" />
+            <h2 className="font-semibold text-lg text-foreground">
               Tareas en establecimientos
             </h2>
           </div>
 
           {tasks.length === 0 ? (
-            <div className="rounded-xl border p-10 text-center" style={{ borderColor: "var(--border)" }}>
+            <div className="rounded-xl border border-border bg-card p-10 text-center">
               <ClipboardList size={32} className="mx-auto mb-2 opacity-40" />
-              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>No hay tareas en este pedido.</p>
+              <p className="text-sm text-muted-foreground">No hay tareas en este pedido.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -264,19 +264,19 @@ export function PedidoDetalle() {
                   : null
 
                 return (
-                  <Card key={task.id_task} className="border-l-4 border-l-blue-500">
+                  <Card key={task.id_task} className="transition-shadow hover:shadow-md">
                     <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ backgroundColor: "var(--hover)", color: "var(--text-secondary)" }}>
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded bg-muted text-muted-foreground">
                             #{task.id_task}
                           </span>
-                          <span className="font-semibold truncate" style={{ color: "var(--text-primary)" }}>
+                          <span className="font-semibold truncate text-foreground">
                             {task.store?.name ?? `Tienda #${task.id_store}`}
                           </span>
                         </div>
                         {task.request && (
-                          <p className="text-sm truncate" style={{ color: "var(--text-secondary)" }}>
+                          <p className="text-sm truncate text-muted-foreground">
                             {task.request.vc_name}
                           </p>
                         )}
@@ -287,12 +287,12 @@ export function PedidoDetalle() {
                           {status.label}
                         </span>
 
-                        <div className="flex items-center gap-1 text-sm">
-                          <User size={14} style={{ color: promotorNombre ? "var(--accent)" : "var(--text-secondary)" }} />
+                        <div className="flex items-center gap-1.5 text-sm">
+                          <User size={14} className="text-muted-foreground" />
                           {promotorNombre ? (
-                            <span className="font-medium" style={{ color: "var(--accent)" }}>{promotorNombre}</span>
+                            <span className="font-medium text-foreground">{promotorNombre}</span>
                           ) : (
-                            <span className="italic text-red-500 text-xs font-medium">Sin asignar</span>
+                            <span className="text-xs font-medium text-warning-foreground dark:text-warning bg-warning/15 px-2 py-0.5 rounded-full">Sin asignar</span>
                           )}
                         </div>
 
@@ -338,7 +338,7 @@ export function PedidoDetalle() {
 
           <div className="py-2">
             {promotores.length === 0 ? (
-              <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
+              <p className="text-sm text-warning-foreground dark:text-warning bg-warning/15 p-3 rounded-lg border border-warning/40">
                 No hay promotores registrados. Da de alta un promotor primero.
               </p>
             ) : (

@@ -30,15 +30,15 @@ const METODOS: {
     key: "efectivo",
     label: "Efectivo",
     icon: Banknote,
-    color: "bg-green-50 text-green-700",
-    border: "border-green-400",
+    color: "bg-success/10 text-success",
+    border: "border-success/40",
   },
   {
     key: "transferencia",
     label: "Transferencia",
     icon: ArrowLeftRight,
-    color: "bg-blue-50 text-blue-700",
-    border: "border-blue-400",
+    color: "bg-info/10 text-info",
+    border: "border-info/40",
     refLabel: "Folio / No. de referencia",
     refPlaceholder: "Ej. 123456789012345678",
   },
@@ -46,8 +46,8 @@ const METODOS: {
     key: "tarjeta",
     label: "Tarjeta",
     icon: CreditCard,
-    color: "bg-purple-50 text-purple-700",
-    border: "border-purple-400",
+    color: "bg-muted/50 text-foreground",
+    border: "border-border",
     refLabel: "Últimos 4 dígitos",
     refPlaceholder: "Ej. 4321",
   },
@@ -55,8 +55,8 @@ const METODOS: {
     key: "oxxo",
     label: "Depósito OXXO",
     icon: Store,
-    color: "bg-red-50 text-red-700",
-    border: "border-red-400",
+    color: "bg-destructive/10 text-destructive",
+    border: "border-destructive/40",
     refLabel: "Folio de pago",
     refPlaceholder: "Ej. OXX-2025-00012345",
   },
@@ -122,38 +122,38 @@ export function ModalRegistrarPagoPromotor({ pago, open, onClose, onSuccess }: P
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-blue-600" />
+            <Users className="w-5 h-5 text-info" />
             Registrar pago a promotor
           </DialogTitle>
         </DialogHeader>
 
         {/* Info del pago */}
-        <div className="bg-gray-50 rounded-lg p-4 space-y-1 text-sm">
+        <div className="bg-muted/50 rounded-lg p-4 space-y-1 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-500">Promotor</span>
-            <span className="font-semibold text-gray-900">{pago.promoter_name}</span>
+            <span className="text-muted-foreground">Promotor</span>
+            <span className="font-semibold text-foreground">{pago.promoter_name}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Campaña</span>
-            <span className="font-medium text-gray-700 text-right max-w-[60%]">
+            <span className="text-muted-foreground">Campaña</span>
+            <span className="font-medium text-foreground text-right max-w-[60%]">
               {pago.request_name}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Período</span>
-            <span className="font-medium text-gray-700">
+            <span className="text-muted-foreground">Período</span>
+            <span className="font-medium text-foreground">
               {fmtDate(pago.dt_periodo_inicio)} – {fmtDate(pago.dt_periodo_fin)}
             </span>
           </div>
-          <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
-            <span className="text-gray-600 font-medium">Monto a pagar</span>
-            <span className="text-xl font-bold text-blue-600">{fmt(pago.f_monto)}</span>
+          <div className="flex justify-between border-t border-border pt-2 mt-2">
+            <span className="text-muted-foreground font-medium">Monto a pagar</span>
+            <span className="text-xl font-bold text-info">{fmt(pago.f_monto)}</span>
           </div>
         </div>
 
         {/* Selector de método */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-700">Método de pago</Label>
+          <Label className="text-sm font-medium text-foreground">Método de pago</Label>
           <div className="grid grid-cols-2 gap-2">
             {METODOS.map((m) => {
               const Icon = m.icon;
@@ -166,10 +166,10 @@ export function ModalRegistrarPagoPromotor({ pago, open, onClose, onSuccess }: P
                   className={`flex items-center gap-2 p-3 rounded-lg border-2 text-sm font-medium transition-all ${
                     selected
                       ? `${m.color} ${m.border}`
-                      : "bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50"
+                      : "bg-white border-border text-muted-foreground hover:border-input hover:bg-accent"
                   }`}
                 >
-                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <Icon className="w-4 h-4 shrink-0" />
                   {m.label}
                 </button>
               );
@@ -180,7 +180,7 @@ export function ModalRegistrarPagoPromotor({ pago, open, onClose, onSuccess }: P
         {/* Referencia (condicional) */}
         {metodoCfg.refLabel && (
           <div className="space-y-1.5">
-            <Label htmlFor="referencia-pago" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="referencia-pago" className="text-sm font-medium text-foreground">
               {metodoCfg.refLabel}
             </Label>
             <Input
@@ -194,7 +194,7 @@ export function ModalRegistrarPagoPromotor({ pago, open, onClose, onSuccess }: P
 
         {/* Fecha */}
         <div className="space-y-1.5">
-          <Label htmlFor="fecha-pago" className="text-sm font-medium text-gray-700">
+          <Label htmlFor="fecha-pago" className="text-sm font-medium text-foreground">
             Fecha de pago
           </Label>
           <Input
@@ -207,8 +207,8 @@ export function ModalRegistrarPagoPromotor({ pago, open, onClose, onSuccess }: P
 
         {/* Notas */}
         <div className="space-y-1.5">
-          <Label htmlFor="notas-pago" className="text-sm font-medium text-gray-700">
-            Notas <span className="text-gray-400 font-normal">(opcional)</span>
+          <Label htmlFor="notas-pago" className="text-sm font-medium text-foreground">
+            Notas <span className="text-muted-foreground/70 font-normal">(opcional)</span>
           </Label>
           <Textarea
             id="notas-pago"
@@ -226,7 +226,7 @@ export function ModalRegistrarPagoPromotor({ pago, open, onClose, onSuccess }: P
           <Button
             onClick={handleConfirmar}
             disabled={guardando}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-primary hover:bg-primary/90 text-white"
           >
             {guardando ? (
               <Loader2 className="w-4 h-4 animate-spin mr-2" />

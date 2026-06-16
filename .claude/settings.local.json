@@ -6,7 +6,29 @@
       "Bash(dir /B \"c:\\\\Users\\\\Edgar\\\\Documents\\\\software_dev\\\\RetaiLinkClient\\\\src\")",
       "Bash(npm run type-check:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(pnpm remove *)",
+      "Bash(python3 -)",
+      "Bash(git checkout *)",
+      "Bash(xargs sed -i -e 's/\\\\btext-error\\\\b/text-destructive/g' -e 's/\\\\bbg-error\\\\b/bg-destructive/g' -e 's/\\\\bhover:bg-hover\\\\b/hover:bg-accent/g' -e 's/\\\\bbg-hover\\\\b/bg-accent/g' -e 's/\\\\bborder-primary\\\\b/border-border/g' -e 's/\\\\bbg-card-bg\\\\b/bg-card/g' -e 's/\\\\btext-accent\\\\b/text-brand/g')",
+      "Bash(xargs sed -i -e s/hover:text-brand-foreground/hover:text-accent-foreground/g -e s/focus:text-brand-foreground/focus:text-accent-foreground/g -e 's/data-\\\\[state=open\\\\]:text-brand-foreground/data-[state=open]:text-accent-foreground/g')",
+      "Bash(pnpm add *)",
+      "Bash(pnpm build *)",
+      "Bash(pnpm type-check *)",
+      "Bash(git stash *)",
+      "Bash(xargs sed -i -E 's/\\\\bflex-shrink-\\([0-9]+\\)\\\\b/shrink-\\\\1/g; s/\\\\bflex-grow\\\\b/grow/g')",
+      "Bash(xargs sed -i 's/bg-destructive bg-opacity-10 border border-error/bg-destructive\\\\/10 border border-destructive\\\\/30/g')",
+      "Bash(sed -n '120,135p;188,215p' src/components/ui/preguntas-negocio-table.tsx)",
+      "Bash(sed -n '98,112p' src/components/ui/user-list.tsx)",
+      "Bash(sed -n '138,150p' src/modules/auth/auth.restore.tsx)",
+      "Bash(sed -n '340,350p' src/modules/solicitudes/solicitudes.crear.tsx)",
+      "Bash(sed -n '540,565p' src/modules/solicitudes/solicitudes.crear.tsx)",
+      "Bash(sed -i \"1a import { HelpCircle } from 'lucide-react';\" src/components/ui/pregunta-modal.tsx)",
+      "Bash(sed -i \"1a import { Store } from 'lucide-react';\" src/components/ui/establecimiento-modal.tsx)",
+      "Bash(sed -i \"1a import { Store, Eye, Pencil, Trash2 } from 'lucide-react';\" src/components/ui/establecimientos-table.tsx)",
+      "Bash(sed -i \"1i import { MapPin } from 'lucide-react';\" src/components/dashboard/HeatMap.tsx)",
+      "Bash(echo \"---exit $?\")",
+      "Bash(pnpm vitest *)"
     ]
   }
 }

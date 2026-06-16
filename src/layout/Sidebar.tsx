@@ -1,20 +1,33 @@
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Store, MoreVertical, ChevronLeft, HomeIcon, ClipboardList, UsersRound, Package, MessageCircleQuestion, Receipt, Banknote, UserCircle, Building2, CheckSquare2 } from "lucide-react"
+import { Store, ChevronLeft, ChevronRight, HomeIcon, ClipboardList, UsersRound, Package, MessageCircleQuestion, Receipt, Banknote, UserCircle, Building2, CheckSquare2, LucideIcon } from "lucide-react"
 
 
 import { cn } from "@/lib"
 import { useAuthStore } from "@/stores"
-import { SidebarMenu, SidebarMenuItem, LogoutButton } from "@/components"
+import { LogoutButton } from "@/components"
 
 
-import logo from "@/assets/promotorialogotipo_positivo.png"
-import logoSmall from "@/assets/promotorialogotipo_positivo.png"
+import logoFull from "@/assets/promotorialogotipo_negativo.png"
+import logoMark from "@/assets/isologo_promotoria_B.png"
 
 
 interface SidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
+}
+
+interface MenuItem {
+  route: string;
+  icon: LucideIcon;
+  label: string;
+  show: boolean;
+  mobileOnly?: boolean;
+}
+
+interface MenuSection {
+  label: string;
+  items: MenuItem[];
 }
 
 export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
@@ -23,126 +36,96 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const { user } = useAuthStore();
   const [isExpanded, setIsExpanded] = useState(true);
 
-  const getActiveClass = (route: string) =>
-    pathname === route
-      ? "font-semibold transition-all duration-200"
-      : "transition-all duration-200";
+  const isAdmin = user?.i_rol === 1;
+  const isNegocio = user?.i_rol === 2;
 
-  const getActiveStyle = (route: string) =>
-    pathname === route
-      ? {
-        backgroundColor: "var(--accent)",
-        color: "var(--color-black)",
-        borderRadius: "0.5rem",
-      }
-      : {
-        color: "var(--sidebar-fg)",
-      };
-
-  const menuItems = [
+  const sections: MenuSection[] = [
     {
-      route: "/",
-      icon: HomeIcon,
-      label: "Inicio",
-      show: true,
+      label: "Operación",
+      items: [
+        { route: "/", icon: HomeIcon, label: "Inicio", show: true },
+        { route: "/solicitudes", icon: ClipboardList, label: "Solicitudes", show: isAdmin || isNegocio },
+        { route: "/pedidos", icon: Receipt, label: "Pedidos", show: isAdmin || isNegocio },
+        { route: "/tareas", icon: CheckSquare2, label: "Tareas", show: isAdmin || isNegocio },
+      ],
     },
     {
-      route: "/clientes",
-      icon: UsersRound,
-      label: "Clientes",
-      show: user?.i_rol === 1,
+      label: "Catálogo",
+      items: [
+        { route: "/clientes", icon: UsersRound, label: "Clientes", show: isAdmin },
+        { route: "/productos", icon: Package, label: "Productos", show: isAdmin || isNegocio },
+        { route: "/establecimientos", icon: Store, label: "Establecimientos", show: isAdmin },
+        { route: "/preguntas", icon: MessageCircleQuestion, label: "Preguntas", show: isAdmin },
+      ],
     },
     {
-      route: "/productos",
-      icon: Package,
-      label: "Productos",
-      show: user?.i_rol === 2 || user?.i_rol === 1,
-    },
-    {
-      route: "/establecimientos",
-      icon: Store,
-      label: "Establecimientos",
-      show: user?.i_rol === 1,
-    },
-    {
-      route: "/preguntas",
-      icon: MessageCircleQuestion,
-      label: "Preguntas",
-      show: user?.i_rol === 1,
-    },
-    {
-      route: "/solicitudes",
-      icon: ClipboardList,
-      label: "Solicitudes",
-      show: user?.i_rol === 1 || user?.i_rol === 2, // Admin and Super Admin
-    },
-    {
-      route: "/pedidos",
-      icon: Receipt,
-      label: "Pedidos",
-      show: user?.i_rol === 1 || user?.i_rol === 2,
-    },
-    {
-      route: "/tareas",
-      icon: CheckSquare2,
-      label: "Tareas",
-      show: user?.i_rol === 1 || user?.i_rol === 2,
-    },
-    {
-      route: "/finanzas",
-      icon: Banknote,
-      label: "Finanzas",
-      show: user?.i_rol === 1 || user?.i_rol === 2,
-    },
-    {
-      route: "/mi-negocio",
-      icon: Building2,
-      label: "Mi Negocio",
-      show: user?.i_rol === 2,
-    },
-    {
-      route: "/perfil",
-      icon: UserCircle,
-      label: "Mi perfil",
-      show: true,
-      mobileOnly: true,
+      label: "Negocio",
+      items: [
+        { route: "/finanzas", icon: Banknote, label: "Finanzas", show: isAdmin || isNegocio },
+        { route: "/mi-negocio", icon: Building2, label: "Mi Negocio", show: isNegocio },
+        { route: "/perfil", icon: UserCircle, label: "Mi perfil", show: true, mobileOnly: true },
+      ],
     },
   ];
+
+  const NavLink = ({ item, isMobile }: { item: MenuItem; isMobile: boolean }) => {
+    const isActive = pathname === item.route;
+    const showLabel = isMobile || isExpanded;
+
+    return (
+      <Link
+        to={item.route}
+        onClick={isMobile ? onClose : undefined}
+        title={!showLabel ? item.label : undefined}
+        className={cn(
+          "relative flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-150",
+          !showLabel && "justify-center px-0",
+          isActive
+            ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-4 before:w-[3px] before:rounded-full before:bg-sidebar-primary"
+            : "text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
+        )}
+      >
+        <item.icon
+          className={cn("w-[18px] h-[18px] shrink-0", isActive && "text-sidebar-primary")}
+          strokeWidth={isActive ? 2.2 : 1.8}
+        />
+        {showLabel && <span className="truncate">{item.label}</span>}
+      </Link>
+    );
+  };
 
   // Contenido del menú (compartido entre desktop y mobile)
   const MenuContent = ({ isMobile = false }: { isMobile?: boolean }) => (
     <>
-      <div className="space-y-2">
-        <SidebarMenu>
-          {menuItems.map(
-            (item) =>
-              item.show && (!item.mobileOnly || isMobile) && (
-                <SidebarMenuItem key={item.route} asChild>
-                  <Link
-                    to={item.route}
-                    onClick={isMobile ? onClose : undefined}
-                    className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg hover:bg-hover text-sm",
-                      getActiveClass(item.route),
-                      !isMobile && !isExpanded && "justify-center",
-                    )}
-                    style={getActiveStyle(item.route)}
-                    title={!isMobile && !isExpanded ? item.label : undefined}
-                  >
-                    <item.icon className="w-5 h-5 flex-shrink-0" />
-                    {(isMobile || isExpanded) && (
-                      <span className="truncate">{item.label}</span>
-                    )}
-                  </Link>
-                </SidebarMenuItem>
-              ),
-          )}
-        </SidebarMenu>
-      </div>
+      <nav className="flex flex-col gap-5">
+        {sections.map((section) => {
+          const visible = section.items.filter(
+            (item) => item.show && (!item.mobileOnly || isMobile),
+          );
+          if (visible.length === 0) return null;
+
+          return (
+            <div key={section.label}>
+              {(isMobile || isExpanded) ? (
+                <p className="eyebrow !text-sidebar-foreground/50 px-3 mb-1.5">
+                  {section.label}
+                </p>
+              ) : (
+                <div className="mx-3 mb-2 border-t border-sidebar-border" />
+              )}
+              <div className="space-y-0.5">
+                {visible.map((item) => (
+                  <NavLink key={item.route} item={item} isMobile={isMobile} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </nav>
 
       {isMobile && (
-        <div className="space-y-3 flex-shrink-0">
-          <div className="border-t border-border"></div>
+        <div className="space-y-3 shrink-0">
+          <div className="border-t border-sidebar-border"></div>
           <LogoutButton isExpanded={true} />
         </div>
       )}
@@ -154,101 +137,80 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       {/* Sidebar Desktop - DIV NORMAL (parte del flex) */}
       <div
         className={cn(
-          "hidden lg:flex flex-col transition-all duration-300 ease-in-out h-full flex-shrink-0",
-          isExpanded ? "w-56" : "w-20",
+          "hidden lg:flex flex-col transition-all duration-300 ease-in-out h-full shrink-0",
+          "bg-sidebar text-sidebar-foreground border-r border-sidebar-border",
+          isExpanded ? "w-60" : "w-[68px]",
         )}
-        style={{
-          backgroundColor: "var(--sidebar-bg)",
-          color: "var(--sidebar-fg)",
-          borderRight: "1px solid var(--border)",
-        }}
       >
         {/* Header */}
-        <div
-          className="p-4 relative flex-shrink-0"
-          style={{ borderBottom: "1px solid var(--border)" }}
-        >
-          <div className="flex items-center justify-between">
-            <div
-              className={cn(
-                "flex items-center justify-center transition-all duration-300 overflow-hidden",
-                isExpanded ? "w-full" : "w-full",
-              )}
-            >
-              <img
-                src={isExpanded ? logo : logoSmall}
-                alt="Logo"
-                className={cn(
-                  "transition-all duration-300 object-contain",
-                  isExpanded ? "h-16" : "h-10",
-                )}
-              />
-            </div>
+        <div className="relative shrink-0 h-16 flex items-center px-4 border-b border-sidebar-border">
+          <img
+            src={isExpanded ? logoFull : logoMark}
+            alt="Promotoria"
+            className={cn(
+              "object-contain transition-all duration-300",
+              isExpanded ? "h-8" : "h-7 mx-auto",
+            )}
+          />
 
-            {/* Botón de toggle */}
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className={cn(
-                "absolute -right-3 top-1/2 -translate-y-1/2",
-                "bg-accent border border-border rounded-full p-1",
-                "hover:bg-accent/80 transition-colors z-10",
-              )}
-            >
-              {isExpanded ? (
-                <ChevronLeft className="w-4 h-4" />
-              ) : (
-                <MoreVertical className="w-4 h-4" />
-              )}
-            </button>
-          </div>
+          {/* Botón de toggle */}
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            aria-label={isExpanded ? "Colapsar menú" : "Expandir menú"}
+            className={cn(
+              "absolute -right-3 top-1/2 -translate-y-1/2 z-10",
+              "bg-card text-foreground border border-border rounded-full p-1 shadow-sm",
+              "hover:bg-accent transition-colors",
+            )}
+          >
+            {isExpanded ? (
+              <ChevronLeft className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronRight className="w-3.5 h-3.5" />
+            )}
+          </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 p-2 flex flex-col justify-between overflow-y-auto">
+        <div className="flex-1 px-2.5 py-4 flex flex-col justify-between overflow-y-auto overflow-x-hidden">
           <MenuContent isMobile={false} />
         </div>
 
         {/* Footer */}
-        {isExpanded && (
-          <div className="p-4 border-t border-border flex-shrink-0">
-            <p className="text-xs text-secondary">© 2025 Promotoria</p>
-          </div>
-        )}
+        <div className="px-4 py-3 border-t border-sidebar-border shrink-0">
+          <p className={cn("font-mono text-[10px] tracking-widest uppercase text-sidebar-foreground/40", !isExpanded && "text-center")}>
+            {isExpanded ? "© 2025 Promotoria" : "©"}
+          </p>
+        </div>
       </div>
 
       <div
         className={cn(
-          "lg:hidden fixed inset-y-0 left-0 z-50 w-64 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl",
+          "lg:hidden fixed inset-y-0 left-0 z-50 w-72 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl",
+          "bg-sidebar text-sidebar-foreground border-r border-sidebar-border",
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
-        style={{
-          backgroundColor: "var(--sidebar-bg)",
-          color: "var(--sidebar-fg)",
-          borderRight: "1px solid var(--border)",
-        }}
       >
-        <div
-          className="p-4 flex-shrink-0"
-          style={{ borderBottom: "1px solid var(--border)" }}
-        >
-          <div className="flex items-center justify-between">
-            <img src={logo} alt="Logo" className="h-16" />
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-accent rounded-lg transition-colors"
-              type="button"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-          </div>
+        <div className="h-16 px-4 shrink-0 flex items-center justify-between border-b border-sidebar-border">
+          <img src={logoFull} alt="Promotoria" className="h-8 object-contain" />
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-sidebar-accent rounded-md transition-colors"
+            type="button"
+            aria-label="Cerrar menú"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
         </div>
 
-        <div className="flex-1 p-2 overflow-y-auto">
+        <div className="flex-1 px-2.5 py-4 flex flex-col justify-between overflow-y-auto">
           <MenuContent isMobile={true} />
         </div>
 
-        <div className="p-4 border-t border-border flex-shrink-0">
-          <p className="text-sm text-secondary">© 2025 Promotoria</p>
+        <div className="px-4 py-3 border-t border-sidebar-border shrink-0">
+          <p className="font-mono text-[10px] tracking-widest uppercase text-sidebar-foreground/40">
+            © 2025 Promotoria
+          </p>
         </div>
       </div>
     </>

@@ -9,8 +9,8 @@ import { Button, Card, Dialog, DialogContent, DialogHeader, DialogTitle, DialogF
 
 
 const ROL_LABEL: Record<number, { label: string; color: string }> = {
-  1: { label: "Super Admin", color: "bg-purple-100 text-purple-800 border-purple-200" },
-  2: { label: "Administrador", color: "bg-blue-100 text-blue-800 border-blue-200" },
+  1: { label: "Super Admin", color: "bg-muted text-foreground border-border" },
+  2: { label: "Administrador", color: "bg-info/15 text-info border-info/30" },
 };
 
 const fmtDate = (d: string) => new Date(d).toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" });
@@ -20,13 +20,13 @@ const initials = (name: string, lastname: string) => `${name.charAt(0)}${lastnam
 
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string; }) {
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
-      <div className="mt-0.5 p-1.5 bg-gray-100 rounded-md">
-        <Icon className="w-4 h-4 text-gray-500" />
+    <div className="flex items-start gap-3 py-3 border-b border-border last:border-0">
+      <div className="mt-0.5 p-1.5 bg-muted rounded-md">
+        <Icon className="w-4 h-4 text-muted-foreground" />
       </div>
       <div className="flex flex-col">
-        <span className="text-xs text-gray-400 font-medium">{label}</span>
-        <span className="text-sm text-gray-900 font-medium mt-0.5">{value}</span>
+        <span className="text-xs text-muted-foreground/70 font-medium">{label}</span>
+        <span className="text-sm text-foreground font-medium mt-0.5">{value}</span>
       </div>
     </div>
   );
@@ -85,7 +85,7 @@ function ModalEditarPerfil({ open, perfil, onClose, onSaved }: EditModalProps) {
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Pencil className="w-4 h-4 text-gray-600" />
+            <Pencil className="w-4 h-4 text-muted-foreground" />
             Editar perfil
           </DialogTitle>
         </DialogHeader>
@@ -188,7 +188,7 @@ function ModalCambiarPassword({ open, onClose }: PwdModalProps) {
   };
 
   const strength = next.length === 0 ? null : next.length < 6 ? "débil" : next.length < 10 ? "media" : "fuerte";
-  const strengthColor = { débil: "bg-red-400", media: "bg-amber-400", fuerte: "bg-green-500" };
+  const strengthColor = { débil: "bg-destructive", media: "bg-warning", fuerte: "bg-success" };
   const strengthWidth = { débil: "w-1/3", media: "w-2/3", fuerte: "w-full" };
 
   return (
@@ -196,7 +196,7 @@ function ModalCambiarPassword({ open, onClose }: PwdModalProps) {
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <KeyRound className="w-4 h-4 text-gray-600" />
+            <KeyRound className="w-4 h-4 text-muted-foreground" />
             Cambiar contraseña
           </DialogTitle>
         </DialogHeader>
@@ -217,7 +217,7 @@ function ModalCambiarPassword({ open, onClose }: PwdModalProps) {
               <button
                 type="button"
                 onClick={() => setShowCurrent((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground"
               >
                 {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -239,7 +239,7 @@ function ModalCambiarPassword({ open, onClose }: PwdModalProps) {
               <button
                 type="button"
                 onClick={() => setShowNext((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground"
               >
                 {showNext ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -247,13 +247,13 @@ function ModalCambiarPassword({ open, onClose }: PwdModalProps) {
             {/* Barra de fuerza */}
             {strength && (
               <div className="space-y-1 pt-1">
-                <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${strengthColor[strength]} ${strengthWidth[strength]}`}
                   />
                 </div>
                 <p className={`text-xs font-medium capitalize ${
-                  strength === "débil" ? "text-red-500" : strength === "media" ? "text-amber-500" : "text-green-600"
+                  strength === "débil" ? "text-destructive" : strength === "media" ? "text-warning-foreground dark:text-warning" : "text-success"
                 }`}>
                   Seguridad: {strength}
                 </p>
@@ -271,17 +271,17 @@ function ModalCambiarPassword({ open, onClose }: PwdModalProps) {
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 placeholder="Repite la nueva contraseña"
-                className={confirm && confirm !== next ? "border-red-400 focus-visible:ring-red-400" : ""}
+                className={confirm && confirm !== next ? "border-destructive focus-visible:ring-destructive/30" : ""}
               />
               {confirm && confirm === next && (
-                <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
+                <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-success" />
               )}
               {confirm && confirm !== next && (
-                <X className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-red-500" />
+                <X className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-destructive" />
               )}
             </div>
             {confirm && confirm !== next && (
-              <p className="text-xs text-red-500">Las contraseñas no coinciden</p>
+              <p className="text-xs text-destructive">Las contraseñas no coinciden</p>
             )}
           </div>
         </div>
@@ -345,14 +345,14 @@ export function Perfil() {
   if (loading)
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="animate-spin w-6 h-6 mr-2 text-gray-400" />
-        <span className="text-gray-400">Cargando perfil...</span>
+        <Loader2 className="animate-spin w-6 h-6 mr-2 text-muted-foreground/70" />
+        <span className="text-muted-foreground/70">Cargando perfil...</span>
       </div>
     );
 
   if (!perfil) return null;
 
-  const rolInfo = ROL_LABEL[perfil.i_rol] ?? { label: `Rol ${perfil.i_rol}`, color: "bg-gray-100 text-gray-700" };
+  const rolInfo = ROL_LABEL[perfil.i_rol] ?? { label: `Rol ${perfil.i_rol}`, color: "bg-muted text-foreground" };
   const isSuperAdmin = perfil.i_rol === 1;
 
   return (
@@ -366,13 +366,13 @@ export function Perfil() {
         {/* ── Tarjeta principal ── */}
         <Card className="overflow-hidden">
           {/* Banner */}
-          <div className="h-24 bg-gradient-to-r from-gray-800 to-gray-600 relative" />
+          <div className="h-24 bg-primary relative" />
 
           {/* Avatar + info */}
           <div className="px-6 pb-6 relative z-10">
             <div className="flex items-end justify-between -mt-10 mb-4">
               {/* Avatar */}
-              <div className="w-20 h-20 rounded-2xl border-4 border-white bg-gray-900 flex items-center justify-center shadow-md">
+              <div className="w-20 h-20 rounded-2xl border-4 border-white bg-primary flex items-center justify-center shadow-md">
                 <span className="text-2xl font-bold text-white">
                   {initials(perfil.name, perfil.lastname)}
                 </span>
@@ -392,7 +392,7 @@ export function Perfil() {
 
             {/* Nombre + rol */}
             <div className="space-y-1 mb-5">
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-xl font-bold text-foreground">
                 {perfil.name} {perfil.lastname}
               </h2>
               <div className="flex items-center gap-2">
@@ -403,12 +403,12 @@ export function Perfil() {
                   {rolInfo.label}
                 </span>
                 {perfil.i_status === 1 ? (
-                  <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                  <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/30">
+                    <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />
                     Activo
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
+                  <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/30">
                     Inactivo
                   </span>
                 )}
@@ -436,12 +436,12 @@ export function Perfil() {
         <Card className="p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg mt-0.5">
-                <KeyRound className="w-4 h-4 text-gray-600" />
+              <div className="p-2 bg-muted rounded-lg mt-0.5">
+                <KeyRound className="w-4 h-4 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">Contraseña</p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-sm font-semibold text-foreground">Contraseña</p>
+                <p className="text-xs text-muted-foreground/70 mt-0.5">
                   Actualiza tu contraseña de acceso a la plataforma.
                 </p>
               </div>
@@ -462,13 +462,13 @@ export function Perfil() {
         <Card className="p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg mt-0.5">
-                <ShieldCheck className="w-4 h-4 text-gray-600" />
+              <div className="p-2 bg-muted rounded-lg mt-0.5">
+                <ShieldCheck className="w-4 h-4 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">Rol y permisos</p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Tu rol actual es <span className="font-medium text-gray-600">{rolInfo.label}</span>.
+                <p className="text-sm font-semibold text-foreground">Rol y permisos</p>
+                <p className="text-xs text-muted-foreground/70 mt-0.5">
+                  Tu rol actual es <span className="font-medium text-muted-foreground">{rolInfo.label}</span>.
                   {!isSuperAdmin && " Solo un Super Admin puede modificar los roles."}
                 </p>
               </div>

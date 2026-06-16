@@ -88,7 +88,7 @@ export function RestorePassword() {
   return (
     <div className="min-h-screen flex">
       {/* Lado izquierdo - Formulario (INVERTIDO) */}
-      <div className="w-full md:w-2/3 flex items-center justify-center bg-gray-50 p-6 md:p-8">
+      <div className="w-full md:w-2/3 flex items-center justify-center bg-muted/50 p-6 md:p-8">
         <div className="w-full max-w-md space-y-6">
           {/* Logo */}
           <div className="flex items-center justify-center mb-4">
@@ -99,10 +99,10 @@ export function RestorePassword() {
           {!isResetMode && !emailSent && (
             <>
               <div className="text-center space-y-2 mb-8">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground">
                   Recuperar contraseña
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   Ingresa tu correo electrónico y te enviaremos un enlace para
                   restablecer tu contraseña
                 </p>
@@ -112,7 +112,7 @@ export function RestorePassword() {
                 <div>
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium text-foreground mb-1"
                   >
                     Correo electrónico
                   </label>
@@ -136,12 +136,12 @@ export function RestorePassword() {
                   {isLoading ? "Enviando..." : "Enviar enlace de recuperación"}
                 </Button>
 
-                <div className="text-center text-sm text-gray-600 mt-4">
+                <div className="text-center text-sm text-muted-foreground mt-4">
                   <button
                     onClick={() => navigate("/login")}
-                    className="text-blue-600 hover:underline"
+                    className="text-foreground font-medium hover:underline"
                   >
-                    ← Volver al inicio de sesión
+                    Volver al inicio de sesión
                   </button>
                 </div>
               </div>
@@ -152,9 +152,9 @@ export function RestorePassword() {
           {!isResetMode && emailSent && (
             <>
               <div className="text-center space-y-4">
-                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <div className="mx-auto w-16 h-16 bg-success/15 rounded-full flex items-center justify-center">
                   <svg
-                    className="w-8 h-8 text-green-600"
+                    className="w-8 h-8 text-success"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -168,14 +168,14 @@ export function RestorePassword() {
                   </svg>
                 </div>
 
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground">
                   Revisa tu correo
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   Te hemos enviado un enlace de recuperación a{" "}
-                  <span className="font-semibold text-gray-900">{email}</span>
+                  <span className="font-semibold text-foreground">{email}</span>
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Si no recibes el correo en unos minutos, revisa tu carpeta de
                   spam o intenta nuevamente.
                 </p>
@@ -193,7 +193,7 @@ export function RestorePassword() {
                   </Button>
                   <button
                     onClick={() => navigate("/login")}
-                    className="text-sm text-blue-600 hover:underline block w-full"
+                    className="text-sm text-info hover:underline block w-full"
                   >
                     Volver al inicio de sesión
                   </button>
@@ -206,10 +206,10 @@ export function RestorePassword() {
           {isResetMode && !resetSuccess && (
             <>
               <div className="text-center space-y-2 mb-8">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground">
                   Nueva contraseña
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   Ingresa tu nueva contraseña para restablecer el acceso a tu
                   cuenta
                 </p>
@@ -219,7 +219,7 @@ export function RestorePassword() {
                 <div>
                   <label
                     htmlFor="newPassword"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium text-foreground mb-1"
                   >
                     Nueva contraseña
                   </label>
@@ -237,7 +237,7 @@ export function RestorePassword() {
                 <div>
                   <label
                     htmlFor="confirmPassword"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium text-foreground mb-1"
                   >
                     Confirmar contraseña
                   </label>
@@ -252,7 +252,7 @@ export function RestorePassword() {
                   />
                 </div>
 
-                <div className="text-xs text-gray-500 space-y-1">
+                <div className="text-xs text-muted-foreground space-y-1">
                   <p>La contraseña debe tener:</p>
                   <ul className="list-disc list-inside ml-2">
                     <li>Al menos 6 caracteres</li>
@@ -276,9 +276,9 @@ export function RestorePassword() {
           {isResetMode && resetSuccess && (
             <>
               <div className="text-center space-y-4">
-                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <div className="mx-auto w-16 h-16 bg-success/15 rounded-full flex items-center justify-center">
                   <svg
-                    className="w-8 h-8 text-green-600"
+                    className="w-8 h-8 text-success"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -292,10 +292,10 @@ export function RestorePassword() {
                   </svg>
                 </div>
 
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground">
                   ¡Contraseña actualizada!
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   Tu contraseña ha sido restablecida exitosamente. Serás
                   redirigido al inicio de sesión en unos momentos.
                 </p>

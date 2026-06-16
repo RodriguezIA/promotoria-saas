@@ -39,7 +39,7 @@ function CustomMarker({ position, imageUrl, storeName }: CustomMarkerProps) {
                 {/* Tarjeta */}
                 <div className="bg-white rounded-lg shadow-lg border-2 border-brand overflow-hidden">
                     {/* Imagen */}
-                    <div style={{ height: 70 }} className="w-full bg-gray-100">
+                    <div style={{ height: 70 }} className="w-full bg-muted">
                         {imageUrl ? (
                             <img
                                 src={imageUrl}
@@ -51,14 +51,14 @@ function CustomMarker({ position, imageUrl, storeName }: CustomMarkerProps) {
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                                <StoreIcon size={28} className="text-gray-300" />
+                                <StoreIcon size={28} className="text-muted-foreground/50" />
                             </div>
                         )}
                     </div>
                     
                     {/* Nombre */}
                     <div className="px-2 py-1.5 text-center">
-                        <p className="text-xs font-medium text-gray-800 truncate">
+                        <p className="text-xs font-medium text-foreground truncate">
                             {storeName || "Establecimiento"}
                         </p>
                     </div>
@@ -72,7 +72,7 @@ function CustomMarker({ position, imageUrl, storeName }: CustomMarkerProps) {
                             height: 0,
                             borderLeft: '10px solid transparent',
                             borderRight: '10px solid transparent',
-                            borderTop: '12px solid #CBEF43',
+                            borderTop: '12px solid var(--brand)',
                         }}
                     />
                 </div>
@@ -155,7 +155,7 @@ export default function EstablecimientoDetalle() {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground/70" />
             </div>
         );
     }
@@ -163,8 +163,8 @@ export default function EstablecimientoDetalle() {
     if (!establecimiento) {
         return (
             <div className="text-center py-12">
-                <StoreIcon size={48} className="mx-auto text-gray-300 mb-4" />
-                <p className="text-gray-500">Establecimiento no encontrado</p>
+                <StoreIcon size={48} className="mx-auto text-muted-foreground/50 mb-4" />
+                <p className="text-muted-foreground">Establecimiento no encontrado</p>
                 <Button className="mt-4" onClick={() => navigate("/establecimientos")}>
                     Volver a establecimientos
                 </Button>
@@ -191,10 +191,10 @@ export default function EstablecimientoDetalle() {
                         <ArrowLeft size={20} />
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-semibold text-gray-900">
+                        <h1 className="text-2xl font-semibold text-foreground">
                             {establecimiento.name}
                         </h1>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                             Código: {establecimiento.store_code}
                         </p>
                     </div>
@@ -213,9 +213,9 @@ export default function EstablecimientoDetalle() {
             {/* Contenido */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Información General con Imagen */}
-                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <div className="bg-white rounded-lg border border-border overflow-hidden">
                     {/* Imagen de Street View */}
-                    <div className="w-full h-48 bg-gray-100 relative">
+                    <div className="w-full h-48 bg-muted relative">
                         {storeImage ? (
                             <img
                                 src={storeImage}
@@ -227,15 +227,15 @@ export default function EstablecimientoDetalle() {
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                                <StoreIcon size={48} className="text-gray-300" />
+                                <StoreIcon size={48} className="text-muted-foreground/50" />
                             </div>
                         )}
                         {/* Badge de estado */}
                         <span
                             className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-medium ${
                                 establecimiento.i_status
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-red-100 text-red-800"
+                                    ? "bg-success/15 text-success"
+                                    : "bg-destructive/15 text-destructive"
                             }`}
                         >
                             {establecimiento.i_status ? "Activo" : "Inactivo"}
@@ -244,17 +244,17 @@ export default function EstablecimientoDetalle() {
 
                     <div className="p-6">
                         <div className="flex items-center gap-2 mb-4">
-                            <StoreIcon size={20} className="text-gray-600" />
+                            <StoreIcon size={20} className="text-muted-foreground" />
                             <h2 className="text-lg font-medium">Información General</h2>
                         </div>
 
                         <div className="space-y-4">
                             <div>
-                                <p className="text-sm text-gray-500">Nombre</p>
+                                <p className="text-sm text-muted-foreground">Nombre</p>
                                 <p className="font-medium">{establecimiento.name}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">Código de Tienda</p>
+                                <p className="text-sm text-muted-foreground">Código de Tienda</p>
                                 <p className="font-medium">{establecimiento.store_code}</p>
                             </div>
                         </div>
@@ -262,10 +262,10 @@ export default function EstablecimientoDetalle() {
                 </div>
 
                 {/* Dirección */}
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="bg-white rounded-lg border border-border p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
-                            <MapPin size={20} className="text-gray-600" />
+                            <MapPin size={20} className="text-muted-foreground" />
                             <h2 className="text-lg font-medium">Dirección</h2>
                         </div>
                         <Button
@@ -280,56 +280,56 @@ export default function EstablecimientoDetalle() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <p className="text-sm text-gray-500">Calle</p>
+                            <p className="text-sm text-muted-foreground">Calle</p>
                             <p className="font-medium">{establecimiento.address.street}</p>
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">Número Exterior</p>
+                            <p className="text-sm text-muted-foreground">Número Exterior</p>
                             <p className="font-medium">{establecimiento.address.ext_number}</p>
                         </div>
                         {establecimiento.address.int_number && (
                             <div>
-                                <p className="text-sm text-gray-500">Número Interior</p>
+                                <p className="text-sm text-muted-foreground">Número Interior</p>
                                 <p className="font-medium">{establecimiento.address.int_number}</p>
                             </div>
                         )}
                         <div>
-                            <p className="text-sm text-gray-500">Colonia</p>
+                            <p className="text-sm text-muted-foreground">Colonia</p>
                             <p className="font-medium">{establecimiento.address.neighborhood}</p>
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">Municipio</p>
+                            <p className="text-sm text-muted-foreground">Municipio</p>
                             <p className="font-medium">{establecimiento.address.city?.name}</p>
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">Estado</p>
+                            <p className="text-sm text-muted-foreground">Estado</p>
                             <p className="font-medium">{establecimiento.address.state?.name}</p>
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">Código Postal</p>
+                            <p className="text-sm text-muted-foreground">Código Postal</p>
                             <p className="font-medium">{establecimiento.address.postal_code}</p>
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">País</p>
+                            <p className="text-sm text-muted-foreground">País</p>
                             <p className="font-medium">{establecimiento.address.country?.name}</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Coordenadas */}
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="bg-white rounded-lg border border-border p-6">
                     <div className="flex items-center gap-2 mb-4">
-                        <Hash size={20} className="text-gray-600" />
+                        <Hash size={20} className="text-muted-foreground" />
                         <h2 className="text-lg font-medium">Coordenadas</h2>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <p className="text-sm text-gray-500">Latitud</p>
+                            <p className="text-sm text-muted-foreground">Latitud</p>
                             <p className="font-mono font-medium">{establecimiento.address.latitude}</p>
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">Longitud</p>
+                            <p className="text-sm text-muted-foreground">Longitud</p>
                             <p className="font-mono font-medium">{establecimiento.address.longitude}</p>
                         </div>
                     </div>
@@ -350,18 +350,18 @@ export default function EstablecimientoDetalle() {
                 </div>
 
                 {/* Metadatos */}
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="bg-white rounded-lg border border-border p-6">
                     <h2 className="text-lg font-medium mb-4">Información del Sistema</h2>
 
                     <div className="grid grid-cols-2 gap-4">
                         {/* <div>
-                            <p className="text-sm text-gray-500">Fecha de Creación</p>
+                            <p className="text-sm text-muted-foreground">Fecha de Creación</p>
                             <p className="font-medium">
                                 {new Date(establecimiento.dt_register).toLocaleDateString("es-MX")}
                             </p>
                         </div> */}
                         {/* <div>
-                            <p className="text-sm text-gray-500">Última Actualización</p>
+                            <p className="text-sm text-muted-foreground">Última Actualización</p>
                             <p className="font-medium">
                                 {new Date(establecimiento.dt_updated).toLocaleDateString("es-MX")}
                             </p>
@@ -371,9 +371,9 @@ export default function EstablecimientoDetalle() {
             </div>
 
             {/* Mapa a ancho completo */}
-            <div className="mt-6 bg-white rounded-lg border border-gray-200 p-6">
+            <div className="mt-6 bg-white rounded-lg border border-border p-6">
                 <div className="flex items-center gap-2 mb-4">
-                    <MapPin size={20} className="text-gray-600" />
+                    <MapPin size={20} className="text-muted-foreground" />
                     <h2 className="text-lg font-medium">Ubicación en el Mapa</h2>
                 </div>
 
@@ -397,10 +397,10 @@ export default function EstablecimientoDetalle() {
                     </GoogleMap>
                 ) : (
                     <div 
-                        className="flex items-center justify-center bg-gray-100 rounded-lg"
+                        className="flex items-center justify-center bg-muted rounded-lg"
                         style={{ height: 700 }}
                     >
-                        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground/70" />
                     </div>
                 )}
             </div>

@@ -2,10 +2,10 @@ import { useState } from "react"
 import { Menu, X, LogOut, User } from "lucide-react"
 import { Outlet, useLocation, useNavigate } from "react-router-dom"
 
-import { cn } from "@/lib";
+import { usePageTransition } from "@/lib/motion";
 import { Sidebar } from "./Sidebar"
 import { useAuthStore } from "@/stores"
-import { SidebarProvider, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components'
+import { SidebarProvider, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, ThemeToggleHeader } from '@/components'
 import { useAuthCheck } from '@/hooks'
 
 
@@ -52,10 +52,7 @@ function UserAvatar({ name }: { name: string }) {
     .join("");
 
   return (
-    <div
-      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-      style={{ backgroundColor: "var(--color-brand)", color: "#000" }}
-    >
+    <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 bg-primary text-primary-foreground">
       {initials || "U"}
     </div>
   );
@@ -66,6 +63,7 @@ export function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  const pageRef = usePageTransition<HTMLDivElement>();
   useAuthCheck();
 
   const handleLogout = () => {
@@ -93,7 +91,7 @@ export function Layout() {
 
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden animate-fade-in"
             onClick={handleCloseSidebar}
             style={{ pointerEvents: "auto" }}
           />
@@ -101,10 +99,7 @@ export function Layout() {
 
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           {/* Mobile header */}
-          <div
-            className="lg:hidden flex items-center p-4 border-b relative z-50"
-            style={{ borderColor: "var(--border)", backgroundColor: "var(--card-bg)" }}
-          >
+          <div className="lg:hidden flex items-center p-4 border-b border-border bg-card/80 backdrop-blur relative z-50">
             <button
               onClick={handleMenuToggle}
               className="p-2 hover:bg-accent rounded-lg transition-colors"
@@ -112,39 +107,34 @@ export function Layout() {
             >
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-            <h1 className="ml-3 font-semibold text-base" style={{ color: "var(--text-primary)" }}>
+            <h1 className="ml-3 font-semibold text-base text-foreground flex-1 min-w-0 truncate">
               {pageLabel}
             </h1>
+            <ThemeToggleHeader className="shrink-0" />
           </div>
 
           {/* Desktop top header */}
-          <div
-            className={cn(
-              "hidden lg:flex items-center justify-between px-6 h-14 flex-shrink-0 border-b",
-            )}
-            style={{
-              backgroundColor: "var(--card-bg)",
-              borderColor: "var(--border)",
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <div
-                className="w-1.5 h-5 rounded-full"
-                style={{ backgroundColor: "var(--color-brand)" }}
-              />
-              <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+          <div className="hidden lg:flex items-center justify-between px-6 h-14 shrink-0 border-b border-border bg-card/80 backdrop-blur">
+            <div className="flex items-baseline gap-2.5 min-w-0">
+              <span className="font-mono text-[11px] tracking-[0.14em] uppercase text-muted-foreground shrink-0">
+                Promotoria
+              </span>
+              <span className="text-muted-foreground/50 text-xs shrink-0">/</span>
+              <span className="text-sm font-semibold text-foreground truncate">
                 {pageLabel}
               </span>
             </div>
 
+            <div className="flex items-center gap-2">
+            <ThemeToggleHeader />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-accent transition-colors outline-none">
+                <button className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-accent transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   <div className="text-right">
-                    <p className="text-xs font-medium leading-none" style={{ color: "var(--text-primary)" }}>
+                    <p className="text-xs font-medium leading-none text-foreground">
                       {userName}
                     </p>
-                    <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                    <p className="text-xs mt-0.5 text-muted-foreground">
                       {user?.i_rol === 1 ? "Super Admin" : "Administrador"}
                     </p>
                   </div>
@@ -163,11 +153,14 @@ export function Layout() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           </div>
 
           {/* Main content */}
-          <main className="flex-1 overflow-auto" style={{ backgroundColor: "var(--bg)" }}>
-            <Outlet />
+          <main className="flex-1 overflow-auto bg-background">
+            <div ref={pageRef} className="min-h-full">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>

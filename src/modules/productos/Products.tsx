@@ -113,7 +113,7 @@ export default function ProductPage() {
           <img
             src={row.getValue("vc_image")}
             alt={row.getValue("name")}
-            className="w-12 h-12 object-cover rounded-lg border border-gray-200"
+            className="w-12 h-12 object-cover rounded-lg border border-border"
           />
         </div>
       ),
@@ -124,9 +124,9 @@ export default function ProductPage() {
       cell: ({ row }) => {
         const folio = row.getValue("vc_folio") as string | null | undefined;
         return folio ? (
-          <span className="font-bold text-gray-700">{folio}</span>
+          <span className="font-bold text-foreground">{folio}</span>
         ) : (
-          <span className="text-gray-400 text-sm">—</span>
+          <span className="text-muted-foreground/70 text-sm">—</span>
         );
       },
     },
@@ -134,7 +134,7 @@ export default function ProductPage() {
       accessorKey: "name",
       header: "Nombre",
       cell: ({ row }) => (
-        <div className="font-medium text-gray-900">
+        <div className="font-medium text-foreground">
           {row.getValue("name")}
         </div>
       ),
@@ -145,7 +145,7 @@ export default function ProductPage() {
       cell: ({ row }) => {
         const description = row.getValue("description") as string | null;
         return (
-          <div className="text-gray-500 max-w-xs truncate">
+          <div className="text-muted-foreground max-w-xs truncate">
             {description || "-"}
           </div>
         );
@@ -157,13 +157,13 @@ export default function ProductPage() {
       cell: ({ row }) => {
         const status = row.getValue("i_status") as number;
         return status === 1 ? (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-sm rounded-full">
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-success/10 text-success text-sm rounded-full">
+            <div className="w-1.5 h-1.5 bg-success rounded-full" />
             Activo
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 text-red-700 text-sm rounded-full">
-            <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-destructive/10 text-destructive text-sm rounded-full">
+            <div className="w-1.5 h-1.5 bg-destructive rounded-full" />
             Inactivo
           </span>
         );
@@ -173,7 +173,7 @@ export default function ProductPage() {
       accessorKey: "dt_created",
       header: "Fecha de registro",
       cell: ({ row }) => (
-        <div className="text-gray-500">
+        <div className="text-muted-foreground">
           {formatDate(row.getValue("dt_created"))}
         </div>
       ),
@@ -189,7 +189,7 @@ export default function ProductPage() {
             <Button
               size="icon"
               variant="default"
-              className="bg-gray-600 text-white hover:bg-gray-950 border-gray-300 hover:text-blue-300"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent"
               onClick={() => navigate(`/producto/detalle/${product.id_product}`)}
             >
               <Glasses className="h-4 w-4" />
@@ -199,7 +199,7 @@ export default function ProductPage() {
             <Button
               size="icon"
               variant="default"
-              className="bg-gray-600 text-white hover:bg-gray-950 border-gray-300 hover:text-amber-300"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent"
               onClick={() => navigate(`/producto/${product.id_product}`)}
             >
               <Edit2 className="h-4 w-4" />
@@ -209,7 +209,7 @@ export default function ProductPage() {
             <Button
               size="icon"
               variant="default"
-              className="bg-red-500 text-white hover:bg-red-950 border-gray-300"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => handleDelete(product.id_product)}
             >
               <Trash2 className="h-4 w-4" />
@@ -248,7 +248,7 @@ export default function ProductPage() {
 
       {isSuperAdmin && clients.length > 0 && (
         <div className="flex items-center gap-3 p-4 rounded-xl border" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
-          <label className="text-sm font-medium flex-shrink-0" style={{ color: "var(--text-secondary)" }}>Cliente:</label>
+          <label className="text-sm font-medium shrink-0" style={{ color: "var(--text-secondary)" }}>Cliente:</label>
           <Select value={selectedClientId?.toString() || ""} onValueChange={handleClientChange}>
             <SelectTrigger className="w-64"><SelectValue placeholder="Selecciona un cliente" /></SelectTrigger>
             <SelectContent>
@@ -263,7 +263,7 @@ export default function ProductPage() {
       )}
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm">
+        <div className="rounded-xl border border-destructive/30 bg-destructive/10 text-destructive px-4 py-3 text-sm">
           {error}
         </div>
       )}

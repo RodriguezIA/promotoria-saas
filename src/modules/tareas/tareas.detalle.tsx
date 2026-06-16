@@ -11,10 +11,10 @@ const formatCurrency = (v: number) =>
   new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(v)
 
 const TASK_STATUS: Record<number, { label: string; dot: string; bg: string; text: string }> = {
-  0: { label: "Cancelada",   dot: "bg-red-500",   bg: "bg-red-50",   text: "text-red-700" },
-  1: { label: "Pendiente",   dot: "bg-amber-500", bg: "bg-amber-50", text: "text-amber-700" },
-  2: { label: "En progreso", dot: "bg-blue-500",  bg: "bg-blue-50",  text: "text-blue-700" },
-  3: { label: "Completada",  dot: "bg-green-500", bg: "bg-green-50", text: "text-green-700" },
+  0: { label: "Cancelada",   dot: "bg-destructive",   bg: "bg-destructive/10",   text: "text-destructive" },
+  1: { label: "Pendiente",   dot: "bg-warning", bg: "bg-warning/15", text: "text-warning-foreground dark:text-warning" },
+  2: { label: "En progreso", dot: "bg-primary",  bg: "bg-info/10",  text: "text-info" },
+  3: { label: "Completada",  dot: "bg-success", bg: "bg-success/10", text: "text-success" },
 }
 
 export function TareaDetalle() {
@@ -117,7 +117,7 @@ export function TareaDetalle() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Pedido</span>
                   <button
-                    className="font-semibold text-blue-600 hover:underline text-sm"
+                    className="font-semibold text-info hover:underline text-sm"
                     onClick={() => navigate(`/detalle-pedido/${task.id_order}`)}
                   >
                     #{String(task.id_order).padStart(4, "0")}
@@ -128,7 +128,7 @@ export function TareaDetalle() {
               {task.request?.f_value && (
                 <div className="flex justify-between items-center">
                   <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Valor</span>
-                  <span className="font-semibold text-green-600">{formatCurrency(Number(task.request.f_value))}</span>
+                  <span className="font-semibold text-success">{formatCurrency(Number(task.request.f_value))}</span>
                 </div>
               )}
 
@@ -168,7 +168,7 @@ export function TareaDetalle() {
                 )}
                 {addressParts.length > 0 && (
                   <div className="flex items-start gap-2 mt-2">
-                    <MapPin size={14} className="mt-0.5 flex-shrink-0" style={{ color: "var(--text-secondary)" }} />
+                    <MapPin size={14} className="mt-0.5 shrink-0" style={{ color: "var(--text-secondary)" }} />
                     <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
                       {addressParts.join(", ")}
                       {task.storeAddress?.postal_code && ` CP ${task.storeAddress.postal_code}`}
@@ -197,14 +197,14 @@ export function TareaDetalle() {
                     <img
                       src={task.request.url_rack_image}
                       alt={task.request.vc_name}
-                      className="w-16 h-16 object-cover rounded-lg border flex-shrink-0"
+                      className="w-16 h-16 object-cover rounded-lg border shrink-0"
                       style={{ borderColor: "var(--border)" }}
                     />
                   )}
                   <div className="space-y-1">
                     <p className="font-semibold" style={{ color: "var(--text-primary)" }}>{task.request.vc_name}</p>
                     {task.request.f_value && (
-                      <p className="text-sm text-green-600 font-medium">{formatCurrency(Number(task.request.f_value))}</p>
+                      <p className="text-sm text-success font-medium">{formatCurrency(Number(task.request.f_value))}</p>
                     )}
                   </div>
                 </div>
@@ -231,8 +231,8 @@ export function TareaDetalle() {
                 </div>
               ) : (
                 <div className="flex items-center gap-2 py-2">
-                  <div className="w-2 h-2 rounded-full bg-red-400" />
-                  <p className="text-sm italic text-red-500 font-medium">Sin promotor asignado</p>
+                  <div className="w-2 h-2 rounded-full bg-destructive" />
+                  <p className="text-sm italic text-destructive font-medium">Sin promotor asignado</p>
                 </div>
               )}
             </CardContent>

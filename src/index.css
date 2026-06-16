@@ -1,153 +1,79 @@
-@import './styles/globals.css';
+/* ============================================================================
+   PROMOTORIA — DESIGN SYSTEM "OPERACIONES"
+   Tailwind CSS v4 (CSS-first) + shadcn/ui tokens
+   ----------------------------------------------------------------------------
+   Única fuente de verdad del tema. Documentación: /DESIGN_SYSTEM.md
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+   Identidad: consola de operaciones de campo.
+   - Tinta petróleo sobre papel cálido; ámbar de señalización como único acento.
+   - Sidebar siempre oscuro (rail de navegación) en ambos temas.
+   - Tipografía: Bricolage Grotesque (display) / Hanken Grotesk (texto) /
+     IBM Plex Mono (datos, folios, etiquetas).
+   ============================================================================ */
 
+@import "tailwindcss";
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
 
-html, body, #root {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-main {
-  padding: 0;
-}
-
-:root {
-  --background: white;
-  --foreground: black;
-  --card: white;
-  --card-foreground: black;
-  --popover: white;
-  --popover-foreground: black;
-  --primary: black;
-  --primary-foreground: white;
-  --secondary: #f5f5f5;
-  --secondary-foreground: black;
-  --muted: #f0f0f0;
-  --muted-foreground: #666;
-  --accent: #e5e5e5;
-  --accent-foreground: black;
-  --border: #ddd;
-  --input: #f0f0f0;
-  --ring: #ccc;
-  --sidebar: #f8f9fa; /* Color claro */
-  --sidebar-foreground: black;
-  --sidebar-primary: black;
-  --sidebar-primary-foreground: white;
-}
-
-a {
-  font-weight: 500;
-  text-decoration: inherit;
-}
-
-/* ── Page transition animations ─────────────────────────────────────────── */
-@keyframes page-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-.animate-page-in {
-  animation: page-in 0.25s ease-out both;
-}
-
-.animate-fade-up {
-  animation: fade-up 0.3s ease-out both;
-}
-
-.animate-fade-in {
-  animation: fade-in 0.2s ease-out both;
-}
-
-/* Staggered children */
-.stagger-children > * { animation: fade-up 0.3s ease-out both; }
-.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
-}
-
+/* ----------------------------------------------------------------------------
+   1. TOKENS → utilidades de Tailwind
+   Cada --color-* genera utilidades (bg-*, text-*, border-*, ring-*, etc.)
+---------------------------------------------------------------------------- */
 @theme inline {
+  /* Tipografía */
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-display: "Bricolage Grotesque", var(--font-sans);
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Superficies */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+
+  /* Acción principal (tinta petróleo) */
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+
+  /* Marca (ámbar de señalización) — estados activos, CTAs excepcionales */
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+
+  /* Neutrales */
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+
+  /* Estados semánticos */
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  /* Bordes y foco */
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  /* Gráficas */
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Sidebar (rail oscuro en ambos temas) */
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -156,15 +82,485 @@ a {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-}
 
-@layer base {
-  * {
-    @apply border-gray-300; /* Bordes más claros */
+  /* Radios */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Animaciones */
+  --animate-page-in: page-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-up: fade-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-in: fade-in 0.2s ease-out both;
+  --animate-scale-in: scale-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes page-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 }
 
+/* ----------------------------------------------------------------------------
+   2. TEMA CLARO — papel cálido + tinta petróleo
+---------------------------------------------------------------------------- */
+:root {
+  --background: oklch(0.966 0.004 85);
+  --foreground: oklch(0.22 0.022 235);
 
+  --card: oklch(0.995 0.002 90);
+  --card-foreground: oklch(0.22 0.022 235);
+  --popover: oklch(0.995 0.002 90);
+  --popover-foreground: oklch(0.22 0.022 235);
 
+  /* Tinta petróleo — acción primaria */
+  --primary: oklch(0.3 0.052 222);
+  --primary-foreground: oklch(0.97 0.005 90);
 
+  /* Ámbar de señalización — acento de marca */
+  --brand: oklch(0.74 0.135 68);
+  --brand-foreground: oklch(0.25 0.06 60);
 
+  --secondary: oklch(0.94 0.007 85);
+  --secondary-foreground: oklch(0.27 0.02 235);
+  --muted: oklch(0.94 0.007 85);
+  --muted-foreground: oklch(0.47 0.018 235);
+  --accent: oklch(0.925 0.009 85);
+  --accent-foreground: oklch(0.22 0.022 235);
+
+  --destructive: oklch(0.54 0.16 27);
+  --destructive-foreground: oklch(0.98 0.005 90);
+  --success: oklch(0.51 0.09 160);
+  --success-foreground: oklch(0.98 0.005 90);
+  --warning: oklch(0.66 0.12 70);
+  --warning-foreground: oklch(0.24 0.05 70);
+  --info: oklch(0.52 0.07 235);
+  --info-foreground: oklch(0.98 0.005 90);
+
+  --border: oklch(0.9 0.008 85);
+  --input: oklch(0.88 0.01 85);
+  --ring: oklch(0.55 0.06 222);
+
+  --chart-1: oklch(0.45 0.07 222);
+  --chart-2: oklch(0.74 0.135 68);
+  --chart-3: oklch(0.55 0.08 160);
+  --chart-4: oklch(0.5 0.07 290);
+  --chart-5: oklch(0.55 0.02 85);
+
+  /* Rail de navegación — petróleo profundo, fijo en ambos temas */
+  --sidebar: oklch(0.235 0.032 230);
+  --sidebar-foreground: oklch(0.76 0.018 230);
+  --sidebar-primary: oklch(0.74 0.135 68);
+  --sidebar-primary-foreground: oklch(0.25 0.06 60);
+  --sidebar-accent: oklch(0.295 0.035 230);
+  --sidebar-accent-foreground: oklch(0.96 0.008 230);
+  --sidebar-border: oklch(0.3 0.032 230);
+  --sidebar-ring: oklch(0.74 0.135 68);
+
+  --radius: 0.5rem;
+
+  --shadow: 0 1px 2px oklch(0.25 0.03 235 / 0.06),
+    0 2px 8px oklch(0.25 0.03 235 / 0.05);
+}
+
+/* ----------------------------------------------------------------------------
+   3. TEMA OSCURO — petróleo nocturno; el ámbar resalta
+---------------------------------------------------------------------------- */
+.dark {
+  --background: oklch(0.17 0.018 235);
+  --foreground: oklch(0.92 0.008 230);
+
+  --card: oklch(0.205 0.02 235);
+  --card-foreground: oklch(0.92 0.008 230);
+  --popover: oklch(0.215 0.02 235);
+  --popover-foreground: oklch(0.92 0.008 230);
+
+  --primary: oklch(0.92 0.008 230);
+  --primary-foreground: oklch(0.2 0.022 235);
+
+  --brand: oklch(0.76 0.14 68);
+  --brand-foreground: oklch(0.24 0.06 60);
+
+  --secondary: oklch(0.26 0.022 235);
+  --secondary-foreground: oklch(0.92 0.008 230);
+  --muted: oklch(0.26 0.022 235);
+  --muted-foreground: oklch(0.68 0.014 230);
+  --accent: oklch(0.27 0.024 235);
+  --accent-foreground: oklch(0.92 0.008 230);
+
+  --destructive: oklch(0.6 0.15 27);
+  --destructive-foreground: oklch(0.98 0.005 90);
+  --success: oklch(0.65 0.1 160);
+  --success-foreground: oklch(0.16 0.03 160);
+  --warning: oklch(0.74 0.12 72);
+  --warning-foreground: oklch(0.2 0.05 72);
+  --info: oklch(0.66 0.08 235);
+  --info-foreground: oklch(0.15 0.03 235);
+
+  --border: oklch(0.27 0.022 235);
+  --input: oklch(0.29 0.024 235);
+  --ring: oklch(0.62 0.06 222);
+
+  --chart-1: oklch(0.62 0.08 222);
+  --chart-2: oklch(0.76 0.14 68);
+  --chart-3: oklch(0.65 0.09 160);
+  --chart-4: oklch(0.62 0.08 290);
+  --chart-5: oklch(0.7 0.02 85);
+
+  --sidebar: oklch(0.15 0.018 235);
+  --sidebar-foreground: oklch(0.72 0.016 230);
+  --sidebar-primary: oklch(0.76 0.14 68);
+  --sidebar-primary-foreground: oklch(0.24 0.06 60);
+  --sidebar-accent: oklch(0.215 0.022 235);
+  --sidebar-accent-foreground: oklch(0.95 0.008 230);
+  --sidebar-border: oklch(0.225 0.02 235);
+  --sidebar-ring: oklch(0.76 0.14 68);
+
+  --shadow: 0 1px 2px oklch(0 0 0 / 0.4), 0 2px 8px oklch(0 0 0 / 0.3);
+}
+
+/* ----------------------------------------------------------------------------
+   4. BASE
+---------------------------------------------------------------------------- */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply tracking-tight;
+    text-wrap: balance;
+  }
+
+  a {
+    font-weight: 500;
+    text-decoration: inherit;
+  }
+
+  /* Cifras alineadas en tablas y stats */
+  td,
+  th {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background-color: oklch(0.85 0.09 68);
+    color: oklch(0.25 0.05 60);
+  }
+  .dark ::selection {
+    background-color: oklch(0.45 0.09 68);
+    color: oklch(0.97 0.005 90);
+  }
+
+  /* Scrollbar discreto y acorde al tema */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   5. UTILIDADES PROPIAS
+---------------------------------------------------------------------------- */
+
+/* Etiqueta "ojal" — mono, mayúsculas, espaciada. Para kickers y metadatos */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* Texto con degradado de tinta (para cifras/héroes) */
+@utility text-gradient-brand {
+  background-image: linear-gradient(
+    100deg,
+    var(--foreground),
+    oklch(0.5 0.07 222)
+  );
+  background-clip: text;
+  color: transparent;
+}
+
+/* Retícula de puntos — fondo "cartográfico" para paneles oscuros (login, rail) */
+@utility bg-dotgrid {
+  background-image: radial-gradient(
+    oklch(1 0 0 / 0.07) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+
+/* Aparición escalonada de hijos (listas, grids de cards) */
+.stagger-children > * {
+  animation: fade-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 350ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stagger-children > *,
+  .animate-page-in,
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-scale-in {
+    animation: none !important;
+  }
+}
+
+/* ============================================================================
+   6. CAPA DE COMPATIBILIDAD — DEPRECADO
+   Alias para código legacy que aún usa las variables/clases antiguas.
+   En código nuevo usa los tokens de Tailwind (bg-card, text-muted-foreground,
+   <Button>, <Badge>...). Esta sección se eliminará cuando no queden usos.
+   ============================================================================ */
+:root,
+.dark {
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --color-brand: var(--brand);
+
+  --bg: var(--background);
+  --text-primary: var(--foreground);
+  --text-secondary: var(--muted-foreground);
+  --card-bg: var(--card);
+  --hover: var(--accent);
+  --error: var(--destructive);
+  --sidebar-bg: var(--sidebar);
+  --sidebar-fg: var(--sidebar-foreground);
+}
+
+/* `text-secondary` legacy = texto atenuado (no el token `secondary` de shadcn) */
+.text-secondary {
+  color: var(--muted-foreground);
+}
+
+.custom-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  transition: box-shadow 150ms ease, transform 150ms ease;
+}
+.custom-card:hover {
+  box-shadow: 0 4px 16px oklch(0 0 0 / 0.08);
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease,
+    border-color 150ms ease;
+}
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border: 1px solid transparent;
+}
+.btn-primary:hover {
+  background-color: color-mix(in oklab, var(--primary) 90%, transparent);
+}
+.btn-secondary {
+  background-color: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover {
+  background-color: var(--accent);
+}
+.btn-outline {
+  background-color: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+.btn-outline:hover {
+  background-color: var(--accent);
+  border-color: var(--ring);
+}
+
+.custom-input {
+  background-color: var(--card);
+  border: 1px solid var(--input);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.75rem;
+  color: var(--foreground);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.custom-input:focus {
+  outline: none;
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 25%, transparent);
+}
+.custom-input::placeholder {
+  color: var(--muted-foreground);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+.badge-success {
+  background-color: color-mix(in oklab, var(--success) 15%, transparent);
+  color: var(--success);
+}
+.badge-warning {
+  background-color: color-mix(in oklab, var(--warning) 18%, transparent);
+  color: color-mix(in oklab, var(--warning) 70%, var(--foreground));
+}
+.badge-error {
+  background-color: color-mix(in oklab, var(--destructive) 14%, transparent);
+  color: var(--destructive);
+}
+.badge-info {
+  background-color: color-mix(in oklab, var(--info) 15%, transparent);
+  color: var(--info);
+}
+.badge-outline {
+  background-color: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    var(--border) 50%,
+    var(--muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.error-input {
+  border-color: var(--destructive);
+  background-color: color-mix(in oklab, var(--destructive) 5%, transparent);
+}
+.error-text {
+  color: var(--destructive);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+.success-input {
+  border-color: var(--success);
+  background-color: color-mix(in oklab, var(--success) 5%, transparent);
+}
+
+.grid-responsive {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+@media (max-width: 768px) {
+  .grid-responsive {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}

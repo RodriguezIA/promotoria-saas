@@ -1,3 +1,4 @@
+import { MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 interface PromoterLocation {
@@ -21,14 +22,14 @@ export function HeatMap({ promoters }: HeatMapProps) {
         <CardTitle>Mapa de Promotores Activos</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="relative w-full h-[400px] bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden">
+        <div className="relative w-full h-[400px] bg-muted rounded-lg overflow-hidden">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <div className="text-4xl mb-2">🗺️</div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <MapPin className="w-10 h-10 mb-2 mx-auto text-muted-foreground/50" />
+              <p className="text-sm text-muted-foreground ">
                 Mapa de calor de promotores activos
               </p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+              <p className="text-xs text-muted-foreground 0 mt-1">
                 {activePromoters.length} promotores activos en el mapa
               </p>
             </div>
@@ -70,24 +71,24 @@ export function HeatMap({ promoters }: HeatMapProps) {
 
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{activePromoters.length}</div>
-            <div className="text-xs text-slate-500">Activos ahora</div>
+            <div className="text-2xl font-semibold text-foreground">{activePromoters.length}</div>
+            <div className="text-xs text-muted-foreground">Activos ahora</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-slate-600">{promoters.length}</div>
-            <div className="text-xs text-slate-500">Total promotores</div>
+            <div className="text-2xl font-semibold text-foreground">{promoters.length}</div>
+            <div className="text-xs text-muted-foreground">Total promotores</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-semibold text-foreground">
               {Math.round((activePromoters.length / promoters.length) * 100)}%
             </div>
-            <div className="text-xs text-slate-500">Tasa de actividad</div>
+            <div className="text-xs text-muted-foreground">Tasa de actividad</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">
+            <div className="text-2xl font-semibold text-foreground">
               {Math.floor(Math.random() * 50 + 20)}
             </div>
-            <div className="text-xs text-slate-500">Zonas cubiertas</div>
+            <div className="text-xs text-muted-foreground">Zonas cubiertas</div>
           </div>
         </div>
       </CardContent>

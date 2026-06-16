@@ -78,14 +78,14 @@ export default function ClientesPage() {
           const cliente = row.original;
           return (
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center text-white font-medium flex-shrink-0">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white font-medium shrink-0">
                 {cliente.name.charAt(0)}
               </div>
               <div className="min-w-0">
-                <p className="font-medium text-gray-900 truncate">
+                <p className="font-medium text-foreground truncate">
                   {cliente.name}
                 </p>
-                <p className="text-sm text-gray-500">{cliente.rfc}</p>
+                <p className="text-sm text-muted-foreground">{cliente.rfc}</p>
               </div>
             </div>
           );
@@ -102,12 +102,12 @@ export default function ClientesPage() {
           const cliente = row.original;
           return (
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Mail size={14} className="text-gray-400 flex-shrink-0" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Mail size={14} className="text-muted-foreground/70 shrink-0" />
                 <span className="truncate">{cliente.email}</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Phone size={14} className="text-gray-400 flex-shrink-0" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Phone size={14} className="text-muted-foreground/70 shrink-0" />
                 <span>{cliente.phone}</span>
               </div>
             </div>
@@ -121,7 +121,7 @@ export default function ClientesPage() {
           <DataTableColumnHeader column={column} title="Usuarios" />
         ),
         cell: ({ row }) => (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-sm rounded-md">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-muted text-foreground text-sm rounded-md">
             <Users size={14} />
             {row.original.i_cant_usuarios}
           </span>
@@ -136,13 +136,13 @@ export default function ClientesPage() {
         cell: ({ row }) => {
           const activo = row.original.i_status === 1;
           return activo ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-sm rounded-md">
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-success/10 text-success text-sm rounded-md">
+              <div className="w-1.5 h-1.5 bg-success rounded-full" />
               Activo
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 text-red-700 text-sm rounded-md">
-              <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-destructive/10 text-destructive text-sm rounded-md">
+              <div className="w-1.5 h-1.5 bg-destructive rounded-full" />
               Inactivo
             </span>
           );
@@ -162,7 +162,7 @@ export default function ClientesPage() {
         cell: ({ row }) => {
           const fecha = new Date(row.original.dt_register);
           return (
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-muted-foreground">
               {fecha.toLocaleDateString("es-MX", {
                 year: "numeric",
                 month: "short",
@@ -200,7 +200,7 @@ export default function ClientesPage() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => handleDelete(cliente)}
-                  className="text-red-600 focus:text-red-600"
+                  className="text-destructive focus:text-destructive"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Eliminar
@@ -257,7 +257,7 @@ export default function ClientesPage() {
       )}
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm">
+        <div className="rounded-xl border border-destructive/30 bg-destructive/10 text-destructive px-4 py-3 text-sm">
           {error}
         </div>
       )}
@@ -300,7 +300,7 @@ export default function ClientesPage() {
               }}
               showColumnVisibility={true}
               emptyMessage="No se encontraron clientes"
-              emptyIcon={<Building2 className="w-12 h-12 text-gray-300" />}
+              emptyIcon={<Building2 className="w-12 h-12 text-muted-foreground/50" />}
               getRowId={(row) => row.id_client.toString()}
             />
           </div>

@@ -18,9 +18,9 @@ const fmtDate = (d: string | null) =>
 
 const BadgeStatus = ({ status }: { status: PaymentStatus | PromoterPaymentStatus }) => {
   const map: Record<string, string> = {
-    pagado: "bg-green-100 text-green-800",
-    pendiente: "bg-amber-100 text-amber-800",
-    vencido: "bg-red-100 text-red-800",
+    pagado: "bg-success/15 text-success",
+    pendiente: "bg-warning/20 text-warning-foreground dark:text-warning",
+    vencido: "bg-destructive/15 text-destructive",
   };
   const label: Record<string, string> = {
     pagado: "Pagado",
@@ -113,7 +113,7 @@ export default function FinanzasSuperAdmin() {
     {
       accessorKey: "id_order",
       header: "Pedido",
-      cell: ({ row }) => <span className="font-bold text-gray-600">#{row.getValue("id_order")}</span>,
+      cell: ({ row }) => <span className="font-bold text-muted-foreground">#{row.getValue("id_order")}</span>,
     },
     {
       accessorKey: "client_name",
@@ -128,7 +128,7 @@ export default function FinanzasSuperAdmin() {
       accessorKey: "f_total",
       header: "Total",
       cell: ({ row }) => (
-        <span className="font-semibold text-gray-900">{fmt(row.getValue("f_total"))}</span>
+        <span className="font-semibold text-foreground">{fmt(row.getValue("f_total"))}</span>
       ),
     },
     {
@@ -146,13 +146,13 @@ export default function FinanzasSuperAdmin() {
       header: "Acción",
       cell: ({ row }) => {
         const cobro = row.original;
-        if (cobro.status === "pagado") return <span className="text-xs text-gray-400">—</span>;
+        if (cobro.status === "pagado") return <span className="text-xs text-muted-foreground/70">—</span>;
         return (
           <Button
             size="sm"
             variant="outline"
             onClick={() => setCobroSeleccionado(cobro)}
-            className="text-green-700 border-green-300 hover:bg-green-50"
+            className="text-success border-success/30 hover:bg-success/10"
           >
             <CheckCircle2 className="w-3 h-3 mr-1" />
             Registrar cobro
@@ -177,14 +177,14 @@ export default function FinanzasSuperAdmin() {
       accessorKey: "f_monto",
       header: "Monto",
       cell: ({ row }) => (
-        <span className="font-semibold text-gray-900">{fmt(row.getValue("f_monto"))}</span>
+        <span className="font-semibold text-foreground">{fmt(row.getValue("f_monto"))}</span>
       ),
     },
     {
       accessorKey: "dt_periodo_inicio",
       header: "Período",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-muted-foreground">
           {fmtDate(row.original.dt_periodo_inicio)} – {fmtDate(row.original.dt_periodo_fin)}
         </span>
       ),
@@ -204,13 +204,13 @@ export default function FinanzasSuperAdmin() {
       header: "Acción",
       cell: ({ row }) => {
         const pago = row.original;
-        if (pago.status === "pagado") return <span className="text-xs text-gray-400">—</span>;
+        if (pago.status === "pagado") return <span className="text-xs text-muted-foreground/70">—</span>;
         return (
           <Button
             size="sm"
             variant="outline"
             onClick={() => setPagoSeleccionado(pago)}
-            className="text-blue-700 border-blue-300 hover:bg-blue-50"
+            className="text-info border-info/30 hover:bg-info/10"
           >
             <CheckCircle2 className="w-3 h-3 mr-1" />
             Registrar pago

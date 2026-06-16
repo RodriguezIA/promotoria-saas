@@ -73,15 +73,15 @@ export function PedidosList() {
       header: "Folio",
       cell: ({ row }) => {
         const folio = row.original.vc_folio;
-        if (!folio) return <span className="text-gray-400 text-sm">—</span>;
-        return <span className="font-bold text-gray-700">{folio}</span>;
+        if (!folio) return <span className="text-muted-foreground/70 text-sm">—</span>;
+        return <span className="font-bold text-foreground">{folio}</span>;
       },
     },
     {
       accessorKey: "id_order",
       header: "# Pedido",
       cell: ({ row }) => (
-        <span className="font-bold text-gray-700">
+        <span className="font-bold text-foreground">
           #{String(row.getValue<number>("id_order")).padStart(4, "0")}
         </span>
       ),
@@ -92,16 +92,16 @@ export function PedidosList() {
       cell: ({ row }) => {
         const items = row.original.order_items ?? [];
         const unique = [...new Map(items.map(i => [i.id_request, i.request?.vc_name])).entries()];
-        if (unique.length === 0) return <span className="text-gray-400 text-sm">—</span>;
+        if (unique.length === 0) return <span className="text-muted-foreground/70 text-sm">—</span>;
         return (
           <div className="flex flex-wrap gap-1">
             {unique.slice(0, 2).map(([id, name]) => (
-              <span key={id} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+              <span key={id} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-info/10 text-info">
                 {name ?? `#${id}`}
               </span>
             ))}
             {unique.length > 2 && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
                 +{unique.length - 2} más
               </span>
             )}
@@ -115,7 +115,7 @@ export function PedidosList() {
       cell: ({ row }) => {
         const count = (row.original.order_items ?? []).length;
         return (
-          <span className="bg-gray-100 px-2.5 py-1 rounded-full text-sm font-medium text-gray-700">
+          <span className="bg-muted px-2.5 py-1 rounded-full text-sm font-medium text-foreground">
             {count} tienda{count !== 1 ? "s" : ""}
           </span>
         );
@@ -125,7 +125,7 @@ export function PedidosList() {
       accessorKey: "f_total",
       header: "Total",
       cell: ({ row }) => (
-        <span className="font-semibold text-green-600">
+        <span className="font-semibold text-success">
           {formatCurrency(Number(row.getValue("f_total")))}
         </span>
       ),
@@ -134,7 +134,7 @@ export function PedidosList() {
       accessorKey: "dt_register",
       header: "Fecha",
       cell: ({ row }) => (
-        <span className="text-gray-500">{formatDate(row.getValue("dt_register"))}</span>
+        <span className="text-muted-foreground">{formatDate(row.getValue("dt_register"))}</span>
       ),
     },
     {
@@ -143,13 +143,13 @@ export function PedidosList() {
       cell: ({ row }) => {
         const status = row.getValue<number>("id_status");
         return status === 1 ? (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-sm rounded-full">
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-success/10 text-success text-sm rounded-full">
+            <div className="w-1.5 h-1.5 bg-success rounded-full" />
             Activo
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 text-red-700 text-sm rounded-full">
-            <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-destructive/10 text-destructive text-sm rounded-full">
+            <div className="w-1.5 h-1.5 bg-destructive rounded-full" />
             Cancelado
           </span>
         );
@@ -162,7 +162,7 @@ export function PedidosList() {
         <Button
           size="icon"
           variant="default"
-          className="bg-gray-600 text-white hover:bg-gray-950 hover:text-blue-300"
+          className="text-muted-foreground hover:text-foreground hover:bg-accent"
           onClick={() => navigate(`/detalle-pedido/${row.original.id_order}`)}
         >
           <Eye className="h-4 w-4" />
@@ -197,7 +197,7 @@ export function PedidosList() {
 
       {isSuperAdmin && clientes.length > 0 && (
         <div className="flex items-center gap-3 p-4 rounded-xl border" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
-          <label className="text-sm font-medium flex-shrink-0" style={{ color: "var(--text-secondary)" }}>Cliente:</label>
+          <label className="text-sm font-medium shrink-0" style={{ color: "var(--text-secondary)" }}>Cliente:</label>
           <Select value={selectedClientId?.toString() ?? ""} onValueChange={(val) => setSelectedClientId(Number(val))}>
             <SelectTrigger className="w-64"><SelectValue placeholder="Selecciona un cliente" /></SelectTrigger>
             <SelectContent>

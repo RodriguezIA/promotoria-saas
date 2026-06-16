@@ -178,10 +178,10 @@ export default function Establecimiento() {
                     <ArrowLeft size={20} />
                 </Button>
                 <div>
-                    <h1 className="text-2xl font-semibold text-gray-900">
+                    <h1 className="text-2xl font-semibold text-foreground">
                         {"Nuevo Establecimiento"}
                     </h1>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                         {"Completa el formulario para registrar un nuevo establecimiento"}
                     </p>
                 </div>
@@ -192,10 +192,10 @@ export default function Establecimiento() {
             </div>
 
              <form onSubmit={handleSubmit}>
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="bg-white rounded-lg border border-border p-6">
                     <div className="mb-8">
                         <div className="flex items-center gap-2 mb-4">
-                            <Store size={20} className="text-gray-600" /> <h2 className="text-lg font-medium">Información General</h2>
+                            <Store size={20} className="text-muted-foreground" /> <h2 className="text-lg font-medium">Información General</h2>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -253,7 +253,7 @@ export default function Establecimiento() {
                                                         <img 
                                                             src={channel.url_image} 
                                                             alt={channel.name} 
-                                                            className="w-8 h-8 object-contain rounded-full bg-white border border-gray-100"
+                                                            className="w-8 h-8 object-contain rounded-full bg-white border border-border"
                                                         />
                                                     )}
                                                     <span className="capitalize">{channel.name}</span>
@@ -268,7 +268,7 @@ export default function Establecimiento() {
 
                     <div className="mb-8">
                         <div className="flex items-center gap-2 mb-4">
-                            <MapPin size={20} className="text-gray-600" />
+                            <MapPin size={20} className="text-muted-foreground" />
                             <h2 className="text-lg font-medium">Dirección</h2>
                         </div>
 
@@ -481,11 +481,11 @@ export default function Establecimiento() {
                                     Localizar en el mapa
                                 </Button>
 
-                                <p className="text-xs text-gray-500 text-right">
+                                <p className="text-xs text-muted-foreground text-right">
                                     * Puedes hacer clic en el mapa para ajustar la ubicación exacta del establecimiento.
                                 </p>
 
-                                <div className="h-[400px] w-full rounded-md border border-gray-200 overflow-hidden bg-gray-50 relative">
+                                <div className="h-[400px] w-full rounded-md border border-border overflow-hidden bg-muted/50 relative">
                                     {isLoaded ? (
                                         <GoogleMap
                                             mapContainerStyle={{ width: '100%', height: '100%' }}
@@ -508,7 +508,7 @@ export default function Establecimiento() {
                                             )}
                                         </GoogleMap>
                                     ) : (
-                                        <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                                        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                                             Cargando mapa de Google...
                                         </div>
                                     )}

@@ -93,15 +93,15 @@ export function Preguntas() {
 
                 switch (row.original.question_type) {
                     case "open":
-                        return <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">Abierta</span>;
+                        return <span className="px-2 py-1 text-xs bg-info/15 text-info rounded">Abierta</span>;
                     case "closed":
-                        return <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Cerrada</span>;
+                        return <span className="px-2 py-1 text-xs bg-success/15 text-success rounded">Cerrada</span>;
                     case "numeric":
-                        return <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded">Numérica</span>;
+                        return <span className="px-2 py-1 text-xs bg-muted text-foreground rounded">Numérica</span>;
                     case "boolean":
-                        return <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">Booleana</span>;
+                        return <span className="px-2 py-1 text-xs bg-warning/20 text-warning-foreground dark:text-warning rounded">Booleana</span>;
                     default:
-                        return <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded">Desconocida</span>;
+                        return <span className="px-2 py-1 text-xs bg-muted text-foreground rounded">Desconocida</span>;
                 }
             },
         },
@@ -113,7 +113,7 @@ export function Preguntas() {
                 const total = clientAssignments.length;
 
                 if (total === 0) {
-                    return <span className="text-sm text-gray-500">Sin clientes asociados</span>;
+                    return <span className="text-sm text-muted-foreground">Sin clientes asociados</span>;
                 }
 
                 const visible = clientAssignments.slice(0, 3);
@@ -124,13 +124,13 @@ export function Preguntas() {
                         {visible.map((ca) => (
                             <span
                                 key={ca.id_client}
-                                className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded"
+                                className="px-2 py-1 text-xs bg-muted text-foreground rounded"
                             >
                                 {ca.clients.name}
                             </span>
                         ))}
                         {remaining > 0 && (
-                            <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded font-medium">
+                            <span className="px-2 py-1 text-xs bg-info/15 text-info rounded font-medium">
                                 +{remaining} más
                             </span>
                         )}
@@ -185,7 +185,7 @@ export function Preguntas() {
                 <div className="mb-4 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-600">Filtrar por cliente:</span>
+                            <span className="text-sm text-muted-foreground">Filtrar por cliente:</span>
                             <Select
                                 value={selectedClientFilter}
                                 onValueChange={setSelectedClientFilter}
@@ -209,7 +209,7 @@ export function Preguntas() {
                         </div>
                         {selectedClientFilter !== "0" && (
                             <button
-                                className="text-sm text-gray-500 hover:text-gray-700 underline"
+                                className="text-sm text-muted-foreground hover:text-foreground underline"
                                 onClick={() => setSelectedClientFilter("0")}
                             >
                                 Limpiar filtro

@@ -88,16 +88,16 @@ export function ListaClientesDialog({
 
                     {/* Info de la pregunta */}
                     {pregunta && (
-                        <div className="bg-gray-50 p-3 rounded-lg mb-4">
-                            <p className="text-sm font-medium text-gray-700">Pregunta:</p>
-                            <p className="text-sm text-gray-600">{pregunta.question}</p>
+                        <div className="bg-muted/50 p-3 rounded-lg mb-4">
+                            <p className="text-sm font-medium text-foreground">Pregunta:</p>
+                            <p className="text-sm text-muted-foreground">{pregunta.question}</p>
                         </div>
                     )}
 
                     {/* Tabla de clientes */}
                     <div className="border rounded-lg max-h-[400px] overflow-auto">
                         {clientes.length === 0 ? (
-                            <div className="text-center py-8 text-gray-500">
+                            <div className="text-center py-8 text-muted-foreground">
                                 No hay clientes asignados a esta pregunta
                             </div>
                         ) : (
@@ -127,24 +127,24 @@ export function ListaClientesDialog({
                                                     ${assignment.client_price.toFixed(2)}
                                                 </span>
                                                 {assignment.client_price !== pregunta?.base_price && (
-                                                    <span className="text-xs text-gray-400 ml-1">
+                                                    <span className="text-xs text-muted-foreground/70 ml-1">
                                                         (base: ${pregunta?.base_price.toFixed(2)})
                                                     </span>
                                                 )}
                                             </TableCell>
                                             <TableCell>
-                                                <span className="text-green-600 font-medium">
+                                                <span className="text-success font-medium">
                                                     ${assignment.client_promoter_earns.toFixed(2)}
                                                 </span>
                                             </TableCell>
-                                            <TableCell className="text-gray-500">
+                                            <TableCell className="text-muted-foreground">
                                                 {formatDate(assignment.assigned_at)}
                                             </TableCell>
                                             <TableCell>
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                                     onClick={() => handleConfirmUnassign(assignment)}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
@@ -159,7 +159,7 @@ export function ListaClientesDialog({
 
                     {/* Resumen */}
                     {clientes.length > 0 && (
-                        <div className="text-sm text-gray-500 mt-2">
+                        <div className="text-sm text-muted-foreground mt-2">
                             Total: {clientes.length} cliente{clientes.length !== 1 ? "s" : ""} asignado
                             {clientes.length !== 1 ? "s" : ""}
                         </div>
@@ -181,7 +181,7 @@ export function ListaClientesDialog({
                         <AlertDialogCancel disabled={loadingUnassign}>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleUnassign}
-                            className="bg-red-600 hover:bg-red-700"
+                            className="bg-destructive hover:bg-destructive/90"
                             disabled={loadingUnassign}
                         >
                             {loadingUnassign && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

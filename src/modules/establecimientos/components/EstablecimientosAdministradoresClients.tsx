@@ -131,7 +131,7 @@ export function EstablecimientosAdministradoresClients() {
                                 Editar
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                                className="text-red-600"
+                                className="text-destructive"
                                 onClick={() => store.id_store_client && handleDeleteEstablecimeinto(store.id_store_client)}
                             >
                                 <Trash2 className="mr-2 h-4 w-4" />
@@ -149,8 +149,8 @@ export function EstablecimientosAdministradoresClients() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-semibold text-gray-900">Establecimientos</h1>
-                    <p className="text-sm text-gray-500 mt-1">Administra los establecimientos</p>
+                    <h1 className="text-2xl font-semibold text-foreground">Establecimientos</h1>
+                    <p className="text-sm text-muted-foreground mt-1">Administra los establecimientos</p>
                 </div>
 
                 <div className="flex gap-4">
@@ -170,23 +170,23 @@ export function EstablecimientosAdministradoresClients() {
             {/* Loading state */}
             {loading && (
                 <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground/70" />
                 </div>
             )}
 
             {!loading && (
-                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="bg-white rounded-lg border border-border p-4">
                     {establecimientos.length > 0 ? (
                         <DataTable columns={columns} data={establecimientos} />
                     ) : (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                                <StoreIcon size={32} className="text-gray-400" />
+                            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                                <StoreIcon size={32} className="text-muted-foreground/70" />
                             </div>
-                            <h4 className="text-lg font-medium text-gray-900 mb-1">
+                            <h4 className="text-lg font-medium text-foreground mb-1">
                                 Sin establecimientos
                             </h4>
-                            <p className="text-gray-500 mb-4">
+                            <p className="text-muted-foreground mb-4">
                                 Aún no hay establecimientos registrados para este cliente.
                             </p>
                             <Link to="/establecimiento">

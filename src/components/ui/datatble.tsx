@@ -18,7 +18,7 @@ import {
   ExpandedState,
   Row,
 } from "@tanstack/react-table";
-import { Download, Settings2, Plus, Minus } from "lucide-react";
+import { Download, Settings2, ChevronDown, ChevronRight } from "lucide-react";
 
 import { cn } from "../../lib/utils";
 import { Button } from "./button";
@@ -77,7 +77,7 @@ function useContainerWidth(ref: React.RefObject<HTMLDivElement | null>) {
 }
 
 // ============================================================================
-// BOTÓN DE EXPANDIR (Icono verde)
+// BOTÓN DE EXPANDIR
 // ============================================================================
 
 interface ExpandButtonProps {
@@ -89,21 +89,18 @@ function ExpandButton({ isExpanded, onClick }: ExpandButtonProps) {
   return (
     <button
       onClick={onClick}
+      aria-label={isExpanded ? "Ver menos" : "Ver más"}
+      title={isExpanded ? "Ver menos" : "Ver más"}
       className={cn(
-        "p-1.5 rounded-md transition-all",
-        "hover:bg-emerald-50 active:scale-95",
-        "group relative",
+        "p-1.5 rounded-md transition-colors",
+        "text-muted-foreground hover:text-foreground hover:bg-accent",
       )}
     >
       {isExpanded ? (
-        <Minus className="w-5 h-5 text-emerald-600" strokeWidth={2.5} />
+        <ChevronDown className="w-4 h-4" />
       ) : (
-        <Plus className="w-5 h-5 text-emerald-600" strokeWidth={2.5} />
+        <ChevronRight className="w-4 h-4" />
       )}
-      {/* Tooltip */}
-      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-        {isExpanded ? "Ver menos" : "Ver más"}
-      </span>
     </button>
   );
 }
@@ -162,7 +159,7 @@ function ExpandedRowContent<TData>({
                 key={columnId}
                 className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors"
               >
-                <span className="text-sm font-medium text-muted-foreground min-w-[120px] shrink-0">
+                <span className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground min-w-[120px] shrink-0">
                   {headerContent}
                 </span>
                 <div className="text-sm flex-1">{cellContent}</div>
@@ -213,8 +210,10 @@ export function DataTable<TData, TValue = unknown>({
   // RESPONSIVE CONFIG
   // ============================================================================
 
+  // Responsive activado por defecto: toda DataTable colapsa columnas que no
+  // caben y las muestra en la fila expandible
   const {
-    enabled: responsiveEnabled = false,
+    enabled: responsiveEnabled = true,
     minColumnWidth = 150,
     priorityColumns: priorityColumnsProp = [],
   } = responsiveConfig || {};
@@ -338,6 +337,30 @@ export function DataTable<TData, TValue = unknown>({
   const columns = React.useMemo(() => {
     const cols: ColumnDef<TData, TValue>[] = [];
 
+    // Si hay columnas colapsadas, la columna de expansión va AL INICIO
+    if (needsCollapsing) {
+      const expandColumn: ColumnDef<TData, TValue> = {
+        id: "expand",
+        header: () => null,
+        cell: ({ row }) => {
+          const isExpanded = row.getIsExpanded();
+          return (
+            <ExpandButton
+              isExpanded={isExpanded}
+              onClick={(e) => {
+                e.stopPropagation();
+                row.toggleExpanded();
+              }}
+            />
+          );
+        },
+        enableSorting: false,
+        enableHiding: false,
+        size: 40,
+      };
+      cols.push(expandColumn);
+    }
+
     // Agregar columna de selección si está habilitada
     if (rowSelectionConfig?.enabled) {
       cols.push({
@@ -385,29 +408,6 @@ export function DataTable<TData, TValue = unknown>({
     const actionsCol = visibleColumnDefs.find((col) => col.id === "actions");
     if (actionsCol) {
       cols.push(actionsCol);
-    }
-
-    // Si hay columnas colapsadas, agregar columna de expansión AL FINAL
-    if (needsCollapsing) {
-      const expandColumn: ColumnDef<TData, TValue> = {
-        id: "expand",
-        header: () => null,
-        cell: ({ row }) => {
-          const isExpanded = row.getIsExpanded();
-          return (
-            <ExpandButton
-              isExpanded={isExpanded}
-              onClick={(e) => {
-                e.stopPropagation();
-                row.toggleExpanded();
-              }}
-            />
-          );
-        },
-        enableSorting: false,
-        enableHiding: false,
-      };
-      cols.push(expandColumn);
     }
 
     return cols;

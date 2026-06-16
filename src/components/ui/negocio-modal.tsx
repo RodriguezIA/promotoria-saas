@@ -138,7 +138,7 @@ export const NegocioModal: React.FC<NegocioModalProps> = ({
             <div className="space-y-2">
               <Label htmlFor="nombre" className="text-primary flex items-center gap-1">
                 Nombre del cliente
-                {!isReadonly && <span className="text-error">*</span>}
+                {!isReadonly && <span className="text-destructive">*</span>}
               </Label>
               <Input
                 id="nombre"
@@ -167,11 +167,11 @@ export const NegocioModal: React.FC<NegocioModalProps> = ({
                   <div className="flex items-center gap-2">
                     {formData.b_activo ? (
                       <span className="bg-success text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                        ✅ Activo
+                        Activo
                       </span>
                     ) : (
-                      <span className="bg-error text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                        ❌ Inactivo
+                      <span className="bg-destructive text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                        Inactivo
                       </span>
                     )}
                   </div>
@@ -221,8 +221,8 @@ export const NegocioModal: React.FC<NegocioModalProps> = ({
                   <Label className="text-secondary">Estado</Label>
                   <p className="text-primary">
                     {negocio.b_activo !== false ? 
-                      <span className="text-success">✅ Activo</span> : 
-                      <span className="text-error">❌ Inactivo</span>
+                      <span className="text-success">Activo</span> : 
+                      <span className="text-destructive">Inactivo</span>
                     }
                   </p>
                 </div>
@@ -242,7 +242,7 @@ export const NegocioModal: React.FC<NegocioModalProps> = ({
 
           {/* Error general */}
           {errors.general && (
-            <div className="bg-error bg-opacity-10 border border-error rounded-lg p-3">
+            <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3">
               <p className="error-text text-center">{errors.general}</p>
             </div>
           )}
@@ -266,7 +266,7 @@ export const NegocioModal: React.FC<NegocioModalProps> = ({
                 loadingText={mode === 'create' ? 'Creando...' : 'Guardando...'}
                 className="btn-primary"
               >
-                {mode === 'create' ? '✨ Crear Negocio' : '💾 Guardar Cambios'}
+                {mode === 'create' ? 'Crear Negocio' : 'Guardar Cambios'}
               </LoadingButton>
             )}
           </div>

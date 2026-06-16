@@ -76,15 +76,15 @@ export function MiNegocio() {
       <div className="max-w-6xl mx-auto p-6 space-y-6">
 
         {/* Tarjeta principal */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="h-32 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900" />
+        <div className="bg-white rounded-xl border border-border overflow-hidden">
+          <div className="h-32 bg-primary" />
 
           <div className="px-6 pb-6 pt-6">
             <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-16">
 
               {/* Avatar */}
-              <div className="w-32 h-32 bg-white rounded-2xl border-4 border-white shadow-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
+              <div className="w-32 h-32 bg-white rounded-2xl border-4 border-white shadow-lg flex items-center justify-center overflow-hidden shrink-0">
+                <div className="w-full h-full bg-primary flex items-center justify-center">
                   <span className="text-4xl font-semibold text-white">
                     {getInitials(cliente.name)}
                   </span>
@@ -94,28 +94,28 @@ export function MiNegocio() {
               {/* Nombre + estado */}
               <div className="flex-1 md:mb-2 md:pt-4">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <h2 className="text-2xl font-bold text-gray-900">{cliente.name}</h2>
+                  <h2 className="text-2xl font-bold text-foreground">{cliente.name}</h2>
                   {cliente.i_status ? (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-sm font-medium rounded-full">
-                      <div className="w-2 h-2 bg-green-500 rounded-full" />
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-success/10 text-success text-sm font-medium rounded-full">
+                      <div className="w-2 h-2 bg-success rounded-full" />
                       Activo
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 text-sm font-medium rounded-full">
-                      <div className="w-2 h-2 bg-red-500 rounded-full" />
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-destructive/10 text-destructive text-sm font-medium rounded-full">
+                      <div className="w-2 h-2 bg-destructive rounded-full" />
                       Inactivo
                     </span>
                   )}
                 </div>
-                <p className="text-gray-500 mt-1">{cliente.rfc || "Sin RFC registrado"}</p>
+                <p className="text-muted-foreground mt-1">{cliente.rfc || "Sin RFC registrado"}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="border-b border-gray-200">
+        <div className="bg-white rounded-xl border border-border">
+          <div className="border-b border-border">
             <div className="flex overflow-x-auto">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
@@ -126,8 +126,8 @@ export function MiNegocio() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                       isActive
-                        ? "border-gray-900 text-gray-900"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "border-primary text-foreground"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-input"
                     }`}
                   >
                     <Icon size={16} />
@@ -159,40 +159,40 @@ function TabInfo({ cliente }: { cliente: clientDetail }) {
 
         {/* Contacto */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <Mail size={18} className="text-gray-400" />
+          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <Mail size={18} className="text-muted-foreground/70" />
             Información de Contacto
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Email</p>
-              <p className="font-medium text-gray-900">{cliente.email || "—"}</p>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Email</p>
+              <p className="font-medium text-foreground">{cliente.email || "—"}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Teléfono</p>
-              <p className="font-medium text-gray-900">{cliente.phone || "—"}</p>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Teléfono</p>
+              <p className="font-medium text-foreground">{cliente.phone || "—"}</p>
             </div>
           </div>
         </div>
 
         {/* Dirección */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <MapPin size={18} className="text-gray-400" />
+          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <MapPin size={18} className="text-muted-foreground/70" />
             Dirección
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
-              <p className="text-sm text-gray-500 mb-1">Calle</p>
-              <p className="font-medium text-gray-900">{cliente.address || "—"}</p>
+            <div className="p-4 bg-muted/50 rounded-lg md:col-span-2">
+              <p className="text-sm text-muted-foreground mb-1">Calle</p>
+              <p className="font-medium text-foreground">{cliente.address || "—"}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Ciudad</p>
-              <p className="font-medium text-gray-900">{cliente.city || "—"}</p>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Ciudad</p>
+              <p className="font-medium text-foreground">{cliente.city || "—"}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Estado</p>
-              <p className="font-medium text-gray-900">{cliente.state || "—"}</p>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Estado</p>
+              <p className="font-medium text-foreground">{cliente.state || "—"}</p>
             </div>
           </div>
         </div>
@@ -200,12 +200,12 @@ function TabInfo({ cliente }: { cliente: clientDetail }) {
         {/* Notas */}
         {cliente.addiccional_notes && (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <FileText size={18} className="text-gray-400" />
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <FileText size={18} className="text-muted-foreground/70" />
               Observaciones
             </h3>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-gray-700 whitespace-pre-wrap">{cliente.addiccional_notes}</p>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-foreground whitespace-pre-wrap">{cliente.addiccional_notes}</p>
             </div>
           </div>
         )}
@@ -213,39 +213,39 @@ function TabInfo({ cliente }: { cliente: clientDetail }) {
 
       {/* Columna lateral */}
       <div className="space-y-6">
-        <div className="p-4 bg-gray-50 rounded-lg space-y-4">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-            <Clock size={16} className="text-gray-400" />
+        <div className="p-4 bg-muted/50 rounded-lg space-y-4">
+          <h3 className="font-semibold text-foreground flex items-center gap-2">
+            <Clock size={16} className="text-muted-foreground/70" />
             Fechas
           </h3>
           <div className="space-y-3">
             <div>
-              <p className="text-sm text-gray-500">Registrado</p>
-              <p className="font-medium text-gray-900">{formatDate(cliente.dt_register)}</p>
+              <p className="text-sm text-muted-foreground">Registrado</p>
+              <p className="font-medium text-foreground">{formatDate(cliente.dt_register)}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Última actualización</p>
-              <p className="font-medium text-gray-900">{formatDate(cliente.dt_updated)}</p>
+              <p className="text-sm text-muted-foreground">Última actualización</p>
+              <p className="font-medium text-foreground">{formatDate(cliente.dt_updated)}</p>
             </div>
           </div>
         </div>
 
-        <div className="p-4 bg-gray-50 rounded-lg space-y-4">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-            <TrendingUp size={16} className="text-gray-400" />
+        <div className="p-4 bg-muted/50 rounded-lg space-y-4">
+          <h3 className="font-semibold text-foreground flex items-center gap-2">
+            <TrendingUp size={16} className="text-muted-foreground/70" />
             Acciones Rápidas
           </h3>
           <div className="space-y-2">
-            <button className="w-full px-4 py-2.5 text-left text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-3">
-              <Store size={16} className="text-gray-400" />
+            <button className="w-full px-4 py-2.5 text-left text-foreground bg-white border border-border rounded-lg hover:bg-accent transition-colors flex items-center gap-3">
+              <Store size={16} className="text-muted-foreground/70" />
               <span className="text-sm">Ver Establecimientos</span>
             </button>
-            <button className="w-full px-4 py-2.5 text-left text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-3">
-              <Package size={16} className="text-gray-400" />
+            <button className="w-full px-4 py-2.5 text-left text-foreground bg-white border border-border rounded-lg hover:bg-accent transition-colors flex items-center gap-3">
+              <Package size={16} className="text-muted-foreground/70" />
               <span className="text-sm">Ver Productos</span>
             </button>
-            <button className="w-full px-4 py-2.5 text-left text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-3">
-              <Phone size={16} className="text-gray-400" />
+            <button className="w-full px-4 py-2.5 text-left text-foreground bg-white border border-border rounded-lg hover:bg-accent transition-colors flex items-center gap-3">
+              <Phone size={16} className="text-muted-foreground/70" />
               <span className="text-sm">Contactar Soporte</span>
             </button>
           </div>
@@ -289,7 +289,7 @@ function TabUsers({ cliente }: { cliente: clientDetail }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Usuarios del negocio</h3>
+        <h3 className="text-lg font-semibold text-foreground">Usuarios del negocio</h3>
         <ModalCustom
           buttonTitle="Agregar Usuario"
           dialogTitle="Agregar Nuevo Usuario"
@@ -315,18 +315,18 @@ function TabUsers({ cliente }: { cliente: clientDetail }) {
         />
       </div>
 
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <div className="border border-border rounded-lg overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-muted/50">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Usuario</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Rol</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Estado</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Usuario</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Rol</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Estado</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td colSpan={3} className="px-4 py-8 text-center text-sm text-gray-400">
+              <td colSpan={3} className="px-4 py-8 text-center text-sm text-muted-foreground/70">
                 Los usuarios se cargarán al conectar el endpoint.
               </td>
             </tr>
@@ -341,14 +341,14 @@ function TabStores() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Establecimientos</h3>
+        <h3 className="text-lg font-semibold text-foreground">Establecimientos</h3>
       </div>
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-          <Store size={28} className="text-gray-400" />
+        <div className="w-14 h-14 bg-muted rounded-full flex items-center justify-center mb-3">
+          <Store size={28} className="text-muted-foreground/70" />
         </div>
-        <p className="text-sm font-medium text-gray-500">
-          Ve a la sección <span className="font-semibold text-gray-700">Establecimientos</span> para gestionar tus sucursales.
+        <p className="text-sm font-medium text-muted-foreground">
+          Ve a la sección <span className="font-semibold text-foreground">Establecimientos</span> para gestionar tus sucursales.
         </p>
       </div>
     </div>
@@ -358,13 +358,13 @@ function TabStores() {
 function TabProducts() {
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">Productos Asignados</h3>
+      <h3 className="text-lg font-semibold text-foreground">Productos Asignados</h3>
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-          <Package size={28} className="text-gray-400" />
+        <div className="w-14 h-14 bg-muted rounded-full flex items-center justify-center mb-3">
+          <Package size={28} className="text-muted-foreground/70" />
         </div>
-        <p className="text-sm font-medium text-gray-500">
-          Ve a la sección <span className="font-semibold text-gray-700">Productos</span> para ver el catálogo completo.
+        <p className="text-sm font-medium text-muted-foreground">
+          Ve a la sección <span className="font-semibold text-foreground">Productos</span> para ver el catálogo completo.
         </p>
       </div>
     </div>
@@ -384,7 +384,7 @@ function TabHistory() {
       id: "negocio",
       label: "Negocio",
       icon: Building2,
-      color: "bg-gray-100 text-gray-600",
+      color: "bg-muted text-muted-foreground",
       logs: [
         { id: 1, action: "Negocio registrado", user: "SuperAdmin", date: "2024-01-15 10:30", detail: "Se registró el negocio en la plataforma." },
       ],
@@ -393,7 +393,7 @@ function TabHistory() {
       id: "usuarios",
       label: "Usuarios",
       icon: Users,
-      color: "bg-blue-50 text-blue-600",
+      color: "bg-info/10 text-info",
       logs: [
         { id: 1, action: "Usuario creado", user: "Admin", date: "2024-01-15 11:00", detail: "Se creó el primer usuario administrador." },
       ],
@@ -402,14 +402,14 @@ function TabHistory() {
       id: "tickets",
       label: "Tickets",
       icon: Ticket,
-      color: "bg-yellow-50 text-yellow-600",
+      color: "bg-warning/15 text-warning-foreground dark:text-warning",
       logs: [],
     },
     {
       id: "pagos",
       label: "Pagos",
       icon: CreditCard,
-      color: "bg-green-50 text-green-600",
+      color: "bg-success/10 text-success",
       logs: [],
     },
   ];
@@ -417,8 +417,8 @@ function TabHistory() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Historial de Actividad</h3>
-        <p className="text-sm text-gray-400">Registro de cambios en tu negocio</p>
+        <h3 className="text-lg font-semibold text-foreground">Historial de Actividad</h3>
+        <p className="text-sm text-muted-foreground/70">Registro de cambios en tu negocio</p>
       </div>
 
       <div className="space-y-3">
@@ -426,48 +426,48 @@ function TabHistory() {
           const Icon = accordion.icon;
           const open = openAccordions.includes(accordion.id);
           return (
-            <div key={accordion.id} className="border border-gray-200 rounded-lg overflow-hidden">
+            <div key={accordion.id} className="border border-border rounded-lg overflow-hidden">
               <button
                 onClick={() => toggle(accordion.id)}
-                className="w-full px-4 py-3 bg-white hover:bg-gray-50 transition-colors flex items-center justify-between"
+                className="w-full px-4 py-3 bg-white hover:bg-accent transition-colors flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${accordion.color}`}>
                     <Icon size={16} />
                   </div>
-                  <span className="font-medium text-gray-900">{accordion.label}</span>
-                  <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
+                  <span className="font-medium text-foreground">{accordion.label}</span>
+                  <span className="px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded-full">
                     {accordion.logs.length} registros
                   </span>
                 </div>
                 <ChevronDown
                   size={18}
-                  className={`text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+                  className={`text-muted-foreground/70 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
                 />
               </button>
 
               {open && (
-                <div className="border-t border-gray-200 bg-gray-50 p-4">
+                <div className="border-t border-border bg-muted/50 p-4">
                   {accordion.logs.length === 0 ? (
-                    <p className="text-sm text-gray-400 text-center py-4">Sin registros aún.</p>
+                    <p className="text-sm text-muted-foreground/70 text-center py-4">Sin registros aún.</p>
                   ) : (
                     <div className="space-y-3">
                       {accordion.logs.map((log, idx) => (
                         <div key={log.id} className="flex gap-4">
                           <div className="flex flex-col items-center">
-                            <div className="w-2.5 h-2.5 bg-gray-300 rounded-full border-2 border-white shadow-sm mt-1" />
+                            <div className="w-2.5 h-2.5 bg-muted rounded-full border-2 border-white shadow-sm mt-1" />
                             {idx < accordion.logs.length - 1 && (
-                              <div className="w-px flex-1 bg-gray-200 mt-1" />
+                              <div className="w-px flex-1 bg-muted mt-1" />
                             )}
                           </div>
                           <div className="flex-1 pb-2">
-                            <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                            <div className="bg-white p-3 rounded-lg border border-border shadow-sm">
                               <div className="flex items-start justify-between gap-2 mb-1">
-                                <p className="font-medium text-gray-900 text-sm">{log.action}</p>
-                                <span className="text-xs text-gray-400 whitespace-nowrap">{log.date}</span>
+                                <p className="font-medium text-foreground text-sm">{log.action}</p>
+                                <span className="text-xs text-muted-foreground/70 whitespace-nowrap">{log.date}</span>
                               </div>
-                              <p className="text-sm text-gray-500">{log.detail}</p>
-                              <p className="text-xs text-gray-400 mt-1">Por: {log.user}</p>
+                              <p className="text-sm text-muted-foreground">{log.detail}</p>
+                              <p className="text-xs text-muted-foreground/70 mt-1">Por: {log.user}</p>
                             </div>
                           </div>
                         </div>

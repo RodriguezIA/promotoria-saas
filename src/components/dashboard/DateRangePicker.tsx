@@ -55,7 +55,7 @@ export function DateRangePicker({ onDateChange }: DateRangePickerProps) {
             variant="outline"
             className={cn(
               "justify-start text-left font-normal min-w-[280px]",
-              !dateRange && "text-slate-500 dark:text-slate-400",
+              !dateRange && "text-muted-foreground ",
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -82,7 +82,7 @@ export function DateRangePicker({ onDateChange }: DateRangePickerProps) {
             numberOfMonths={2}
             className="rounded-lg border shadow-sm"
           />
-          <div className="flex gap-2 p-3 border-t border-slate-200 dark:border-slate-800">
+          <div className="flex gap-2 p-3 border-t border-border ">
             <Button
               variant="outline"
               size="sm"

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Store } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './dialog';
 import { Input } from './input';
 import { Label } from './label';
@@ -158,7 +159,7 @@ export const EstablecimientoModal: React.FC<EstablecimientoModalProps> = ({
       <DialogContent className="sm:max-w-[600px] bg-card max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-primary text-xl flex items-center gap-2">
-            <span className="text-2xl">🏪</span>
+            <Store className="w-6 h-6 text-muted-foreground" />
             {getTitle()}
           </DialogTitle>
         </DialogHeader>
@@ -175,7 +176,7 @@ export const EstablecimientoModal: React.FC<EstablecimientoModalProps> = ({
               <div className="space-y-2">
                 <Label htmlFor="nombre" className="text-primary flex items-center gap-1">
                   Nombre del Establecimiento
-                  {!isReadonly && <span className="text-error">*</span>}
+                  {!isReadonly && <span className="text-destructive">*</span>}
                 </Label>
                 <Input
                   id="nombre"
@@ -299,7 +300,7 @@ export const EstablecimientoModal: React.FC<EstablecimientoModalProps> = ({
                   onClick={getLocationFromBrowser}
                   className="btn-outline flex items-center gap-2"
                 >
-                  📍 Obtener ubicación actual
+                  Obtener ubicación actual
                 </Button>
                 {errors.location && (
                   <p className="error-text mt-2">{errors.location}</p>
@@ -326,8 +327,8 @@ export const EstablecimientoModal: React.FC<EstablecimientoModalProps> = ({
                   <Label className="text-secondary">Estado</Label>
                   <p className="text-primary">
                     {establecimiento.b_estatus !== false ? 
-                      <span className="text-success">✅ Activo</span> : 
-                      <span className="text-error">❌ Inactivo</span>
+                      <span className="text-success">Activo</span> : 
+                      <span className="text-destructive">Inactivo</span>
                     }
                   </p>
                 </div>
@@ -347,7 +348,7 @@ export const EstablecimientoModal: React.FC<EstablecimientoModalProps> = ({
 
           {/* Error general */}
           {errors.general && (
-            <div className="bg-error bg-opacity-10 border border-error rounded-lg p-3">
+            <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3">
               <p className="error-text text-center">{errors.general}</p>
             </div>
           )}
@@ -371,7 +372,7 @@ export const EstablecimientoModal: React.FC<EstablecimientoModalProps> = ({
                 loadingText={mode === 'create' ? 'Creando...' : 'Guardando...'}
                 className="btn-primary"
               >
-                {mode === 'create' ? '✨ Crear Establecimiento' : '💾 Guardar Cambios'}
+                {mode === 'create' ? 'Crear Establecimiento' : 'Guardar Cambios'}
               </LoadingButton>
             )}
           </div>

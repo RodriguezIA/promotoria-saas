@@ -11,29 +11,23 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, subtitle, icon: Icon, actions, className }: PageHeaderProps) {
   return (
-    <div className={cn("flex items-start justify-between gap-4", className)}>
-      <div className="flex items-center gap-3 min-w-0">
-        {Icon && (
-          <div
-            className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm"
-            style={{ backgroundColor: "var(--color-brand)", color: "#000" }}
-          >
-            <Icon className="w-5 h-5" />
-          </div>
-        )}
-        <div className="min-w-0">
-          <h1 className="text-xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
-            {title}
-          </h1>
-          {subtitle && (
-            <p className="text-sm mt-0.5" style={{ color: "var(--text-secondary)" }}>
-              {subtitle}
-            </p>
-          )}
+    <div className={cn("flex items-end justify-between gap-4 flex-wrap", className)}>
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="h-[3px] w-7 rounded-full bg-brand" aria-hidden />
+          {Icon && <Icon className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={2} />}
         </div>
+        <h1 className="text-2xl font-bold tracking-tight font-display text-foreground">
+          {title}
+        </h1>
+        {subtitle && (
+          <p className="text-sm mt-1 text-muted-foreground max-w-prose">
+            {subtitle}
+          </p>
+        )}
       </div>
       {actions && (
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {actions}
         </div>
       )}

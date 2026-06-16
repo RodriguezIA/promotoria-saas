@@ -40,7 +40,7 @@ export const UserList: React.FC<UserListProps> = ({
         <CardContent>
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="border border-primary rounded-lg p-4">
+              <div key={index} className="border border-border rounded-lg p-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <div className="loading-skeleton h-4 w-16"></div>
@@ -102,15 +102,14 @@ export const UserList: React.FC<UserListProps> = ({
       <CardContent>
         {users.length === 0 ? (
           <div className="text-center py-8">
-            <div className="text-secondary text-lg mb-2">👤</div>
-            <p className="text-secondary">{emptyMessage}</p>
+            <p className="text-muted-foreground">{emptyMessage}</p>
           </div>
         ) : (
           <div className="space-y-4">
             {users.map((user, index) => (
               <div
                 key={user.id_usuario || index}
-                className="border border-primary rounded-lg p-4 hover:shadow-md transition-shadow slide-up"
+                className="border border-border rounded-lg p-4 hover:shadow-md transition-shadow slide-up"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-start">

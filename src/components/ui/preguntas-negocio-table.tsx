@@ -40,7 +40,7 @@ export const PreguntasNegocioTable: React.FC<PreguntasNegocioTableProps> = ({
         <CardContent>
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="border border-primary rounded-lg p-4">
+              <div key={index} className="border border-border rounded-lg p-4">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
                     <div className="loading-skeleton h-4 w-16"></div>
@@ -124,15 +124,14 @@ export const PreguntasNegocioTable: React.FC<PreguntasNegocioTableProps> = ({
       <CardContent>
         {preguntas.length === 0 ? (
           <div className="text-center py-8">
-            <div className="text-secondary text-lg mb-2">❓</div>
-            <p className="text-secondary">{emptyMessage}</p>
+            <p className="text-muted-foreground">{emptyMessage}</p>
           </div>
         ) : (
           <div className="space-y-4">
             {preguntas.map((pregunta, index) => (
               <div
                 key={pregunta.id_pregunta || index}
-                className="border border-primary rounded-lg p-4 hover:shadow-md transition-shadow slide-up"
+                className="border border-border rounded-lg p-4 hover:shadow-md transition-shadow slide-up"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 items-start">
@@ -189,25 +188,15 @@ export const PreguntasNegocioTable: React.FC<PreguntasNegocioTableProps> = ({
                 <div className="mt-3 pt-3 border-t border-border">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-secondary">
                     <div className="flex items-center gap-1">
-                      <span className={pregunta.b_photo ? 'text-success' : 'text-secondary'}>
-                        📷
-                      </span>
                       <span>Evidencia: {pregunta.b_photo ? 'Requerida' : 'No requerida'}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className={pregunta.b_required ? 'text-error' : 'text-secondary'}>
-                        {pregunta.b_required ? '❗' : '❔'}
-                      </span>
                       <span>{pregunta.b_required ? 'Obligatoria' : 'Opcional'}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span>🆔</span>
                       <span>ID: {pregunta.id_pregunta}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className={pregunta.b_estatus ? 'text-success' : 'text-warning'}>
-                        {pregunta.b_estatus ? '✅' : '⚠️'}
-                      </span>
                       <span>Estado: {pregunta.b_estatus ? 'Activa' : 'Inactiva'}</span>
                     </div>
                   </div>

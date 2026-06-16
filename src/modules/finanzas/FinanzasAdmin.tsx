@@ -17,8 +17,8 @@ const fmtDate = (d: string | null) =>
 
 const BadgeStatus = ({ status }: { status: PromoterPaymentStatus }) => {
   const map = {
-    pagado: "bg-green-100 text-green-800",
-    pendiente: "bg-amber-100 text-amber-800",
+    pagado: "bg-success/15 text-success",
+    pendiente: "bg-warning/20 text-warning-foreground dark:text-warning",
   };
   const label = { pagado: "Pagado", pendiente: "Pendiente" };
   return (
@@ -50,7 +50,7 @@ export function FinanzasAdmin() {
     {
       accessorKey: "id_order",
       header: "Pedido",
-      cell: ({ row }) => <span className="font-bold text-gray-600">#{row.getValue("id_order")}</span>,
+      cell: ({ row }) => <span className="font-bold text-muted-foreground">#{row.getValue("id_order")}</span>,
     },
     {
       accessorKey: "client_name",

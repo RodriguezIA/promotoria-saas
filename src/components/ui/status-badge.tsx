@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
+import { Badge } from './badge';
 
 interface StatusBadgeProps {
   status: 'active' | 'inactive' | 'pending' | 'success' | 'warning' | 'error' | 'info';
@@ -8,35 +9,14 @@ interface StatusBadgeProps {
 }
 
 const statusConfig = {
-  active: {
-    text: 'Activo',
-    className: 'badge badge-success'
-  },
-  inactive: {
-    text: 'Inactivo',
-    className: 'badge badge-error'
-  },
-  pending: {
-    text: 'Pendiente',
-    className: 'badge badge-warning'
-  },
-  success: {
-    text: 'Exitoso',
-    className: 'badge badge-success'
-  },
-  warning: {
-    text: 'Advertencia',
-    className: 'badge badge-warning'
-  },
-  error: {
-    text: 'Error',
-    className: 'badge badge-error'
-  },
-  info: {
-    text: 'Información',
-    className: 'badge badge-info'
-  }
-};
+  active: { text: 'Activo', variant: 'success' },
+  inactive: { text: 'Inactivo', variant: 'destructive' },
+  pending: { text: 'Pendiente', variant: 'warning' },
+  success: { text: 'Exitoso', variant: 'success' },
+  warning: { text: 'Advertencia', variant: 'warning' },
+  error: { text: 'Error', variant: 'destructive' },
+  info: { text: 'Información', variant: 'info' },
+} as const;
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({
   status,
@@ -44,11 +24,10 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   className
 }) => {
   const config = statusConfig[status];
-  const displayText = text || config.text;
 
   return (
-    <span className={cn(config.className, className)}>
-      {displayText}
-    </span>
+    <Badge variant={config.variant} className={cn('uppercase tracking-wide', className)}>
+      {text || config.text}
+    </Badge>
   );
 };

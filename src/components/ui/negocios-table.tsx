@@ -118,7 +118,7 @@ export const NegociosTable: React.FC<NegociosTableProps> = ({
               {negocios.map((negocio, index) => (
                 <TableRow 
                   key={negocio.id_negocio || index}
-                  className="hover:bg-hover transition-colors duration-200 fade-in border-b border-border"
+                  className="hover:bg-accent transition-colors duration-200 fade-in border-b border-border"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <TableCell className="text-center font-medium text-secondary">
@@ -193,7 +193,7 @@ export const NegociosTable: React.FC<NegociosTableProps> = ({
                           onClick={() => onDelete(negocio.id_negocio)}
                           loading={deletingId === negocio.id_negocio}
                           disabled={deletingId === negocio.id_negocio}
-                          className="h-8 w-8 p-0 hover:bg-error hover:text-white transition-colors"
+                          className="h-8 w-8 p-0 hover:bg-destructive hover:text-white transition-colors"
                           title="Eliminar"
                         >
                           <Trash2Icon />

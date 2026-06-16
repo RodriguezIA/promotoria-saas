@@ -224,10 +224,10 @@ export default function ProductoForm() {
 
   if (loadingData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 size={32} className="animate-spin text-gray-400" />
-          <p className="text-gray-500">Cargando producto...</p>
+          <Loader2 size={32} className="animate-spin text-muted-foreground/70" />
+          <p className="text-muted-foreground">Cargando producto...</p>
         </div>
       </div>
     );
@@ -235,23 +235,23 @@ export default function ProductoForm() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/50">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+      <div className="sticky top-0 z-10 bg-white border-b border-border shadow-sm">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={handleCancel}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-accent rounded-lg transition-colors"
               >
-                <ArrowLeft size={20} className="text-gray-600" />
+                <ArrowLeft size={20} className="text-muted-foreground" />
               </button>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">
+                <h1 className="text-xl font-semibold text-foreground">
                   {isEditMode ? "Editar Producto" : "Nuevo Producto"}
                 </h1>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   {isEditMode 
                     ? "Modifica la información del producto" 
                     : "Completa la información del producto"
@@ -264,7 +264,7 @@ export default function ProductoForm() {
               type="submit"
               form="producto-form"
               disabled={loading || (isEditMode && !hasChanges())}
-              className="px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {loading ? (
                 <>
@@ -286,10 +286,10 @@ export default function ProductoForm() {
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         <form id="producto-form" onSubmit={handleSubmit} className="space-y-6">
           {/* Información del Producto */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-lg border border-border p-6">
             <div className="flex items-center gap-2 mb-6">
-              <Package size={20} className="text-gray-600" />
-              <h2 className="text-lg font-medium text-gray-900">
+              <Package size={20} className="text-muted-foreground" />
+              <h2 className="text-lg font-medium text-foreground">
                 Información del Producto
               </h2>
             </div>
@@ -297,7 +297,7 @@ export default function ProductoForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Nombre */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Nombre del Producto *
                 </label>
                 <input
@@ -306,14 +306,14 @@ export default function ProductoForm() {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Ej: Shampoo Anti-caspa 500ml"
-                  className={`w-full px-4 py-2.5 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
+                  className={`w-full px-4 py-2.5 bg-card border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors ${
                     errors.name
-                      ? "border-red-300 bg-red-50"
-                      : "border-gray-200"
+                      ? "border-destructive/30 bg-destructive/10"
+                      : "border-border"
                   }`}
                 />
                 {errors.name && (
-                  <div className="flex items-center gap-1 mt-1 text-sm text-red-600">
+                  <div className="flex items-center gap-1 mt-1 text-sm text-destructive">
                     <AlertCircle size={14} />
                     {errors.name}
                   </div>
@@ -322,7 +322,7 @@ export default function ProductoForm() {
 
               {/* Imagen */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Imagen del Producto
                 </label>
                 
@@ -331,18 +331,18 @@ export default function ProductoForm() {
                     <img
                       src={imagePreview}
                       alt="Preview"
-                      className="w-full h-full object-cover rounded-lg border border-gray-200"
+                      className="w-full h-full object-cover rounded-lg border border-border"
                     />
                     <button
                       type="button"
                       onClick={removeImage}
-                      className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                      className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
                     >
                       <X size={14} />
                     </button>
                     {/* Botón para cambiar imagen */}
                     <label className="absolute bottom-2 right-2 p-2 bg-white/90 rounded-lg cursor-pointer hover:bg-white transition-colors shadow-sm">
-                      <ImagePlus size={16} className="text-gray-600" />
+                      <ImagePlus size={16} className="text-muted-foreground" />
                       <input
                         type="file"
                         accept="image/*"
@@ -352,9 +352,9 @@ export default function ProductoForm() {
                     </label>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors">
-                    <ImagePlus size={32} className="text-gray-400 mb-2" />
-                    <span className="text-sm text-gray-500">Subir imagen</span>
+                  <label className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-input rounded-lg cursor-pointer hover:border-ring transition-colors">
+                    <ImagePlus size={32} className="text-muted-foreground/70 mb-2" />
+                    <span className="text-sm text-muted-foreground">Subir imagen</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -368,16 +368,16 @@ export default function ProductoForm() {
           </div>
 
           {/* Descripción */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-lg border border-border p-6">
             <div className="flex items-center gap-2 mb-6">
-              <FileText size={20} className="text-gray-600" />
-              <h2 className="text-lg font-medium text-gray-900">
+              <FileText size={20} className="text-muted-foreground" />
+              <h2 className="text-lg font-medium text-foreground">
                 Descripción
               </h2>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Descripción del producto
               </label>
               <textarea
@@ -386,7 +386,7 @@ export default function ProductoForm() {
                 onChange={handleChange}
                 rows={4}
                 placeholder="Describe las características del producto..."
-                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors resize-none"
+                className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors resize-none"
               />
             </div>
           </div>

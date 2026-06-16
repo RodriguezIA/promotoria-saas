@@ -213,8 +213,8 @@ export const EditarSolicitud = () => {
   if (cargandoInicial) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <Loader2 size={40} className="animate-spin text-blue-600 mb-4" />
-        <p className="text-gray-500 font-medium text-lg">Cargando datos de la solicitud...</p>
+        <Loader2 size={40} className="animate-spin text-info mb-4" />
+        <p className="text-muted-foreground font-medium text-lg">Cargando datos de la solicitud...</p>
       </div>
     );
   }
@@ -223,8 +223,8 @@ export const EditarSolicitud = () => {
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
       <div className="flex justify-between items-center mb-6 border-b pb-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Editar Solicitud #{id}</h2>
-          <p className="text-sm text-gray-500 mt-1">Modifica los productos o checklist y guarda los cambios.</p>
+          <h2 className="text-2xl font-bold text-foreground">Editar Solicitud #{id}</h2>
+          <p className="text-sm text-muted-foreground mt-1">Modifica los productos o checklist y guarda los cambios.</p>
         </div>
         <Button variant="outline" onClick={() => navigate(`/detalle-solicitud/${id}`)} className="flex items-center gap-2">
           <ArrowLeft size={16} /> Cancelar
@@ -232,17 +232,17 @@ export const EditarSolicitud = () => {
       </div>
 
       {errorTexto && (
-        <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-200">
+        <div className="mb-4 p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/30">
           {errorTexto}
         </div>
       )}
 
       {/* 1. Nombre de la solicitud */}
       <div className="mb-6">
-        <label className="block text-gray-700 font-semibold mb-2">Nombre de la Solicitud</label>
+        <label className="block text-foreground font-semibold mb-2">Nombre de la Solicitud</label>
         <input
           type="text"
-          className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-3 border border-input rounded focus:outline-none focus:ring-2 focus:ring-ring"
           placeholder="Ej. Auditoría de Verano"
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
@@ -252,11 +252,11 @@ export const EditarSolicitud = () => {
       {/* 2. Selección de Productos */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
-          <label className="block text-gray-700 font-semibold">1. Modifica los Productos a auditar</label>
+          <label className="block text-foreground font-semibold">1. Modifica los Productos a auditar</label>
           <Badge variant="secondary">{productosSeleccionados.length} seleccionados</Badge>
         </div>
         {listaProductos.length === 0 ? (
-          <p className="text-gray-500 italic p-4 bg-gray-50 rounded">No hay productos registrados en el catálogo.</p>
+          <p className="text-muted-foreground italic p-4 bg-muted/50 rounded">No hay productos registrados en el catálogo.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {listaProductos.map(prod => {
@@ -271,17 +271,17 @@ export const EditarSolicitud = () => {
                   onClick={() => toggleProducto(prod)}
                   className={`relative group cursor-pointer rounded-xl border-2 transition-all overflow-hidden ${
                     seleccionado
-                      ? 'border-blue-500 bg-blue-50 shadow-md'
-                      : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
+                      ? 'border-ring bg-info/10 shadow-md'
+                      : 'border-border bg-white hover:border-info/30 hover:shadow-sm'
                   }`}
                 >
                   {seleccionado && (
-                    <div className="absolute top-2 right-2 z-10 bg-blue-500 text-white rounded-full p-1 shadow">
+                    <div className="absolute top-2 right-2 z-10 bg-primary text-primary-foreground rounded-full p-1 shadow">
                       <Check size={14} strokeWidth={3} />
                     </div>
                   )}
 
-                  <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+                  <div className="aspect-square bg-muted flex items-center justify-center overflow-hidden">
                     {prod.vc_image ? (
                       <img
                         src={prod.vc_image}
@@ -292,7 +292,7 @@ export const EditarSolicitud = () => {
                         }}
                       />
                     ) : (
-                      <div className="flex flex-col items-center text-gray-400">
+                      <div className="flex flex-col items-center text-muted-foreground/70">
                         <ImageOff size={32} />
                         <span className="text-xs mt-1">Sin imagen</span>
                       </div>
@@ -300,11 +300,11 @@ export const EditarSolicitud = () => {
                   </div>
 
                   <div className="p-3">
-                    <p className="font-medium text-sm text-gray-800 line-clamp-2 text-center" title={prod.name}>
+                    <p className="font-medium text-sm text-foreground line-clamp-2 text-center" title={prod.name}>
                       {prod.name}
                     </p>
                     {seleccionado && cantPreguntas > 0 && (
-                      <p className="text-xs text-blue-600 text-center mt-1 font-medium">
+                      <p className="text-xs text-info text-center mt-1 font-medium">
                         {cantPreguntas} pregunta{cantPreguntas !== 1 ? 's' : ''}
                       </p>
                     )}
@@ -320,8 +320,8 @@ export const EditarSolicitud = () => {
       {productosSeleccionados.length > 0 && (
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <label className="block text-gray-700 font-semibold">2. Ajusta las Preguntas por Producto</label>
-            <Badge variant="outline" className="text-blue-700 border-blue-300 bg-blue-50">
+            <label className="block text-foreground font-semibold">2. Ajusta las Preguntas por Producto</label>
+            <Badge variant="outline" className="text-info border-info/30 bg-info/10">
               {totalPreguntas} pregunta{totalPreguntas !== 1 ? 's' : ''} en total
             </Badge>
           </div>
@@ -334,26 +334,26 @@ export const EditarSolicitud = () => {
             const cantidadSel = producto.preguntas.length;
 
             return (
-              <div key={producto.id_product} className="mb-5 border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white">
-                <div className="bg-gray-50 p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 border-b border-gray-200">
+              <div key={producto.id_product} className="mb-5 border border-border rounded-xl overflow-hidden shadow-sm bg-white">
+                <div className="bg-muted/50 p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 border-b border-border">
                   <div className="flex items-center gap-3">
-                    <div className="bg-blue-100 text-blue-700 rounded-lg p-2">
+                    <div className="bg-info/15 text-info rounded-lg p-2">
                       <PackageOpen size={18} />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-800">{producto.name}</h3>
-                      <p className="text-xs text-gray-500">{cantidadSel} pregunta{cantidadSel !== 1 ? 's' : ''} seleccionada{cantidadSel !== 1 ? 's' : ''}</p>
+                      <h3 className="font-bold text-foreground">{producto.name}</h3>
+                      <p className="text-xs text-muted-foreground">{cantidadSel} pregunta{cantidadSel !== 1 ? 's' : ''} seleccionada{cantidadSel !== 1 ? 's' : ''}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="p-4">
                   <div className="relative mb-3">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70" size={16} />
                     <input
                       type="text"
                       placeholder="Buscar preguntas..."
-                      className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full pl-9 pr-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                       value={busqueda}
                       onChange={(e) => setBusquedaPreguntas(prev => ({ ...prev, [producto.id_product]: e.target.value }))}
                     />
@@ -361,9 +361,9 @@ export const EditarSolicitud = () => {
 
                   <div className="space-y-1 max-h-64 overflow-y-auto pr-1">
                     {listaPreguntas.length === 0 ? (
-                      <p className="text-sm text-gray-500 py-4 text-center">No hay preguntas disponibles en el catálogo.</p>
+                      <p className="text-sm text-muted-foreground py-4 text-center">No hay preguntas disponibles en el catálogo.</p>
                     ) : preguntasFiltradas.length === 0 ? (
-                      <p className="text-sm text-gray-500 py-4 text-center">No se encontraron preguntas con "{busqueda}"</p>
+                      <p className="text-sm text-muted-foreground py-4 text-center">No se encontraron preguntas con "{busqueda}"</p>
                     ) : (
                       preguntasFiltradas.map(pregunta => {
                         const seleccionada = producto.preguntas.some(q => q.id_pregunta === pregunta.id_question);
@@ -372,18 +372,18 @@ export const EditarSolicitud = () => {
                             key={pregunta.id_question}
                             className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors border ${
                               seleccionada
-                                ? 'bg-green-50 border-green-200'
-                                : 'hover:bg-gray-50 border-transparent hover:border-gray-200'
+                                ? 'bg-success/10 border-success/30'
+                                : 'hover:bg-accent border-transparent hover:border-border'
                             }`}
                           >
                             <div className="shrink-0">
                               <Checkbox
                                 checked={seleccionada}
                                 onCheckedChange={() => togglePregunta(producto.id_product, pregunta)}
-                                className="border-gray-300 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+                                className="border-input data-[state=checked]:bg-success data-[state=checked]:border-success"
                               />
                             </div>
-                            <span className={`text-sm font-medium flex-1 select-none ${seleccionada ? 'text-green-800' : 'text-gray-700'}`}>
+                            <span className={`text-sm font-medium flex-1 select-none ${seleccionada ? 'text-success' : 'text-foreground'}`}>
                               {pregunta.question}
                             </span>
                           </div>
@@ -401,35 +401,35 @@ export const EditarSolicitud = () => {
       {/* 4. Resumen y Guardar */}
       {productosSeleccionados.length > 0 && (
         <>
-          <hr className="my-6 border-gray-300" />
-          <div className="bg-gray-900 text-white p-5 rounded-xl shadow-lg">
+          <hr className="my-6 border-input" />
+          <div className="bg-primary text-primary-foreground p-5 rounded-xl shadow-lg">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between gap-8">
-                  <span className="text-gray-300">Costo base (hasta 3 preguntas):</span>
+                  <span className="text-primary-foreground/70">Costo base (hasta 3 preguntas):</span>
                   <span className="font-medium">$45.00</span>
                 </div>
                 {preguntasExtra > 0 && (
-                  <div className="flex justify-between gap-8 text-amber-300">
+                  <div className="flex justify-between gap-8 text-primary-foreground/90">
                     <span>Preguntas extra ({preguntasExtra}):</span>
                     <span>+ ${costoExtra.toFixed(2)}</span>
                   </div>
                 )}
                 {granTotal >= 90 && totalPreguntas > 6 && (
-                  <div className="text-xs text-gray-400 italic">
+                  <div className="text-xs text-primary-foreground/70 italic">
                     Precio máximo alcanzado. Puedes seguir agregando preguntas sin costo adicional.
                   </div>
                 )}
-                <div className="flex justify-between gap-8 text-lg pt-2 border-t border-gray-700">
+                <div className="flex justify-between gap-8 text-lg pt-2 border-t border-primary-foreground/20">
                   <span className="font-bold">Costo Total:</span>
-                  <span className="font-bold text-green-400">${granTotal.toFixed(2)}</span>
+                  <span className="font-bold">${granTotal.toFixed(2)}</span>
                 </div>
               </div>
 
               <Button
                 onClick={handleActualizar}
                 disabled={guardando}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-6 px-8 rounded-lg shadow transition-colors text-lg flex items-center gap-2 w-full lg:w-auto"
+                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 disabled:opacity-60 font-semibold py-6 px-8 rounded-lg shadow transition-colors text-lg flex items-center gap-2 w-full lg:w-auto"
               >
                 {guardando ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
                 {guardando ? 'Guardando...' : 'Actualizar Solicitud'}

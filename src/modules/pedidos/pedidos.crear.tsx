@@ -234,10 +234,10 @@ export const CrearPedido = () => {
 
       {/* Selector de Cliente */}
       {isSuperAdmin && (
-        <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Cliente:</label>
+        <div className="mb-6 bg-muted/50 p-4 rounded-lg border border-border">
+          <label className="block text-sm font-semibold text-foreground mb-2">Cliente:</label>
           {loadingClientes ? (
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="animate-spin" size={16} />
               Cargando clientes...
             </div>
@@ -259,21 +259,21 @@ export const CrearPedido = () => {
       )}
 
       {!selectedClientId ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-muted-foreground">
           {isSuperAdmin ? 'Selecciona un cliente para continuar.' : 'Cargando información del cliente...'}
         </div>
       ) : loadingDatos ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <Loader2 size={28} className="animate-spin text-blue-500" />
-          <p className="text-sm text-gray-500">Cargando solicitudes y tiendas...</p>
+          <Loader2 size={28} className="animate-spin text-info" />
+          <p className="text-sm text-muted-foreground">Cargando solicitudes y tiendas...</p>
         </div>
       ) : (
         <div className="space-y-8">
           {/* --- SECCIÓN 1: Solicitudes disponibles --- */}
           <div>
-            <h3 className="text-lg font-bold text-gray-800 mb-3">1. Solicitudes disponibles</h3>
+            <h3 className="text-lg font-bold text-foreground mb-3">1. Solicitudes disponibles</h3>
             {requests.length === 0 ? (
-              <p className="text-gray-500 italic p-4 bg-gray-50 rounded">No hay solicitudes activas para este cliente.</p>
+              <p className="text-muted-foreground italic p-4 bg-muted/50 rounded">No hay solicitudes activas para este cliente.</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {requests.map((req) => {
@@ -283,22 +283,22 @@ export const CrearPedido = () => {
                       key={req.id_request}
                       className={`relative border-2 rounded-xl p-4 transition-all ${
                         yaAgregada
-                          ? 'border-green-500 bg-green-50'
-                          : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm cursor-pointer'
+                          ? 'border-success bg-success/10'
+                          : 'border-border bg-white hover:border-info/30 hover:shadow-sm cursor-pointer'
                       }`}
                       onClick={() => !yaAgregada && agregarRequest(req)}
                     >
                       {yaAgregada && (
-                        <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
+                        <div className="absolute top-2 right-2 bg-success text-success-foreground rounded-full p-1">
                           <Check size={14} strokeWidth={3} />
                         </div>
                       )}
-                      <p className="font-semibold text-gray-800">{req.vc_name}</p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Valor: <span className="font-medium text-gray-700">${Number(req.f_value).toFixed(2)} MXN</span>
+                      <p className="font-semibold text-foreground">{req.vc_name}</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Valor: <span className="font-medium text-foreground">${Number(req.f_value).toFixed(2)} MXN</span>
                       </p>
                       {!yaAgregada && (
-                        <div className="mt-3 flex items-center gap-1 text-blue-600 text-sm font-medium">
+                        <div className="mt-3 flex items-center gap-1 text-info text-sm font-medium">
                           <Plus size={16} /> Agregar al pedido
                         </div>
                       )}
@@ -312,7 +312,7 @@ export const CrearPedido = () => {
           {/* --- SECCIÓN 2: Items del pedido --- */}
           {items.length > 0 && (
             <div>
-              <h3 className="text-lg font-bold text-gray-800 mb-3">2. Configura tiendas por solicitud</h3>
+              <h3 className="text-lg font-bold text-foreground mb-3">2. Configura tiendas por solicitud</h3>
               <div className="space-y-4">
                 {items.map((item) => {
                   const abierta = requestAbierta === item.id_request
@@ -320,29 +320,29 @@ export const CrearPedido = () => {
                   const count = item.storesSeleccionadas.length
 
                   return (
-                    <Card key={item.id_request} className="overflow-hidden border-gray-200">
+                    <Card key={item.id_request} className="overflow-hidden border-border">
                       <CardHeader className="p-0">
                         <button
                           type="button"
                           onClick={() => setRequestAbierta(abierta ? null : item.id_request)}
-                          className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                          className="w-full flex items-center justify-between p-4 bg-muted/50 hover:bg-accent transition-colors text-left"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="bg-blue-100 text-blue-700 rounded-lg p-2">
+                            <div className="bg-info/15 text-info rounded-lg p-2">
                               <ClipboardList size={18} />
                             </div>
                             <div>
-                              <p className="font-bold text-gray-800">{item.vc_name}</p>
-                              <p className="text-xs text-gray-500">
+                              <p className="font-bold text-foreground">{item.vc_name}</p>
+                              <p className="text-xs text-muted-foreground">
                                 {count} tienda{count !== 1 ? 's' : ''} seleccionada
                                 {count !== 1 ? 's' : ''} · Subtotal:{' '}
-                                <span className="font-semibold text-gray-700">${costo.toFixed(2)}</span>
+                                <span className="font-semibold text-foreground">${costo.toFixed(2)}</span>
                               </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary">${Number(item.f_value).toFixed(2)} c/u</Badge>
-                            {abierta ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
+                            {abierta ? <ChevronUp size={18} className="text-muted-foreground/70" /> : <ChevronDown size={18} className="text-muted-foreground/70" />}
                           </div>
                         </button>
                       </CardHeader>
@@ -351,8 +351,8 @@ export const CrearPedido = () => {
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              <Store size={16} className="text-gray-400" />
-                              <span className="text-sm font-medium text-gray-700">Tiendas:</span>
+                              <Store size={16} className="text-muted-foreground/70" />
+                              <span className="text-sm font-medium text-foreground">Tiendas:</span>
                             </div>
                             <div className="flex gap-2">
                               <Button variant="outline" size="sm" onClick={() => seleccionarTodasTiendas(item.id_request)}>
@@ -361,14 +361,14 @@ export const CrearPedido = () => {
                               <Button variant="outline" size="sm" onClick={() => limpiarTiendas(item.id_request)}>
                                 Limpiar
                               </Button>
-                              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" onClick={() => removerRequest(item.id_request)}>
+                              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => removerRequest(item.id_request)}>
                                 <Trash2 size={16} className="mr-1" /> Quitar
                               </Button>
                             </div>
                           </div>
 
                           {stores.length === 0 ? (
-                            <p className="text-sm text-gray-500 py-2">No hay tiendas registradas para este cliente.</p>
+                            <p className="text-sm text-muted-foreground py-2">No hay tiendas registradas para este cliente.</p>
                           ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                               {stores.map((store) => {
@@ -379,16 +379,16 @@ export const CrearPedido = () => {
                                     onClick={() => toggleStore(item.id_request, store.id_store)}
                                     className={`flex items-center gap-3 p-2.5 rounded-lg border cursor-pointer transition-colors ${
                                       seleccionada
-                                        ? 'bg-blue-50 border-blue-300'
-                                        : 'bg-white border-gray-200 hover:border-gray-300'
+                                        ? 'bg-info/10 border-info/30'
+                                        : 'bg-white border-border hover:border-input'
                                     }`}
                                   >
                                     <Checkbox checked={seleccionada} className="pointer-events-none" />
                                     <div className="flex-1 min-w-0">
-                                      <p className={`text-sm font-medium truncate ${seleccionada ? 'text-blue-800' : 'text-gray-700'}`}>
+                                      <p className={`text-sm font-medium truncate ${seleccionada ? 'text-info' : 'text-foreground'}`}>
                                         {store.name}
                                       </p>
-                                      <p className="text-xs text-gray-400 truncate">
+                                      <p className="text-xs text-muted-foreground/70 truncate">
                                         {store.address?.street || ''} {store.address?.ext_number || ''}
                                       </p>
                                     </div>
@@ -408,27 +408,27 @@ export const CrearPedido = () => {
 
           {/* --- SECCIÓN 3: Resumen y Guardar --- */}
           {items.length > 0 && (
-            <div className="bg-gray-900 text-white p-5 rounded-xl shadow-lg">
+            <div className="bg-primary text-primary-foreground p-5 rounded-xl shadow-lg">
               <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between gap-8">
-                    <span className="text-gray-300">Solicitudes:</span>
+                    <span className="text-primary-foreground/70">Solicitudes:</span>
                     <span className="font-medium">{items.length}</span>
                   </div>
                   <div className="flex justify-between gap-8">
-                    <span className="text-gray-300">Tiendas totales:</span>
+                    <span className="text-primary-foreground/70">Tiendas totales:</span>
                     <span className="font-medium">{totalTiendas}</span>
                   </div>
-                  <div className="flex justify-between gap-8 text-lg pt-2 border-t border-gray-700">
+                  <div className="flex justify-between gap-8 text-lg pt-2 border-t border-primary-foreground/20">
                     <span className="font-bold">Costo Total:</span>
-                    <span className="font-bold text-green-400">${granTotal.toFixed(2)} MXN</span>
+                    <span className="font-bold">${granTotal.toFixed(2)} MXN</span>
                   </div>
                 </div>
 
                 <Button
                   onClick={handleGuardar}
                   disabled={guardando}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-3 px-8 rounded-lg shadow transition-colors text-lg w-full lg:w-auto"
+                  className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 disabled:opacity-60 font-semibold py-3 px-8 rounded-lg shadow transition-colors text-lg w-full lg:w-auto"
                 >
                   {guardando ? 'Guardando...' : 'Crear Pedido'}
                 </Button>

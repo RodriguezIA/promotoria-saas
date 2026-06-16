@@ -23,7 +23,7 @@ export function CustomMarker({ position, imageUrl, storeName }: CustomMarkerProp
                 {/* Contenedor del marcador */}
                 <div className="bg-white rounded-lg shadow-lg border-2 border-brand overflow-hidden">
                     {/* Imagen */}
-                    <div className="w-full h-[70px] bg-gray-100 relative">
+                    <div className="w-full h-[70px] bg-muted relative">
                         {imageUrl ? (
                             <img
                                 src={imageUrl}
@@ -36,14 +36,14 @@ export function CustomMarker({ position, imageUrl, storeName }: CustomMarkerProp
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                                <Store size={28} className="text-gray-300" />
+                                <Store size={28} className="text-muted-foreground/50" />
                             </div>
                         )}
                     </div>
                     
                     {/* Nombre */}
                     <div className="px-2 py-1.5 text-center">
-                        <p className="text-xs font-medium text-gray-800 truncate">
+                        <p className="text-xs font-medium text-foreground truncate">
                             {storeName || "Nuevo establecimiento"}
                         </p>
                     </div>
@@ -59,7 +59,7 @@ export function CustomMarker({ position, imageUrl, storeName }: CustomMarkerProp
                         style={{
                             borderLeft: '10px solid transparent',
                             borderRight: '10px solid transparent',
-                            borderTop: '12px solid #CBEF43',
+                            borderTop: '12px solid var(--brand)',
                         }}
                     />
                 </div>

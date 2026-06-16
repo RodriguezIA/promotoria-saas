@@ -173,7 +173,7 @@ export function EstablecimientoModalRegistroMasivo({ id_client, onSuccess }: { i
                                 disabled={loading}
                             />
                             {file && (
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                     <FileSpreadsheet size={16} />
                                     <span>{file.name}</span>
                                 </div>

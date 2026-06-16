@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { HelpCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './dialog';
 import { Input } from './input';
 import { Label } from './label';
@@ -134,7 +135,7 @@ export const PreguntaModal: React.FC<PreguntaModalProps> = ({
       <DialogContent className="sm:max-w-[600px] bg-card max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-primary text-xl flex items-center gap-2">
-            <span className="text-2xl">❓</span>
+            <HelpCircle className="w-6 h-6 text-muted-foreground" />
             {getTitle()}
           </DialogTitle>
         </DialogHeader>
@@ -150,7 +151,7 @@ export const PreguntaModal: React.FC<PreguntaModalProps> = ({
             <div className="space-y-2">
               <Label htmlFor="pregunta" className="text-primary flex items-center gap-1">
                 Texto de la Pregunta
-                {!isReadonly && <span className="text-error">*</span>}
+                {!isReadonly && <span className="text-destructive">*</span>}
               </Label>
               <Textarea
                 id="pregunta"
@@ -168,7 +169,7 @@ export const PreguntaModal: React.FC<PreguntaModalProps> = ({
             <div className="space-y-2">
               <Label htmlFor="tipo" className="text-primary flex items-center gap-1">
                 Tipo de Pregunta
-                {!isReadonly && <span className="text-error">*</span>}
+                {!isReadonly && <span className="text-destructive">*</span>}
               </Label>
               <select
                 id="tipo"
@@ -225,8 +226,8 @@ export const PreguntaModal: React.FC<PreguntaModalProps> = ({
                 </div>
                 <p className="text-sm text-secondary">
                   {formData.b_evidencia ? 
-                    '📷 Se requerirá evidencia fotográfica' : 
-                    '📝 Solo se capturará la respuesta'
+                    'Se requerirá evidencia fotográfica' : 
+                    'Solo se capturará la respuesta'
                   }
                 </p>
               </div>
@@ -259,8 +260,8 @@ export const PreguntaModal: React.FC<PreguntaModalProps> = ({
                 </div>
                 <p className="text-sm text-secondary">
                   {formData.b_requerido ? 
-                    '⚠️ Esta pregunta debe ser respondida obligatoriamente' : 
-                    '✅ Esta pregunta es opcional'
+                    'Esta pregunta debe ser respondida obligatoriamente' : 
+                    'Esta pregunta es opcional'
                   }
                 </p>
               </div>
@@ -285,8 +286,8 @@ export const PreguntaModal: React.FC<PreguntaModalProps> = ({
                   <Label className="text-secondary">Estado</Label>
                   <p className="text-primary">
                     {pregunta.b_estatus !== false ? 
-                      <span className="text-success">✅ Activa</span> : 
-                      <span className="text-error">❌ Inactiva</span>
+                      <span className="text-success">Activa</span> : 
+                      <span className="text-destructive">Inactiva</span>
                     }
                   </p>
                 </div>
@@ -306,7 +307,7 @@ export const PreguntaModal: React.FC<PreguntaModalProps> = ({
 
           {/* Error general */}
           {errors.general && (
-            <div className="bg-error bg-opacity-10 border border-error rounded-lg p-3">
+            <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3">
               <p className="error-text text-center">{errors.general}</p>
             </div>
           )}
@@ -330,7 +331,7 @@ export const PreguntaModal: React.FC<PreguntaModalProps> = ({
                 loadingText={mode === 'create' ? 'Creando...' : 'Guardando...'}
                 className="btn-primary"
               >
-                {mode === 'create' ? '✨ Crear Pregunta' : '💾 Guardar Cambios'}
+                {mode === 'create' ? 'Crear Pregunta' : 'Guardar Cambios'}
               </LoadingButton>
             )}
           </div>

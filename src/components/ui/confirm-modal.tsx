@@ -62,25 +62,18 @@ export function ConfirmModal({
         />
         <DialogPrimitive.Content
           ref={contentRef}
-          className="fixed left-[50%] top-[50%] z-50 w-full max-w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-950 focus:outline-none"
+          className="fixed left-[50%] top-[50%] z-50 w-full max-w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card p-6 shadow-xl focus:outline-none"
         >
           <DialogHeader>
             {icon && (
               <div
-                className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full"
-                style={{
-                  backgroundColor:
-                    variant === "danger" ? "rgb(254 226 226)" : "var(--hover)",
-                }}
+                className={
+                  variant === "danger"
+                    ? "mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/15 text-destructive"
+                    : "mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-accent text-foreground"
+                }
               >
-                <span
-                  style={{
-                    color:
-                      variant === "danger" ? "rgb(220 38 38)" : "var(--text-primary)",
-                  }}
-                >
-                  {icon}
-                </span>
+                {icon}
               </div>
             )}
             <DialogTitle className="text-center">{title}</DialogTitle>
@@ -104,11 +97,7 @@ export function ConfirmModal({
               onClick={onConfirm}
               disabled={loading}
               className="flex-1"
-              style={
-                variant === "danger"
-                  ? { backgroundColor: "rgb(220 38 38)", color: "white" }
-                  : undefined
-              }
+              variant={variant === "danger" ? "destructive" : "default"}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {confirmLabel}

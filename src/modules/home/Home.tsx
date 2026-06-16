@@ -96,7 +96,7 @@ export function Home() {
       {/* Stats */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground/70" />
         </div>
       ) : isSuperAdmin ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 stagger-children">

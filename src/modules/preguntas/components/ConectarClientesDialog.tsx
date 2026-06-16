@@ -152,7 +152,7 @@ export function ConectarClientesDialog({
 
                 {/* Buscador */}
                 <div className="relative mt-2">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
                     <Input
                         placeholder="Buscar cliente por nombre o email..."
                         value={searchTerm}
@@ -169,12 +169,12 @@ export function ConectarClientesDialog({
                             data-state={algunosSeleccionados ? "indeterminate" : todosSeleccionados ? "checked" : "unchecked"}
                             onCheckedChange={toggleTodos}
                         />
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-sm font-medium text-foreground">
                             {todosSeleccionados
                                 ? "Deseleccionar todos"
                                 : "Seleccionar todos"}
                         </span>
-                        <span className="text-xs text-gray-500 ml-auto">
+                        <span className="text-xs text-muted-foreground ml-auto">
                             {selectedClientIds.length} de {clientes.length} seleccionados
                         </span>
                     </div>
@@ -184,10 +184,10 @@ export function ConectarClientesDialog({
                 <div className="flex-1 overflow-y-auto min-h-[200px] max-h-[400px] pr-1 space-y-1 mt-1">
                     {loadingClientes ? (
                         <div className="flex items-center justify-center py-12">
-                            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/70" />
                         </div>
                     ) : clientesFiltrados.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
+                        <div className="text-center py-8 text-muted-foreground">
                             {searchTerm
                                 ? "No se encontraron clientes"
                                 : "No hay clientes disponibles"}
@@ -200,33 +200,33 @@ export function ConectarClientesDialog({
                                     key={cliente.id_client}
                                     className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors border ${
                                         seleccionado
-                                            ? "bg-blue-50 border-blue-200"
-                                            : "hover:bg-gray-50 border-transparent hover:border-gray-200"
+                                            ? "bg-info/10 border-info/30"
+                                            : "hover:bg-accent border-transparent hover:border-border"
                                     }`}
                                 >
                                     <div className="shrink-0">
                                         <Checkbox
                                             checked={seleccionado}
                                             onCheckedChange={() => toggleCliente(cliente.id_client)}
-                                            className="border-gray-300 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                                            className="border-input data-[state=checked]:bg-primary data-[state=checked]:border-ring"
                                         />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p
                                             className={`text-sm font-medium truncate ${
-                                                seleccionado ? "text-blue-800" : "text-gray-800"
+                                                seleccionado ? "text-info" : "text-foreground"
                                             }`}
                                         >
                                             {cliente.name}
                                         </p>
                                         {cliente.email && (
-                                            <p className="text-xs text-gray-500 truncate">
+                                            <p className="text-xs text-muted-foreground truncate">
                                                 {cliente.email}
                                             </p>
                                         )}
                                     </div>
                                     {seleccionado && (
-                                        <Check size={16} className="text-blue-500 shrink-0" />
+                                        <Check size={16} className="text-info shrink-0" />
                                     )}
                                 </div>
                             )

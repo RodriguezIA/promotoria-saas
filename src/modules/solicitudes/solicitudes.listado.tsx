@@ -89,9 +89,9 @@ export function SolicitudesList() {
       cell: ({ row }) => {
         const folio = row.original.vc_folio;
         if (!folio) {
-          return <span className="text-gray-400 text-sm">—</span>;
+          return <span className="text-muted-foreground/70 text-sm">—</span>;
         }
-        return <span className="font-bold text-gray-700">{folio}</span>;
+        return <span className="font-bold text-foreground">{folio}</span>;
       },
     },
     {
@@ -99,7 +99,7 @@ export function SolicitudesList() {
       header: "Nombre de la Solicitud",
       cell: ({ row }) => (
         <span
-          className="font-medium cursor-pointer hover:underline text-blue-600"
+          className="font-medium cursor-pointer hover:underline text-info"
           onClick={() => navigate(`/detalle-solicitud/${row.original.id_request}`)}
         >
           {row.getValue("vc_name")}
@@ -138,7 +138,7 @@ export function SolicitudesList() {
     //         <DropdownMenuTrigger asChild>
     //           <Button variant="ghost" className="h-8 w-8 p-0">
     //             <span className="sr-only">Abrir menú</span>
-    //             <MoreHorizontal className="h-4 w-4 text-gray-500" />
+    //             <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
     //           </Button>
     //         </DropdownMenuTrigger>
     //         <DropdownMenuContent align="end">
@@ -146,7 +146,7 @@ export function SolicitudesList() {
     //             onClick={() => navigate(`/detalle-solicitud/${id}`)}
     //             className="cursor-pointer"
     //           >
-    //             <Eye className="mr-2 h-4 w-4 text-blue-600" />
+    //             <Eye className="mr-2 h-4 w-4 text-info" />
     //             <span>Ver Detalle</span>
     //           </DropdownMenuItem>
               
@@ -154,7 +154,7 @@ export function SolicitudesList() {
     //             onClick={() => navigate(`/editar-solicitud/${id}`)}
     //             className="cursor-pointer"
     //           >
-    //             <Edit2 className="mr-2 h-4 w-4 text-amber-600" />
+    //             <Edit2 className="mr-2 h-4 w-4 text-warning-foreground dark:text-warning" />
     //             <span>Editar Solicitud</span>
     //           </DropdownMenuItem>
     //         </DropdownMenuContent>
@@ -174,7 +174,7 @@ export function SolicitudesList() {
             <Button
               size="icon"
               variant="default"
-              className="bg-gray-600 text-white hover:bg-gray-950 border-gray-300 hover:text-blue-300"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent"
               onClick={() => navigate(`/detalle-solicitud/${id}`)}
             >
               <Glasses className="h-4 w-4" />
@@ -184,7 +184,7 @@ export function SolicitudesList() {
             <Button
               size="icon"
               variant="default"
-              className="bg-gray-600 text-white hover:bg-gray-950 border-gray-300 hover:text-amber-300"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent"
               onClick={() => navigate(`/editar-solicitud/${id}`)}
             >
               <Edit2 className="h-4 w-4" />
@@ -194,7 +194,7 @@ export function SolicitudesList() {
             {/* <Button
               size="icon"
               variant="default"
-              className="bg-red-500 border-gray-200 text-white hover:bg-red-950 border-gray-300"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => handleDelete(product.id_product)}
             >
               <Trash2 className="h-4 w-4" />
@@ -231,7 +231,7 @@ export function SolicitudesList() {
 
       {isSuperAdmin && clientes.length > 0 && (
         <div className="flex items-center gap-3 p-4 rounded-xl border" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
-          <label className="text-sm font-medium flex-shrink-0" style={{ color: "var(--text-secondary)" }}>
+          <label className="text-sm font-medium shrink-0" style={{ color: "var(--text-secondary)" }}>
             Cliente:
           </label>
           <Select value={selectedClientId?.toString() || ""} onValueChange={handleClientChange}>

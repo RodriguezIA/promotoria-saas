@@ -1,4 +1,5 @@
 import React from 'react';
+import { Store, Eye, Pencil, Trash2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './table';
 import { StatusBadge } from './status-badge';
 import { LoadingButton } from './loading-button';
@@ -96,7 +97,7 @@ export const EstablecimientosTable: React.FC<EstablecimientosTableProps> = ({
     return (
       <Card className="custom-card">
         <CardContent className="flex flex-col items-center justify-center py-12">
-          <div className="text-6xl mb-4">🏪</div>
+          <Store className="w-12 h-12 mb-4 text-muted-foreground/50" />
           <h3 className="text-xl font-semibold text-primary mb-2">
             No hay establecimientos
           </h3>
@@ -131,7 +132,7 @@ export const EstablecimientosTable: React.FC<EstablecimientosTableProps> = ({
               {establecimientos.map((establecimiento, index) => (
                 <TableRow 
                   key={establecimiento.id_establecimiento || index}
-                  className="hover:bg-hover transition-colors duration-200 fade-in border-b border-border"
+                  className="hover:bg-accent transition-colors duration-200 fade-in border-b border-border"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <TableCell className="text-center font-medium text-secondary">
@@ -215,7 +216,7 @@ export const EstablecimientosTable: React.FC<EstablecimientosTableProps> = ({
                           className="h-8 w-8 p-0 hover:bg-info hover:text-white transition-colors"
                           title="Ver detalles"
                         >
-                          👁️
+                          <Eye className="w-4 h-4" />
                         </Button>
                       )}
                       
@@ -227,7 +228,7 @@ export const EstablecimientosTable: React.FC<EstablecimientosTableProps> = ({
                           className="h-8 w-8 p-0 hover:bg-warning hover:text-black transition-colors"
                           title="Editar"
                         >
-                          ✏️
+                          <Pencil className="w-4 h-4" />
                         </Button>
                       )}
                       
@@ -238,10 +239,10 @@ export const EstablecimientosTable: React.FC<EstablecimientosTableProps> = ({
                           onClick={() => onDelete(establecimiento.id_establecimiento!)}
                           loading={deletingId === establecimiento.id_establecimiento}
                           disabled={deletingId === establecimiento.id_establecimiento}
-                          className="h-8 w-8 p-0 hover:bg-error hover:text-white transition-colors"
+                          className="h-8 w-8 p-0 hover:bg-destructive hover:text-white transition-colors"
                           title="Eliminar"
                         >
-                          🗑️
+                          <Trash2 className="w-4 h-4" />
                         </LoadingButton>
                       )}
                     </div>

@@ -70,10 +70,10 @@ export default function ProductoDetalle() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 size={32} className="animate-spin text-gray-400" />
-          <p className="text-gray-500">Cargando producto...</p>
+          <Loader2 size={32} className="animate-spin text-muted-foreground/70" />
+          <p className="text-muted-foreground">Cargando producto...</p>
         </div>
       </div>
     );
@@ -81,13 +81,13 @@ export default function ProductoDetalle() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/50 flex items-center justify-center">
         <div className="text-center">
-          <Package size={48} className="mx-auto text-gray-300 mb-4" />
-          <p className="text-gray-500">Producto no encontrado</p>
+          <Package size={48} className="mx-auto text-muted-foreground/50 mb-4" />
+          <p className="text-muted-foreground">Producto no encontrado</p>
           <Link
             to={`/clientes/${id_client}/productos`}
-            className="text-blue-600 hover:underline mt-2 inline-block"
+            className="text-info hover:underline mt-2 inline-block"
           >
             Volver a productos
           </Link>
@@ -97,22 +97,22 @@ export default function ProductoDetalle() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/50">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+      <div className="sticky top-0 z-10 bg-white border-b border-border shadow-sm">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link to={`/productos`}>
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <ArrowLeft size={20} className="text-gray-600" />
+                <button className="p-2 hover:bg-accent rounded-lg transition-colors">
+                  <ArrowLeft size={20} className="text-muted-foreground" />
                 </button>
               </Link>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">
+                <h1 className="text-xl font-semibold text-foreground">
                   Detalle del Producto
                 </h1>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Información completa del producto
                 </p>
               </div>
@@ -120,14 +120,14 @@ export default function ProductoDetalle() {
 
             <div className="flex items-center gap-2">
               <Link to={`/producto/${id_product}`}>
-                <button className="px-4 py-2 text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+                <button className="px-4 py-2 text-foreground bg-white border border-border rounded-lg hover:bg-accent transition-colors flex items-center gap-2">
                   <Edit2 size={16} />
                   Editar
                 </button>
               </Link>
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="px-4 py-2 text-red-600 bg-white border border-gray-200 rounded-lg hover:bg-red-50 transition-colors flex items-center gap-2"
+                className="px-4 py-2 text-destructive bg-white border border-border rounded-lg hover:bg-destructive/10 transition-colors flex items-center gap-2"
               >
                 <Trash2 size={16} />
                 Eliminar
@@ -140,21 +140,21 @@ export default function ProductoDetalle() {
       {/* Content */}
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         {/* Card Principal */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-border overflow-hidden">
           <div className="p-6">
             <div className="flex flex-col md:flex-row gap-6">
               {/* Imagen */}
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 {product.vc_image ? (
                   <img
                     src={product.vc_image}
                     alt={product.name}
-                    className="w-48 h-48 object-cover rounded-lg border border-gray-200"
+                    className="w-48 h-48 object-cover rounded-lg border border-border"
                   />
                 ) : (
-                  <div className="w-48 h-48 bg-gray-100 rounded-lg border border-gray-200 flex flex-col items-center justify-center">
-                    <ImageOff size={48} className="text-gray-300 mb-2" />
-                    <span className="text-sm text-gray-400">Sin imagen</span>
+                  <div className="w-48 h-48 bg-muted rounded-lg border border-border flex flex-col items-center justify-center">
+                    <ImageOff size={48} className="text-muted-foreground/50 mb-2" />
+                    <span className="text-sm text-muted-foreground/70">Sin imagen</span>
                   </div>
                 )}
               </div>
@@ -163,17 +163,17 @@ export default function ProductoDetalle() {
               <div className="flex-1">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h2 className="text-2xl font-bold text-foreground mb-2">
                       {product.name}
                     </h2>
                     {product.i_status === 1 ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-sm font-medium rounded-full">
-                        <div className="w-2 h-2 bg-green-500 rounded-full" />
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-success/10 text-success text-sm font-medium rounded-full">
+                        <div className="w-2 h-2 bg-success rounded-full" />
                         Activo
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 text-sm font-medium rounded-full">
-                        <div className="w-2 h-2 bg-red-500 rounded-full" />
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-destructive/10 text-destructive text-sm font-medium rounded-full">
+                        <div className="w-2 h-2 bg-destructive rounded-full" />
                         Inactivo
                       </span>
                     )}
@@ -181,7 +181,7 @@ export default function ProductoDetalle() {
                 </div>
 
                 {/* ID del producto */}
-                <p className="text-sm text-gray-400 mt-4">
+                <p className="text-sm text-muted-foreground/70 mt-4">
                   ID: {product.id_product}
                 </p>
               </div>
@@ -193,18 +193,18 @@ export default function ProductoDetalle() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Descripción */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                <FileText size={20} className="text-gray-400" />
+            <div className="bg-white rounded-xl border border-border p-6">
+              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
+                <FileText size={20} className="text-muted-foreground/70" />
                 Descripción
               </h3>
-              <div className="p-4 bg-gray-50 rounded-lg">
+              <div className="p-4 bg-muted/50 rounded-lg">
                 {product.description ? (
-                  <p className="text-gray-700 whitespace-pre-wrap">
+                  <p className="text-foreground whitespace-pre-wrap">
                     {product.description}
                   </p>
                 ) : (
-                  <p className="text-gray-400 italic">Sin descripción</p>
+                  <p className="text-muted-foreground/70 italic">Sin descripción</p>
                 )}
               </div>
             </div>
@@ -213,21 +213,21 @@ export default function ProductoDetalle() {
           {/* Columna lateral */}
           <div className="space-y-6">
             {/* Fechas */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                <Clock size={18} className="text-gray-400" />
+            <div className="bg-white rounded-xl border border-border p-6">
+              <h3 className="font-semibold text-foreground flex items-center gap-2 mb-4">
+                <Clock size={18} className="text-muted-foreground/70" />
                 Fechas
               </h3>
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-500">Fecha de creación</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-sm text-muted-foreground">Fecha de creación</p>
+                  <p className="font-medium text-foreground">
                     {formatDate(product.dt_created)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Última actualización</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-sm text-muted-foreground">Última actualización</p>
+                  <p className="font-medium text-foreground">
                     {formatDate(product.dt_updated)}
                   </p>
                 </div>
@@ -235,17 +235,17 @@ export default function ProductoDetalle() {
             </div>
 
             {/* Acciones rápidas */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                <Package size={18} className="text-gray-400" />
+            <div className="bg-white rounded-xl border border-border p-6">
+              <h3 className="font-semibold text-foreground flex items-center gap-2 mb-4">
+                <Package size={18} className="text-muted-foreground/70" />
                 Acciones
               </h3>
               <div className="space-y-2">
                 <Link
                   to={`/producto/${id_product}`}
-                  className="w-full px-4 py-2.5 text-left text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-3"
+                  className="w-full px-4 py-2.5 text-left text-foreground bg-muted/50 border border-border rounded-lg hover:bg-accent transition-colors flex items-center gap-3"
                 >
-                  <Edit2 size={18} className="text-gray-400" />
+                  <Edit2 size={18} className="text-muted-foreground/70" />
                   <span>Editar producto</span>
                 </Link>
               </div>
