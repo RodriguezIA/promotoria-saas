@@ -2,13 +2,13 @@ import { toast } from "sonner"
 import { useState, useEffect } from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { Link, useNavigate } from "react-router-dom"
-import { Loader2, Package, Plus, Edit2, Trash2, Glasses } from "lucide-react"
+import { Loader2, Package, Plus, Pencil, Trash2, Eye } from "lucide-react"
 
 
 import { useAuthStore } from '@/stores';
 import { ProductDTO, ClientDTO } from "@/dtos";
 import { api, ApiResponse, formatDate } from '@/lib'
-import { Button, DataTable, PageWrapper, PageHeader, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, ConfirmModal } from '@/components';
+import { Button, DataTable, PageWrapper, PageHeader, RowActions, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, ConfirmModal } from '@/components';
 
 
 export default function ProductPage() {
@@ -180,41 +180,30 @@ export default function ProductPage() {
     },
     {
       id: "actions",
-      header: "",
+      header: "Operaciones",
       cell: ({ row }) => {
         const product = row.original;
         return (
-          <div className="flex items-center gap-1">
-            {/* Botón Ver */}
-            <Button
-              size="icon"
-              variant="default"
-              className="text-muted-foreground hover:text-foreground hover:bg-accent"
-              onClick={() => navigate(`/producto/detalle/${product.id_product}`)}
-            >
-              <Glasses className="h-4 w-4" />
-            </Button>
-
-            {/* Botón Editar */}
-            <Button
-              size="icon"
-              variant="default"
-              className="text-muted-foreground hover:text-foreground hover:bg-accent"
-              onClick={() => navigate(`/producto/${product.id_product}`)}
-            >
-              <Edit2 className="h-4 w-4" />
-            </Button>
-
-            {/* Botón Eliminar */}
-            <Button
-              size="icon"
-              variant="default"
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={() => handleDelete(product.id_product)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+          <RowActions
+            actions={[
+              {
+                icon: Eye,
+                label: "Ver detalle",
+                onClick: () => navigate(`/producto/detalle/${product.id_product}`),
+              },
+              {
+                icon: Pencil,
+                label: "Editar",
+                onClick: () => navigate(`/producto/${product.id_product}`),
+              },
+              {
+                icon: Trash2,
+                label: "Eliminar",
+                tone: "destructive",
+                onClick: () => handleDelete(product.id_product),
+              },
+            ]}
+          />
         );
       },
     }

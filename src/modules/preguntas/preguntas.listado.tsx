@@ -8,7 +8,7 @@ import { ClientListDTO, QuestionDTO,  } from '@/dtos'
 import { useAuthStore } from '@/stores'
 import { api, ApiResponse } from '@/lib'
 import { ConectarClientesDialog, CrearEditarPreguntaDialog } from './components'
-import { Button, PageWrapper, PageHeader, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, DataTable, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components'
+import { Button, PageWrapper, PageHeader, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, DataTable, RowActions } from '@/components'
 
 
 
@@ -151,29 +151,19 @@ export function Preguntas() {
             },
         },
         {
-            id: "operaciones",
+            id: "actions",
             header: "Operaciones",
-            cell: ({ row }) => {
-                return (
-                    <TooltipProvider delayDuration={100}>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    onClick={() => handleAbrirConectar(row.original)}
-                                >
-                                    <Users size={16} />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top">
-                                <p>Conectar clientes</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                );
-            },
+            cell: ({ row }) => (
+                <RowActions
+                    actions={[
+                        {
+                            icon: Users,
+                            label: "Conectar clientes",
+                            onClick: () => handleAbrirConectar(row.original),
+                        },
+                    ]}
+                />
+            ),
         },
     ];
 

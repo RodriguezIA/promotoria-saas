@@ -319,7 +319,7 @@ export function createActionsColumn<TData>(
 ): import("@tanstack/react-table").ColumnDef<TData> {
   return {
     id: "actions",
-    header: "",
+    header: "Operaciones",
     cell: ({ row }) => renderActions(row.original),
     enableSorting: false,
     enableHiding: false,

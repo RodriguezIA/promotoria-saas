@@ -9,7 +9,7 @@ import { StoreDTO } from '@/dtos'
 import { api, ApiResponse } from '@/lib'
 import { deleteStore } from '@/Fetch/establecimientos'
 import { EstablecimientoModalRegistroMasivo } from './EstablecimientoModalRegistroMasivo'
-import { Button, DataTable, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components'
+import { Button, DataTable, RowActions } from '@/components'
 
 
 export function EstablecimientosSuperAdmin() {
@@ -100,47 +100,25 @@ export function EstablecimientosSuperAdmin() {
         {
             id: "actions",
             header: "Operaciones",
-            meta: { className: "text-center" },
             cell: ({ row }) => {
                 const store = row.original;
 
                 return (
-                    <TooltipProvider delayDuration={100}>
-                        <div className="flex items-center justify-center gap-2">
-                            
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button 
-                                        variant="outline" 
-                                        size="icon" 
-                                        className="h-8 w-8"
-                                        onClick={() => navigate(`/establecimiento/detalle/${store.id_store}`)}
-                                    >
-                                        <Eye className="h-4 w-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Ver detalle</p>
-                                </TooltipContent>
-                            </Tooltip>
-
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button 
-                                        variant="destructive" 
-                                        size="icon" 
-                                        className="h-8 w-8"
-                                        onClick={() => handleDeleteEstablecimiento(store.id_store)}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Eliminar</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
-                    </TooltipProvider>
+                    <RowActions
+                        actions={[
+                            {
+                                icon: Eye,
+                                label: "Ver detalle",
+                                onClick: () => navigate(`/establecimiento/detalle/${store.id_store}`),
+                            },
+                            {
+                                icon: Trash2,
+                                label: "Eliminar",
+                                tone: "destructive",
+                                onClick: () => handleDeleteEstablecimiento(store.id_store),
+                            },
+                        ]}
+                    />
                 )
             }
         }
