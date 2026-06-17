@@ -143,7 +143,7 @@ export default function FinanzasSuperAdmin() {
     },
     {
       id: "actions",
-      header: "Acción",
+      header: "Operaciones",
       cell: ({ row }) => {
         const cobro = row.original;
         if (cobro.status === "pagado") return <span className="text-xs text-muted-foreground/70">—</span>;
@@ -201,7 +201,7 @@ export default function FinanzasSuperAdmin() {
     },
     {
       id: "actions",
-      header: "Acción",
+      header: "Operaciones",
       cell: ({ row }) => {
         const pago = row.original;
         if (pago.status === "pagado") return <span className="text-xs text-muted-foreground/70">—</span>;

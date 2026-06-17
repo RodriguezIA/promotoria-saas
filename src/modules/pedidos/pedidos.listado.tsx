@@ -7,7 +7,7 @@ import { Loader2, Receipt, Plus, Eye } from 'lucide-react'
 import { useAuthStore } from '@/stores'
 import { ClientDTO, OderListDTO, OrderDTO } from '@/dtos'
 import { api, ApiResponse, formatDate } from '@/lib'
-import { Button, DataTable, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, PageHeader, PageWrapper } from '@/components'
+import { Button, DataTable, RowActions, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, PageHeader, PageWrapper } from '@/components'
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(value)
@@ -157,16 +157,17 @@ export function PedidosList() {
     },
     {
       id: "actions",
-      header: "",
+      header: "Operaciones",
       cell: ({ row }) => (
-        <Button
-          size="icon"
-          variant="default"
-          className="text-muted-foreground hover:text-foreground hover:bg-accent"
-          onClick={() => navigate(`/detalle-pedido/${row.original.id_order}`)}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
+        <RowActions
+          actions={[
+            {
+              icon: Eye,
+              label: "Ver detalle",
+              onClick: () => navigate(`/detalle-pedido/${row.original.id_order}`),
+            },
+          ]}
+        />
       ),
     },
   ];

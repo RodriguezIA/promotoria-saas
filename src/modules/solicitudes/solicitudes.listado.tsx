@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { ColumnDef } from "@tanstack/react-table"
-import { Plus, Loader2, Edit2, ClipboardList, Glasses } from "lucide-react"
+import { Plus, Loader2, Pencil, ClipboardList, Eye } from "lucide-react"
 
 
 import { api, ApiResponse } from '@/lib'
@@ -9,7 +9,7 @@ import { RequestDTO } from '@/dtos'
 import { useAuthStore } from "@/stores";
 import { getCLientsList } from "@/Fetch/clientes";
 // import { getRequestsByClient, RequestData } from "@/Fetch/solicitudes";
-import { Button, DataTable, PageHeader, PageWrapper, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components"
+import { Button, DataTable, PageHeader, PageWrapper, RowActions, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components"
 
 
 export function SolicitudesList() {
@@ -164,42 +164,25 @@ export function SolicitudesList() {
     // },
     {
       id: "actions",
-      header: "",
+      header: "Operaciones",
       cell: ({ row }) => {
         const id = row.original.id_request;
-        
+
         return (
-          <div className="flex items-center gap-1">
-            {/* Botón Ver */}
-            <Button
-              size="icon"
-              variant="default"
-              className="text-muted-foreground hover:text-foreground hover:bg-accent"
-              onClick={() => navigate(`/detalle-solicitud/${id}`)}
-            >
-              <Glasses className="h-4 w-4" />
-            </Button>
-
-            {/* Botón Editar */}
-            <Button
-              size="icon"
-              variant="default"
-              className="text-muted-foreground hover:text-foreground hover:bg-accent"
-              onClick={() => navigate(`/editar-solicitud/${id}`)}
-            >
-              <Edit2 className="h-4 w-4" />
-            </Button>
-
-            {/* Botón Eliminar */}
-            {/* <Button
-              size="icon"
-              variant="default"
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={() => handleDelete(product.id_product)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button> */}
-          </div>
+          <RowActions
+            actions={[
+              {
+                icon: Eye,
+                label: "Ver detalle",
+                onClick: () => navigate(`/detalle-solicitud/${id}`),
+              },
+              {
+                icon: Pencil,
+                label: "Editar",
+                onClick: () => navigate(`/editar-solicitud/${id}`),
+              },
+            ]}
+          />
         );
       },
     }

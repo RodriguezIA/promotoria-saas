@@ -7,7 +7,7 @@ import { CheckSquare2, Eye, Loader2 } from "lucide-react"
 import { useAuthStore } from "@/stores"
 import { ClientDTO, TaskDTO } from "@/dtos"
 import { api, ApiResponse, formatDate } from "@/lib"
-import { Button, DataTable, PageHeader, PageWrapper, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components"
+import { DataTable, PageHeader, PageWrapper, RowActions, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components"
 
 const TASK_STATUS: Record<number, { label: string; color: string }> = {
   0: { label: "Cancelada",   color: "bg-destructive/10 text-destructive" },
@@ -160,16 +160,17 @@ export function TareasListado() {
     },
     {
       id: "actions",
-      header: "",
+      header: "Operaciones",
       cell: ({ row }) => (
-        <Button
-          size="icon"
-          variant="default"
-          className="text-muted-foreground hover:text-foreground hover:bg-accent"
-          onClick={() => navigate(`/tareas/${row.original.id_task}`)}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
+        <RowActions
+          actions={[
+            {
+              icon: Eye,
+              label: "Ver detalle",
+              onClick: () => navigate(`/tareas/${row.original.id_task}`),
+            },
+          ]}
+        />
       ),
     },
   ]

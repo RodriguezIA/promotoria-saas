@@ -2,13 +2,13 @@ import { toast } from 'sonner'
 import { useState, useEffect } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { Link, useNavigate } from "react-router-dom"
-import { Plus, Loader2, Store as StoreIcon, MoreHorizontal, Eye, Edit2, Trash2 } from "lucide-react"
+import { Plus, Loader2, Store as StoreIcon, Eye, Pencil, Trash2 } from "lucide-react"
 
 
 import { useAuthStore } from '@/stores'
 import { getStoresForClient, deleteStoreClient, Store } from '@/Fetch/establecimientos'
 import { EstablecimientoModalRegistroMasivo } from './EstablecimientoModalRegistroMasivo'
-import { Button, DataTable, DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from '@/components'
+import { Button, DataTable, RowActions } from '@/components'
 
 
 export function EstablecimientosAdministradoresClients() {
@@ -105,40 +105,31 @@ export function EstablecimientosAdministradoresClients() {
         },
         {
             id: "actions",
-            header: "operaciones",
+            header: "Operaciones",
             cell: ({ row }) => {
                 const store = row.original;
 
                 return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                                onClick={() => navigate(`/establecimiento/detalle/${store.id_store_client ?? store.id_store}`)}
-                            >
-                                <Eye className="mr-2 h-4 w-4" />
-                                Ver detalle
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => navigate(`/establecimiento/${store.id_store_client ?? store.id_store}`)}
-                            >
-                                <Edit2 className="mr-2 h-4 w-4" />
-                                Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => store.id_store_client && handleDeleteEstablecimeinto(store.id_store_client)}
-                            >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Eliminar
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <RowActions
+                        actions={[
+                            {
+                                icon: Eye,
+                                label: "Ver detalle",
+                                onClick: () => navigate(`/establecimiento/detalle/${store.id_store_client ?? store.id_store}`),
+                            },
+                            {
+                                icon: Pencil,
+                                label: "Editar",
+                                onClick: () => navigate(`/establecimiento/${store.id_store_client ?? store.id_store}`),
+                            },
+                            {
+                                icon: Trash2,
+                                label: "Eliminar",
+                                tone: "destructive",
+                                onClick: () => store.id_store_client && handleDeleteEstablecimeinto(store.id_store_client),
+                            },
+                        ]}
+                    />
                 )
             }
         }

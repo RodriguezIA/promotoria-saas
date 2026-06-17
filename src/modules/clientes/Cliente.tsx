@@ -1,11 +1,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Building2, Users, Mail, Phone, Eye, Trash2, MoreVertical, Plus, Loader2 } from "lucide-react";
+import { Building2, Users, Mail, Phone, Eye, Trash2, Plus, Loader2 } from "lucide-react";
 
 import { ClientListDTO } from "@/dtos"
 import { api, ApiResponse } from '@/lib'
-import { ConfirmModal, DataTable, DataTableColumnHeader, FilterConfig, Button, PageWrapper, PageHeader, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components";
+import { ConfirmModal, DataTable, DataTableColumnHeader, FilterConfig, Button, PageWrapper, PageHeader, RowActions } from "@/components";
 
 
 export default function ClientesPage() {
@@ -172,41 +172,28 @@ export default function ClientesPage() {
           );
         },
       },
-      // Columna: Acciones
+      // Columna: Operaciones
       {
         id: "actions",
-        header: () => <span className="sr-only">Acciones</span>,
+        header: "Operaciones",
         cell: ({ row }) => {
           const cliente = row.original;
           return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Abrir menú</span>
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleView(cliente)}>
-                  <Eye className="mr-2 h-4 w-4" />
-                  Ver detalles
-                </DropdownMenuItem>
-                {/* <DropdownMenuItem onClick={() => handleEdit(cliente)}>
-                  <Edit2 className="mr-2 h-4 w-4" />
-                  Editar
-                </DropdownMenuItem> */}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => handleDelete(cliente)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Eliminar
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <RowActions
+              actions={[
+                {
+                  icon: Eye,
+                  label: "Ver detalles",
+                  onClick: () => handleView(cliente),
+                },
+                {
+                  icon: Trash2,
+                  label: "Eliminar",
+                  tone: "destructive",
+                  onClick: () => handleDelete(cliente),
+                },
+              ]}
+            />
           );
         },
         enableSorting: false,
