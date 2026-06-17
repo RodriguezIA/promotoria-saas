@@ -2,17 +2,8 @@ import { useAuthStore } from "../stores/authStore";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-interface CreateProductParams {
-  id_user: number;
-  id_client: number;
-  name: string;
-  description?: string;
-  vc_image?: string;
-}
-
-// Quita el prefijo base64 de la imagen para que el backend la acepte
-const cleanBase64 = (s?: string) =>
-  (s ?? "").includes("base64,") ? (s ?? "").split("base64,")[1] : (s ?? "");
+// NOTA: crear/actualizar productos (incl. imagen) se hace con FormData vía
+// `api.upload` en src/modules/productos/NewProduct.tsx. Aquí ya no hay rutas base64.
 
 export const getAllProducts = async () => {
     const token = useAuthStore.getState().token;
@@ -33,41 +24,6 @@ export const getAllProducts = async () => {
   };
   
   
-  export const createProduct = async (params: CreateProductParams) => {
-    const payload: CreateProductParams = {
-      ...params,
-      name: params.name.trim(),
-      description: params.description ?? "",
-      vc_image: cleanBase64(params.vc_image),
-    };
-  
-    // Validaciones
-    if (!payload.id_user) throw new Error("Falta id_user");
-    if (!payload.id_client) throw new Error("Falta id_client");
-    if (!payload.name) throw new Error("Falta nombre del producto");
-  
-    const response = await fetch(`${API_URL}/admin/products`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  
-    if (!response.ok) {
-      const contentType = response.headers.get("content-type") || "";
-      const data = contentType.includes("application/json")
-        ? await response.json()
-        : await response.text();
-  
-      console.error("CreateProduct error payload:", data);
-      throw new Error(
-        typeof data === "string" ? data : data?.details || data?.message || "Error al crear producto"
-      );
-    }
-  
-    return response.json();
-  };
-  
-
 export const getProductsByClient = async (id_client: number) => {
   const response = await fetch(`${API_URL}/admin/products/client/${id_client}`);
 

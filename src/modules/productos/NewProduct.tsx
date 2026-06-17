@@ -160,22 +160,15 @@ export default function ProductoForm() {
           return
         }
 
-        const res = await api.post<ApiResponse<ProductDTO>>(`/products`, {
-          id_user: user?.id_user!,
-          id_client: resolvedClientId!,
-          name: formData.name,
-          description: formData.description || undefined,
-        })
-        
-        if (imageFile) {
-          try {
-            const formatImage = new FormData();
-            formatImage.append('file', imageFile)
-            await api.upload<ApiResponse>(`/products/upload-image/${resolvedClientId}/${res.data.id_product}`, formatImage)
-          } catch {
-            toast.warning("Producto creado, pero falló la subida de imagen");
-          }
-        }
+        // Un solo request multipart: datos + imagen opcional juntos.
+        const fd = new FormData();
+        fd.append('id_user', String(user?.id_user));
+        fd.append('id_client', String(resolvedClientId));
+        fd.append('name', formData.name);
+        if (formData.description) fd.append('description', formData.description);
+        if (imageFile) fd.append('file', imageFile);
+
+        await api.upload<ApiResponse<ProductDTO>>('/products', fd);
 
         toast.success("Producto creado exitosamente");
         navigate(`/productos/`);
