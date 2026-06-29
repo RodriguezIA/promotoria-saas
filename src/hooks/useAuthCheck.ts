@@ -15,13 +15,10 @@ export const useAuthCheck = () => {
             if (!token) return;
 
             try{
-                const response = await api.get<ApiResponse>(`/users/refresh-token`);
-                console.log(response);
+                await api.get<ApiResponse>(`/users/refresh-token`);
             } catch(error){
                 console.error("Error validando la sesión:", error);
-                // Limpiamos el store de Zustand (esto también limpia el localStorage)
                 logout();
-                // Lo mandamos a patadas al login
                 navigate('/login');
             }
         }

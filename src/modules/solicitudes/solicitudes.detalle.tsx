@@ -1,13 +1,14 @@
-import { Loader2 } from "lucide-react"
+import { Loader2, ImageOff } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 
 
+import { RequestDTO } from '@/dtos'
 import { useAuthStore } from "@/stores"
+import { api, ApiResponse } from "@/lib"
 import { getCLientsList } from "@/Fetch/clientes"
-import { getRequestById } from "@/Fetch/solicitudes"
-import { getProductsByClient } from "@/Fetch/products"
 import { Button, Card, Separator, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components"
+
 
 
 export function SolicitudDetalle() {
@@ -25,45 +26,32 @@ export function SolicitudDetalle() {
     useEffect(() => {
         const fetchDatos = async () => {
             if (!id) return;
-            setLoading(true);
-            try {
-                // 1. Obtenemos el detalle real de tu BD
-                const res = await getRequestById(Number(id));
-                
-                if (res.ok && res.data) {
-                    const data = res.data;
-                    
-                    // 2. Como tu backend (tabla request_products) solo guarda el ID del producto y no el nombre,
-                    // llamamos a la API de productos de ese cliente para cruzar los datos y poder mostrar los nombres.
-                    let listaProductosBackend: any[] = [];
-                    try {
-                        const resProds = await getProductsByClient(data.id_client || 0);
-                        listaProductosBackend = resProds.data || resProds || [];
-                    } catch (e) {
-                        console.error("No se pudieron cargar los nombres de los productos", e);
-                    }
 
-                    // 3. Formateamos los datos para que coincidan con la estructura que ya tenía tu UI
+            setLoading(true);
+
+            try {
+                const res =  api.get<ApiResponse<RequestDTO>>(`/requests/${id}`);
+                
+                if (res) {
+                    const data = (await res).data;
+                
                     const solicitudFormateada = {
                         id: data.id_request,
                         nombre: data.vc_name,
                         dt_registro: data.dt_register,
                         total: data.f_value,
                         id_cliente: data.id_client,
+                        url_rack_image: data.url_rack_image || null,
                         estatus: data.id_status === 1 ? "Pendiente" : data.id_status === 2 ? "Completada" : "Cancelada",
-                        productos: data.productos?.map((p: any) => {
-                            // Buscamos el nombre real del producto
-                            const prodOriginal = listaProductosBackend.find((prod: any) => (prod.id_product || prod.id) === p.id_product);
-                            
+                        productos: data.request_products?.map((p: any) => {
                             return {
                                 id_producto: p.id_product,
-                                nombre: prodOriginal ? prodOriginal.name : `Producto #${p.id_product}`,
-                                cantidad: 1, // Tu BD no guarda cantidad en request_products, asumimos 1 por default
+                                nombre: p.product?.name || `Producto #${p.id_product}`,
                                 precio_extra: p.f_subtotal,
-                                preguntas: p.preguntas?.map((q: any) => ({
-                                    id_pregunta: q.id_question,
-                                    texto: q.vc_question || 'Pregunta sin texto',
-                                    precio: q.precio_aplicado
+                                preguntas: p.request_product_questions?.map((q: any) => ({
+                                    id_pregunta: q.id_request_product_question,
+                                    texto: q.question.question || 'Pregunta sin texto',
+                                    // precio: q.precio_aplicado
                                 })) || []
                             };
                         }) || []
@@ -71,7 +59,6 @@ export function SolicitudDetalle() {
                     
                     setSolicitud(solicitudFormateada);
 
-                    // 4. Si es super admin, cargamos la lista de clientes para el Select
                     if (isSuperAdmin) {
                         const clientsRes = await getCLientsList();
                         if (clientsRes.data) {
@@ -160,7 +147,7 @@ export function SolicitudDetalle() {
                         <Card key={prod.id_producto} className="p-4 shadow-sm border-border">
                             <div className="flex justify-between items-start mb-3">
                                 <h3 className="font-semibold text-base text-foreground">{prod.nombre}</h3>
-                                <span className="text-sm font-medium bg-muted px-2 py-1 rounded">Cant: {prod.cantidad}</span>
+                                {/* <span className="text-sm font-medium bg-muted px-2 py-1 rounded">Cant: {prod.cantidad}</span> */}
                             </div>
                             <Separator className="mb-3" />
                             <div className="space-y-2">
@@ -170,11 +157,6 @@ export function SolicitudDetalle() {
                                         prod.preguntas.map((q: any) => (
                                             <li key={q.id_pregunta} className="p-3 flex justify-between hover:bg-accent transition-colors">
                                                 <span className="text-foreground">{q.texto}</span>
-                                                {q.precio > 0 ? (
-                                                    <span className="text-success font-bold">+${Number(q.precio).toFixed(2)}</span>
-                                                ) : (
-                                                    <span className="text-muted-foreground italic">Gratis</span>
-                                                )}
                                             </li>
                                         ))
                                     ) : (
@@ -229,7 +211,7 @@ export function SolicitudDetalle() {
                             <span className="font-black text-2xl text-info">${Number(solicitud.total).toFixed(2)}</span>
                         </div>
 
-                        <div className="flex gap-2 mt-4">
+                        {/* <div className="flex gap-2 mt-4">
                             <span className={`w-full text-center px-4 py-3 rounded-md border font-bold ${
                                 solicitud.estatus === "Pendiente" ? "bg-warning/20 text-warning-foreground dark:text-warning border-warning/40" :
                                 solicitud.estatus === "Completada" ? "bg-success/15 text-success border-success/30" :
@@ -237,7 +219,26 @@ export function SolicitudDetalle() {
                             }`}>
                                 Estado actual: {solicitud.estatus}
                             </span>
-                        </div>
+                        </div> */}
+                    </Card>
+
+                    {/* Imagen del anaquel */}
+                    <Card className="p-5 shadow-md border-border">
+                        <h2 className="text-base font-bold mb-3 text-foreground border-b pb-2">Imagen del Anaquel</h2>
+                        {solicitud.url_rack_image ? (
+                            <div className="aspect-video rounded-lg overflow-hidden border border-border bg-muted">
+                                <img
+                                    src={solicitud.url_rack_image}
+                                    alt="Imagen del anaquel"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        ) : (
+                            <div className="aspect-video rounded-lg border-2 border-dashed border-border bg-muted/40 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                                <ImageOff size={28} className="opacity-50" />
+                                <p className="text-xs">Sin imagen del anaquel</p>
+                            </div>
+                        )}
                     </Card>
                 </div>
             </div>

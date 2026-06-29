@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react'
-import { Loader2, Save, ArrowLeft, Search, ImageOff, Check, PackageOpen } from 'lucide-react'
+import { Loader2, Save, ArrowLeft, Search, ImageOff, PackageOpen, ImagePlus, X, Plus, Trash2 } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
-
-import { Button, Badge, Checkbox } from '@/components'
+import { Button, Checkbox, Input } from '@/components'
 import { useAuthStore } from '@/stores'
 import { api, ApiResponse } from '@/lib'
-import { getRequestById, updateFullRequest } from '@/Fetch/solicitudes'
-import { ProductDTO, QuestionDTO } from '@/dtos'
-
+import { updateFullRequest } from '@/Fetch/solicitudes'
+import { ProductDTO, QuestionDTO, RequestDTO } from '@/dtos'
+import { ProductoPickerModal } from './components/ProductoPickerModal'
 
 interface ProductoSeleccionado extends ProductDTO {
   preguntas: {
@@ -23,25 +23,21 @@ export const EditarSolicitud = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
-  // --- ESTADOS ---
   const [nombre, setNombre] = useState('');
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
-
-  // Catálogos
-  const [listaProductos, setListaProductos] = useState<ProductDTO[]>([]);
   const [listaPreguntas, setListaPreguntas] = useState<QuestionDTO[]>([]);
-
   const [cargandoInicial, setCargandoInicial] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [errorTexto, setErrorTexto] = useState<string | null>(null);
-
-  // Estado principal
   const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoSeleccionado[]>([]);
-
-  // Búsqueda de preguntas por producto
   const [busquedaPreguntas, setBusquedaPreguntas] = useState<Record<number, string>>({});
+  const [modalOpen, setModalOpen] = useState(false);
 
-  // --- EFECTO: Cargar Solicitud y Catálogos ---
+  // Imagen de anaquel
+  const [imagenAnaquel, setImagenAnaquel] = useState<File | null>(null);
+  const [previewAnaquel, setPreviewAnaquel] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     const cargarTodo = async () => {
       if (!id) return;
@@ -49,8 +45,7 @@ export const EditarSolicitud = () => {
       setErrorTexto(null);
 
       try {
-        // 1. Obtener los datos actuales de la solicitud
-        const resSolicitud = await getRequestById(Number(id));
+        const resSolicitud = await api.get<ApiResponse<RequestDTO>>(`/requests/${id}`);
         if (!resSolicitud.ok || !resSolicitud.data) {
           throw new Error("No se pudo cargar la solicitud original.");
         }
@@ -59,36 +54,28 @@ export const EditarSolicitud = () => {
         setNombre(dataSol.vc_name);
         setSelectedClientId(dataSol.id_client || null);
 
+        if (dataSol.url_rack_image) {
+          setPreviewAnaquel(dataSol.url_rack_image);
+        }
+
         const currentClientId = dataSol.id_client;
 
         if (currentClientId) {
-          // 2. Traer catálogos usando los mismos endpoints que en crear
-          const [respProductos, respPreguntas] = await Promise.all([
-            api.get<ApiResponse<ProductDTO[]>>(`/products/${currentClientId}`),
-            api.get<ApiResponse<QuestionDTO[]>>(`/questions/list/${currentClientId}`)
-          ]);
-
-          setListaProductos(respProductos.data);
+          const respPreguntas = await api.get<ApiResponse<QuestionDTO[]>>(`/questions/list/${currentClientId}`);
           setListaPreguntas(respPreguntas.data);
 
-          // 3. Re-construir el estado de productosSeleccionados
-          if (dataSol.productos) {
-            const preSeleccionados: ProductoSeleccionado[] = dataSol.productos.map((p: any) => {
-              const prodRef = respProductos.data.find(
-                (pc: ProductDTO) => pc.id_product === p.id_product
-              );
-
-              return {
-                ...(prodRef || ({} as ProductDTO)),
-                id_product: p.id_product,
-                name: prodRef ? prodRef.name : `Producto #${p.id_product}`,
-                preguntas: p.preguntas?.map((q: any) => ({
-                  id_pregunta: q.id_question,
-                  vc_pregunta: q.vc_question || 'Pregunta',
-                  dc_precio: 0
-                })) || []
-              };
-            });
+          if (dataSol.request_products && dataSol.request_products.length > 0) {
+            const preSeleccionados: ProductoSeleccionado[] = dataSol.request_products.map((rp: any) => ({
+              id_product: rp.id_product,
+              name: rp.product?.name || `Producto #${rp.id_product}`,
+              vc_image: rp.product?.vc_image || null,
+              description: rp.product?.description || null,
+              preguntas: rp.request_product_questions?.map((rpq: any) => ({
+                id_pregunta: rpq.question.id_question,
+                vc_pregunta: rpq.question.question || 'Pregunta',
+                dc_precio: 0
+              })) || []
+            }));
 
             setProductosSeleccionados(preSeleccionados);
           }
@@ -104,7 +91,6 @@ export const EditarSolicitud = () => {
     cargarTodo();
   }, [id]);
 
-  // --- MANEJADORES DE EVENTOS ---
   const toggleProducto = (productoDB: ProductDTO) => {
     setProductosSeleccionados(prev => {
       const idProducto = productoDB.id_product;
@@ -113,10 +99,7 @@ export const EditarSolicitud = () => {
       if (existe) {
         return prev.filter(p => p.id_product !== idProducto);
       } else {
-        return [...prev, {
-          ...productoDB,
-          preguntas: []
-        }];
+        return [...prev, { ...productoDB, preguntas: [] }];
       }
     });
   };
@@ -144,7 +127,35 @@ export const EditarSolicitud = () => {
     );
   };
 
-  // --- CÁLCULOS DINÁMICOS (NUEVA LÓGICA DE PRECIOS) ---
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Solo se permiten archivos de imagen");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La imagen no debe superar los 5MB");
+      return;
+    }
+
+    setImagenAnaquel(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewAnaquel(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setImagenAnaquel(null);
+    setPreviewAnaquel(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const totalPreguntas = productosSeleccionados.reduce((sum, prod) => sum + prod.preguntas.length, 0);
 
   const calcularCostoSolicitud = (numPreguntas: number) => {
@@ -158,58 +169,54 @@ export const EditarSolicitud = () => {
   const preguntasExtra = Math.max(totalPreguntas - 3, 0);
   const costoExtra = Math.min(preguntasExtra * 15, 45);
 
-  // --- GUARDAR (ACTUALIZAR) ---
   const handleActualizar = async () => {
     if (!nombre.trim()) {
-      alert("Por favor ingresa un nombre para la solicitud.");
+      toast.error("Por favor ingresa un nombre para la solicitud.");
       return;
     }
     if (productosSeleccionados.length === 0) {
-      alert("Selecciona al menos un producto.");
+      toast.error("Selecciona al menos un producto.");
       return;
     }
     if (!selectedClientId) {
-      alert("Error: No se ha detectado el cliente de la solicitud.");
+      toast.error("Error: No se ha detectado el cliente de la solicitud.");
       return;
     }
     if (!user || !user.id_user) {
-      alert("Error de sesión: No se encontró el ID de usuario.");
+      toast.error("Error de sesión: No se encontró el ID de usuario.");
       return;
     }
 
     setGuardando(true);
 
-    const payload = {
-      id_user: user.id_user,
-      id_cliente: selectedClientId,
-      nombre_solicitud: nombre.trim(),
-      costo_total: granTotal,
-      productos: productosSeleccionados.map(prod => ({
-        id_product: prod.id_product,
-        subtotal: 0,
-        preguntas: prod.preguntas.map(q => ({
-          id_pregunta: q.id_pregunta,
-          precio_aplicado: 0
-        }))
-      }))
-    };
-
     try {
-      const respuesta = await updateFullRequest(Number(id), payload);
+      const respuesta = await updateFullRequest(Number(id), {
+        id_user: user.id_user,
+        id_client: selectedClientId,
+        vc_name: nombre.trim(),
+        f_value: granTotal,
+        products: productosSeleccionados.map(prod => ({
+          id_product: prod.id_product,
+          questions: prod.preguntas.map(q => ({
+            id_question: q.id_pregunta,
+          }))
+        })),
+        rackImage: imagenAnaquel,
+        url_rack_image: !imagenAnaquel ? previewAnaquel : null,
+      });
 
       if (respuesta.ok) {
-        alert("¡Solicitud actualizada con éxito!");
+        toast.success("¡Solicitud actualizada con éxito!");
         navigate(`/detalle-solicitud/${id}`);
       }
     } catch (error: any) {
       console.error("Error al actualizar:", error);
-      alert(error.message || "Ocurrió un error al actualizar la solicitud.");
+      toast.error(error.message || "Ocurrió un error al actualizar la solicitud.");
     } finally {
       setGuardando(false);
     }
   };
 
-  // --- RENDERIZADO ---
   if (cargandoInicial) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
@@ -219,226 +226,258 @@ export const EditarSolicitud = () => {
     );
   }
 
+  const puedeGuardar = !!selectedClientId && !!nombre.trim() && productosSeleccionados.length > 0;
+
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
-      <div className="flex justify-between items-center mb-6 border-b pb-4">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Editar Solicitud #{id}</h2>
-          <p className="text-sm text-muted-foreground mt-1">Modifica los productos o checklist y guarda los cambios.</p>
-        </div>
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-foreground">Editar Solicitud #{id}</h2>
         <Button variant="outline" onClick={() => navigate(`/detalle-solicitud/${id}`)} className="flex items-center gap-2">
           <ArrowLeft size={16} /> Cancelar
         </Button>
       </div>
 
       {errorTexto && (
-        <div className="mb-4 p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/30">
+        <div className="p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/30">
           {errorTexto}
         </div>
       )}
 
-      {/* 1. Nombre de la solicitud */}
-      <div className="mb-6">
-        <label className="block text-foreground font-semibold mb-2">Nombre de la Solicitud</label>
-        <input
-          type="text"
-          className="w-full p-3 border border-input rounded focus:outline-none focus:ring-2 focus:ring-ring"
-          placeholder="Ej. Auditoría de Verano"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-        />
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* SIDEBAR: Resumen de costo (sticky) */}
+        <aside className="lg:col-span-1 lg:sticky lg:top-6 order-first">
+          <div className="bg-primary text-primary-foreground p-5 rounded-xl shadow-lg space-y-4">
+            <h3 className="font-bold text-lg">Resumen del costo</h3>
 
-      {/* 2. Selección de Productos */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-3">
-          <label className="block text-foreground font-semibold">1. Modifica los Productos a auditar</label>
-          <Badge variant="secondary">{productosSeleccionados.length} seleccionados</Badge>
-        </div>
-        {listaProductos.length === 0 ? (
-          <p className="text-muted-foreground italic p-4 bg-muted/50 rounded">No hay productos registrados en el catálogo.</p>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {listaProductos.map(prod => {
-              const idProducto = prod.id_product;
-              const seleccionado = productosSeleccionados.some(p => p.id_product === idProducto);
-              const prodSel = productosSeleccionados.find(p => p.id_product === idProducto);
-              const cantPreguntas = prodSel?.preguntas.length || 0;
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between gap-4">
+                <span className="text-primary-foreground/70">Costo base (hasta 3 preguntas):</span>
+                <span className="font-medium tabular-nums">$45.00</span>
+              </div>
+              {preguntasExtra > 0 && (
+                <div className="flex justify-between gap-4 text-primary-foreground/90">
+                  <span>Preguntas extra ({preguntasExtra}):</span>
+                  <span className="tabular-nums">+ ${costoExtra.toFixed(2)}</span>
+                </div>
+              )}
+              {granTotal >= 90 && totalPreguntas > 6 && (
+                <div className="text-xs text-primary-foreground/70 italic">
+                  Precio máximo alcanzado. Puedes seguir agregando preguntas sin costo adicional.
+                </div>
+              )}
+              <div className="flex justify-between gap-4 text-lg pt-3 border-t border-primary-foreground/20">
+                <span className="font-bold">Costo Total:</span>
+                <span className="font-bold tabular-nums">${granTotal.toFixed(2)}</span>
+              </div>
+            </div>
 
-              return (
-                <div
-                  key={idProducto}
-                  onClick={() => toggleProducto(prod)}
-                  className={`relative group cursor-pointer rounded-xl border-2 transition-all overflow-hidden ${
-                    seleccionado
-                      ? 'border-ring bg-info/10 shadow-md'
-                      : 'border-border bg-white hover:border-info/30 hover:shadow-sm'
-                  }`}
+            <div className="flex items-center justify-between gap-2 text-xs text-primary-foreground/70 pt-1">
+              <span>{productosSeleccionados.length} producto{productosSeleccionados.length !== 1 ? 's' : ''}</span>
+              <span>{totalPreguntas} pregunta{totalPreguntas !== 1 ? 's' : ''}</span>
+            </div>
+
+            <Button
+              onClick={handleActualizar}
+              disabled={guardando || !puedeGuardar}
+              className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 disabled:opacity-60 font-semibold py-3 h-auto text-base flex items-center justify-center gap-2"
+            >
+              {guardando
+                ? <><Loader2 className="animate-spin" size={18} /> Guardando...</>
+                : <><Save size={18} /> Actualizar Solicitud</>
+              }
+            </Button>
+            {!puedeGuardar && (
+              <p className="text-xs text-primary-foreground/60 text-center">
+                Ingresa un nombre y añade al menos un producto.
+              </p>
+            )}
+          </div>
+        </aside>
+
+        {/* FORMULARIO */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Datos generales */}
+          <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-6">
+            <div>
+              <label className="block text-foreground font-semibold mb-2">Nombre de la Solicitud</label>
+              <Input
+                type="text"
+                placeholder="Ej. Auditoría de Verano"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+              />
+            </div>
+
+            {/* Imagen de anaquel */}
+            <div>
+              <label className="block text-foreground font-semibold mb-2">Imagen del Anaquel</label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+              />
+
+              {!previewAnaquel ? (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full border-2 border-dashed border-input rounded-xl p-8 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-ring hover:text-foreground transition-colors"
                 >
-                  {seleccionado && (
-                    <div className="absolute top-2 right-2 z-10 bg-primary text-primary-foreground rounded-full p-1 shadow">
-                      <Check size={14} strokeWidth={3} />
-                    </div>
-                  )}
-
-                  <div className="aspect-square bg-muted flex items-center justify-center overflow-hidden">
-                    {prod.vc_image ? (
-                      <img
-                        src={prod.vc_image}
-                        alt={prod.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center text-muted-foreground/70">
-                        <ImageOff size={32} />
-                        <span className="text-xs mt-1">Sin imagen</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-3">
-                    <p className="font-medium text-sm text-foreground line-clamp-2 text-center" title={prod.name}>
-                      {prod.name}
-                    </p>
-                    {seleccionado && cantPreguntas > 0 && (
-                      <p className="text-xs text-info text-center mt-1 font-medium">
-                        {cantPreguntas} pregunta{cantPreguntas !== 1 ? 's' : ''}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* 3. Configuración de Preguntas */}
-      {productosSeleccionados.length > 0 && (
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <label className="block text-foreground font-semibold">2. Ajusta las Preguntas por Producto</label>
-            <Badge variant="outline" className="text-info border-info/30 bg-info/10">
-              {totalPreguntas} pregunta{totalPreguntas !== 1 ? 's' : ''} en total
-            </Badge>
-          </div>
-
-          {productosSeleccionados.map(producto => {
-            const busqueda = busquedaPreguntas[producto.id_product] || '';
-            const preguntasFiltradas = listaPreguntas.filter(p =>
-              p.question?.toLowerCase().includes(busqueda.toLowerCase())
-            );
-            const cantidadSel = producto.preguntas.length;
-
-            return (
-              <div key={producto.id_product} className="mb-5 border border-border rounded-xl overflow-hidden shadow-sm bg-white">
-                <div className="bg-muted/50 p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 border-b border-border">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-info/15 text-info rounded-lg p-2">
-                      <PackageOpen size={18} />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-foreground">{producto.name}</h3>
-                      <p className="text-xs text-muted-foreground">{cantidadSel} pregunta{cantidadSel !== 1 ? 's' : ''} seleccionada{cantidadSel !== 1 ? 's' : ''}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4">
-                  <div className="relative mb-3">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70" size={16} />
-                    <input
-                      type="text"
-                      placeholder="Buscar preguntas..."
-                      className="w-full pl-9 pr-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                      value={busqueda}
-                      onChange={(e) => setBusquedaPreguntas(prev => ({ ...prev, [producto.id_product]: e.target.value }))}
+                  <ImagePlus size={32} />
+                  <span className="text-sm font-medium">Haz clic para subir una foto del anaquel</span>
+                  <span className="text-xs text-muted-foreground/70">PNG, JPG o WEBP hasta 5MB</span>
+                </button>
+              ) : (
+                <div className="relative w-full">
+                  <div
+                    className="aspect-video bg-muted rounded-xl overflow-hidden border border-border cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Clic para cambiar imagen"
+                  >
+                    <img
+                      src={previewAnaquel}
+                      alt="Vista previa del anaquel"
+                      className="w-full h-full object-cover"
                     />
                   </div>
-
-                  <div className="space-y-1 max-h-64 overflow-y-auto pr-1">
-                    {listaPreguntas.length === 0 ? (
-                      <p className="text-sm text-muted-foreground py-4 text-center">No hay preguntas disponibles en el catálogo.</p>
-                    ) : preguntasFiltradas.length === 0 ? (
-                      <p className="text-sm text-muted-foreground py-4 text-center">No se encontraron preguntas con "{busqueda}"</p>
-                    ) : (
-                      preguntasFiltradas.map(pregunta => {
-                        const seleccionada = producto.preguntas.some(q => q.id_pregunta === pregunta.id_question);
-                        return (
-                          <div
-                            key={pregunta.id_question}
-                            className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors border ${
-                              seleccionada
-                                ? 'bg-success/10 border-success/30'
-                                : 'hover:bg-accent border-transparent hover:border-border'
-                            }`}
-                          >
-                            <div className="shrink-0">
-                              <Checkbox
-                                checked={seleccionada}
-                                onCheckedChange={() => togglePregunta(producto.id_product, pregunta)}
-                                className="border-input data-[state=checked]:bg-success data-[state=checked]:border-success"
-                              />
-                            </div>
-                            <span className={`text-sm font-medium flex-1 select-none ${seleccionada ? 'text-success' : 'text-foreground'}`}>
-                              {pregunta.question}
-                            </span>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 shadow hover:bg-destructive/90 transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* 4. Resumen y Guardar */}
-      {productosSeleccionados.length > 0 && (
-        <>
-          <hr className="my-6 border-input" />
-          <div className="bg-primary text-primary-foreground p-5 rounded-xl shadow-lg">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between gap-8">
-                  <span className="text-primary-foreground/70">Costo base (hasta 3 preguntas):</span>
-                  <span className="font-medium">$45.00</span>
-                </div>
-                {preguntasExtra > 0 && (
-                  <div className="flex justify-between gap-8 text-primary-foreground/90">
-                    <span>Preguntas extra ({preguntasExtra}):</span>
-                    <span>+ ${costoExtra.toFixed(2)}</span>
-                  </div>
-                )}
-                {granTotal >= 90 && totalPreguntas > 6 && (
-                  <div className="text-xs text-primary-foreground/70 italic">
-                    Precio máximo alcanzado. Puedes seguir agregando preguntas sin costo adicional.
-                  </div>
-                )}
-                <div className="flex justify-between gap-8 text-lg pt-2 border-t border-primary-foreground/20">
-                  <span className="font-bold">Costo Total:</span>
-                  <span className="font-bold">${granTotal.toFixed(2)}</span>
-                </div>
-              </div>
-
-              <Button
-                onClick={handleActualizar}
-                disabled={guardando}
-                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 disabled:opacity-60 font-semibold py-6 px-8 rounded-lg shadow transition-colors text-lg flex items-center gap-2 w-full lg:w-auto"
-              >
-                {guardando ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-                {guardando ? 'Guardando...' : 'Actualizar Solicitud'}
-              </Button>
+              )}
             </div>
           </div>
-        </>
-      )}
 
+          {/* Productos a auditar */}
+          <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div>
+                <label className="block text-foreground font-semibold">Productos a auditar</label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {productosSeleccionados.length} seleccionado{productosSeleccionados.length !== 1 ? 's' : ''} · {totalPreguntas} pregunta{totalPreguntas !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <Button onClick={() => setModalOpen(true)} className="flex items-center gap-2 shrink-0">
+                <Plus size={16} /> Añadir productos
+              </Button>
+            </div>
+
+            {productosSeleccionados.length === 0 ? (
+              <div className="border-2 border-dashed border-border rounded-xl p-8 flex flex-col items-center justify-center text-center text-muted-foreground">
+                <PackageOpen size={32} className="mb-2 opacity-60" />
+                <p className="text-sm">Aún no has añadido productos.</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Usa el botón "Añadir productos" para seleccionarlos del catálogo.</p>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {productosSeleccionados.map(producto => {
+                  const busqueda = busquedaPreguntas[producto.id_product] || '';
+                  const preguntasFiltradas = listaPreguntas.filter(p =>
+                    p.question?.toLowerCase().includes(busqueda.toLowerCase())
+                  );
+                  const cantidadSel = producto.preguntas.length;
+
+                  return (
+                    <div key={producto.id_product} className="border border-border rounded-xl overflow-hidden shadow-sm bg-card">
+                      <div className="bg-muted/50 p-4 flex justify-between items-center gap-3 border-b border-border">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-11 h-11 rounded-lg bg-muted overflow-hidden flex items-center justify-center shrink-0">
+                            {producto.vc_image ? (
+                              <img
+                                src={producto.vc_image}
+                                alt={producto.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                              />
+                            ) : (
+                              <ImageOff size={18} className="text-muted-foreground/70" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="font-bold text-foreground truncate" title={producto.name}>{producto.name}</h3>
+                            <p className="text-xs text-muted-foreground">{cantidadSel} pregunta{cantidadSel !== 1 ? 's' : ''} seleccionada{cantidadSel !== 1 ? 's' : ''}</p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10 hover:border-destructive/40"
+                          aria-label={`Quitar ${producto.name}`}
+                          onClick={() => toggleProducto(producto)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      <div className="p-4">
+                        <div className="relative mb-3">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70" size={16} />
+                          <input
+                            type="text"
+                            placeholder="Buscar preguntas..."
+                            className="w-full pl-9 pr-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                            value={busqueda}
+                            onChange={(e) => setBusquedaPreguntas(prev => ({ ...prev, [producto.id_product]: e.target.value }))}
+                          />
+                        </div>
+
+                        <div className="space-y-1 max-h-64 overflow-y-auto pr-1">
+                          {listaPreguntas.length === 0 ? (
+                            <p className="text-sm text-muted-foreground py-4 text-center">No hay preguntas disponibles para este cliente.</p>
+                          ) : preguntasFiltradas.length === 0 ? (
+                            <p className="text-sm text-muted-foreground py-4 text-center">No se encontraron preguntas con "{busqueda}"</p>
+                          ) : (
+                            preguntasFiltradas.map(pregunta => {
+                              const seleccionada = producto.preguntas.some(q => q.id_pregunta === pregunta.id_question);
+                              return (
+                                <div
+                                  key={pregunta.id_question}
+                                  className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors border ${
+                                    seleccionada
+                                      ? 'bg-success/10 border-success/30'
+                                      : 'hover:bg-accent border-transparent hover:border-border'
+                                  }`}
+                                >
+                                  <div className="shrink-0">
+                                    <Checkbox
+                                      checked={seleccionada}
+                                      onCheckedChange={() => togglePregunta(producto.id_product, pregunta)}
+                                      className="border-input data-[state=checked]:bg-success data-[state=checked]:border-success"
+                                    />
+                                  </div>
+                                  <span className={`text-sm font-medium flex-1 select-none ${seleccionada ? 'text-success' : 'text-foreground'}`}>
+                                    {pregunta.question}
+                                  </span>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {selectedClientId && (
+        <ProductoPickerModal
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          clientId={selectedClientId}
+          selectedIds={productosSeleccionados.map(p => p.id_product)}
+          onToggle={toggleProducto}
+        />
+      )}
     </div>
   );
 };

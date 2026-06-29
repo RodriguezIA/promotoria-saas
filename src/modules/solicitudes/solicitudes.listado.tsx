@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { ColumnDef } from "@tanstack/react-table"
-import { Plus, Loader2, Pencil, ClipboardList, Eye } from "lucide-react"
+import { Plus, Loader2, Pencil, ClipboardList, Eye, Trash, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 
-
-import { api, ApiResponse } from '@/lib'
-import { RequestDTO } from '@/dtos'
-import { useAuthStore } from "@/stores";
-import { getCLientsList } from "@/Fetch/clientes";
-// import { getRequestsByClient, RequestData } from "@/Fetch/solicitudes";
-import { Button, DataTable, PageHeader, PageWrapper, RowActions, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components"
+import { RequestDTO } from "@/dtos"
+import { useAuthStore } from "@/stores"
+import { api, ApiResponse } from "@/lib"
+import { getCLientsList } from "@/Fetch/clientes"
+import { deleteRequest } from "@/Fetch/solicitudes"
+import { Button, ConfirmModal, DataTable, PageHeader, PageWrapper, RowActions, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components"
 
 
 export function SolicitudesList() {
@@ -77,8 +77,28 @@ export function SolicitudesList() {
     fetchSolicitudes();
   }, [selectedClientId]);
 
+  // Estado del modal de confirmación de eliminación
+  const [solicitudAEliminar, setSolicitudAEliminar] = useState<{ id: number; nombre: string } | null>(null);
+  const [eliminando, setEliminando] = useState(false);
+
   const handleClientChange = (value: string) => {
     setSelectedClientId(Number(value));
+  };
+
+  const handleEliminar = async () => {
+    if (!solicitudAEliminar) return;
+    setEliminando(true);
+
+    try {
+      await deleteRequest(solicitudAEliminar.id);
+      setSolicitudes(prev => prev.filter(s => s.id_request !== solicitudAEliminar.id));
+      toast.success("Solicitud eliminada correctamente.");
+      setSolicitudAEliminar(null);
+    } catch (error: any) {
+      toast.error(error.message || "Error al eliminar la solicitud.");
+    } finally {
+      setEliminando(false);
+    }
   };
 
   // --- DEFINICIÓN DE COLUMNAS ---
@@ -126,42 +146,6 @@ export function SolicitudesList() {
         return <span className="font-semibold">${total.toFixed(2)} MXN</span>;
       },
     },
-    // --- NUEVA COLUMNA DE ACCIONES ---
-    // {
-    //   id: "actions",
-    //   header: "Acciones",
-    //   cell: ({ row }) => {
-    //     const id = row.original.id_request;
-
-    //     return (
-    //       <DropdownMenu>
-    //         <DropdownMenuTrigger asChild>
-    //           <Button variant="ghost" className="h-8 w-8 p-0">
-    //             <span className="sr-only">Abrir menú</span>
-    //             <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-    //           </Button>
-    //         </DropdownMenuTrigger>
-    //         <DropdownMenuContent align="end">
-    //           <DropdownMenuItem 
-    //             onClick={() => navigate(`/detalle-solicitud/${id}`)}
-    //             className="cursor-pointer"
-    //           >
-    //             <Eye className="mr-2 h-4 w-4 text-info" />
-    //             <span>Ver Detalle</span>
-    //           </DropdownMenuItem>
-              
-    //           <DropdownMenuItem 
-    //             onClick={() => navigate(`/editar-solicitud/${id}`)}
-    //             className="cursor-pointer"
-    //           >
-    //             <Edit2 className="mr-2 h-4 w-4 text-warning-foreground dark:text-warning" />
-    //             <span>Editar Solicitud</span>
-    //           </DropdownMenuItem>
-    //         </DropdownMenuContent>
-    //       </DropdownMenu>
-    //     );
-    //   },
-    // },
     {
       id: "actions",
       header: "Operaciones",
@@ -180,6 +164,11 @@ export function SolicitudesList() {
                 icon: Pencil,
                 label: "Editar",
                 onClick: () => navigate(`/editar-solicitud/${id}`),
+              },
+              {
+                icon: Trash,
+                label: "Eliminar",
+                onClick: () => setSolicitudAEliminar({ id, nombre: row.original.vc_name }),
               },
             ]}
           />
@@ -253,6 +242,18 @@ export function SolicitudesList() {
             }}
           />
       </div>
+      <ConfirmModal
+        open={!!solicitudAEliminar}
+        onClose={() => setSolicitudAEliminar(null)}
+        onConfirm={handleEliminar}
+        loading={eliminando}
+        variant="danger"
+        icon={<Trash2 size={22} />}
+        title="¿Eliminar solicitud?"
+        description={`Se eliminará "${solicitudAEliminar?.nombre}". Esta acción no se puede deshacer.`}
+        confirmLabel="Sí, eliminar"
+        cancelLabel="Cancelar"
+      />
     </PageWrapper>
   );
 }

@@ -1,3 +1,4 @@
+import { ProductDTO } from "./products";
 
 export interface RequestDTO {
     id_request: number;
@@ -11,6 +12,7 @@ export interface RequestDTO {
     b_active: boolean;
     dt_register: Date;
     dt_update: Date;
+    request_products?: RequestProductDTO[];
 }
 
 
@@ -21,6 +23,7 @@ export interface RequestProductDTO {
     dt_register: Date;
     dt_update: Date;
     b_active: boolean;
+    product?: ProductDTO;
 }
 
 export interface RequestProductQuestionDTO {

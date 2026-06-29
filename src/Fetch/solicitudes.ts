@@ -86,7 +86,7 @@ export const getRequestsByClient = async (id_client: number): Promise<ApiRespons
 
 // 3. GET: Obtener detalle completo de una solicitud (con productos y preguntas)
 export const getRequestById = async (id_request: number): Promise<ApiResponse<RequestData>> => {
-  const res = await fetch(`${API_URL}/admin/requests/${id_request}`, {
+  const res = await fetch(`${API_URL}/requests/${id_request}`, {
     method: "GET",
     headers: authHeaders(),
   });
@@ -98,24 +98,50 @@ export const getRequestById = async (id_request: number): Promise<ApiResponse<Re
   return res.json();
 };
 
-// 6. PUT: Actualizar solicitud completa (Wipe & Replace de productos y preguntas)
-export const updateFullRequest = async (id_request: number, payload: CreateRequestPayload): Promise<ApiResponse<any>> => {
-  const res = await fetch(`${API_URL}/admin/requests/${id_request}/full`, {
+// 6. PUT: Actualizar solicitud completa (multipart — soporta imagen)
+export const updateFullRequest = async (
+  id_request: number,
+  payload: {
+    id_user: number;
+    id_client: number;
+    vc_name: string;
+    f_value: number;
+    products: { id_product: number; questions: { id_question: number }[] }[];
+    rackImage?: File | null;
+    url_rack_image?: string | null;
+  }
+): Promise<ApiResponse<any>> => {
+  const token = useAuthStore.getState().token;
+
+  const formData = new FormData();
+  formData.append("id_user", payload.id_user.toString());
+  formData.append("id_client", payload.id_client.toString());
+  formData.append("vc_name", payload.vc_name);
+  formData.append("f_value", payload.f_value.toString());
+  formData.append("products", JSON.stringify(payload.products));
+
+  if (payload.rackImage) {
+    formData.append("rackImage", payload.rackImage);
+  } else if (payload.url_rack_image) {
+    formData.append("url_rack_image", payload.url_rack_image);
+  }
+
+  const res = await fetch(`${API_URL}/requests/${id_request}`, {
     method: "PUT",
-    headers: authHeaders(),
-    body: JSON.stringify(payload),
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
   });
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || errorData.message || "Error al actualizar la solicitud completa");
+    throw new Error(errorData.error || errorData.message || "Error al actualizar la solicitud");
   }
   return res.json();
 };
 
 // 5. DELETE: Eliminar solicitud (borrado lógico)
 export const deleteRequest = async (id_request: number): Promise<ApiResponse<any>> => {
-  const res = await fetch(`${API_URL}/admin/requests/${id_request}`, {
+  const res = await fetch(`${API_URL}/requests/${id_request}`, {
     method: "DELETE",
     headers: authHeaders(),
   });
