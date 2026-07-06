@@ -1,14 +1,14 @@
 import { toast } from "sonner"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { ColumnDef } from "@tanstack/react-table"
-import { TrendingUp, Clock, CheckCircle2, AlertCircle, Loader2, DollarSign, Users, Banknote } from "lucide-react"
+import { TrendingUp, Clock, AlertCircle, Loader2, DollarSign, Users, Banknote, Settings, RefreshCw, Receipt, CheckCircle2 } from "lucide-react"
 
-
-import { ModalRegistrarCobro, ModalRegistrarPagoPromotor } from './components'
-import { Button, DataTable, PageWrapper, PageHeader, StatCard} from "@/components"
-import { getCobros, getPagosPromotores, getResumenFinanzas, CobroPedido, PagoPromotor, ResumenFinanzas, PaymentStatus, PromoterPaymentStatus, RegistrarPagoPayload } from "@/Fetch/finanzas";
-
-
+import { ModalRegistrarPagoPromotor, ModalRevisarCobro, ModalConfigFinanzas } from "./components"
+import { Button, DataTable, PageWrapper, PageHeader, StatCard } from "@/components"
+import {
+  getInvoices, getPromoterPayments, getSummary, generateBilling,
+  ClientInvoice, PromoterPayment, FinanceSummary, InvoiceStatus, PromoterPaymentStatus, INVOICE_STATUS_LABEL,
+} from "@/Fetch/finanzas";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n);
@@ -16,204 +16,110 @@ const fmt = (n: number) =>
 const fmtDate = (d: string | null) =>
   d ? new Date(d).toLocaleDateString("es-MX") : "—";
 
-const BadgeStatus = ({ status }: { status: PaymentStatus | PromoterPaymentStatus }) => {
-  const map: Record<string, string> = {
-    pagado: "bg-success/15 text-success",
-    pendiente: "bg-warning/20 text-warning-foreground dark:text-warning",
-    vencido: "bg-destructive/15 text-destructive",
-  };
-  const label: Record<string, string> = {
-    pagado: "Pagado",
-    pendiente: "Pendiente",
-    vencido: "Vencido",
-  };
-  return (
-    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${map[status]}`}>
-      {label[status]}
-    </span>
-  );
+const INVOICE_STYLE: Record<InvoiceStatus, string> = {
+  pendiente: "bg-warning/20 text-warning-foreground dark:text-warning",
+  en_revision: "bg-info/15 text-info",
+  aceptado: "bg-success/15 text-success",
+  rechazado: "bg-destructive/15 text-destructive",
+  atrasado: "bg-destructive/15 text-destructive",
 };
 
-// ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
+const BadgeInvoice = ({ status }: { status: InvoiceStatus }) => (
+  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${INVOICE_STYLE[status]}`}>{INVOICE_STATUS_LABEL[status]}</span>
+);
+
+const BadgePromoter = ({ status }: { status: PromoterPaymentStatus }) => (
+  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${status === "pagado" ? "bg-success/15 text-success" : "bg-warning/20 text-warning-foreground dark:text-warning"}`}>
+    {status === "pagado" ? "Pagado" : "Pendiente"}
+  </span>
+);
 
 type Tab = "cobros" | "promotores";
 
 export default function FinanzasSuperAdmin() {
   const [tab, setTab] = useState<Tab>("cobros");
-  const [resumen, setResumen] = useState<ResumenFinanzas | null>(null);
-  const [cobros, setCobros] = useState<CobroPedido[]>([]);
-  const [pagos, setPagos] = useState<PagoPromotor[]>([]);
+  const [resumen, setResumen] = useState<FinanceSummary | null>(null);
+  const [cobros, setCobros] = useState<ClientInvoice[]>([]);
+  const [pagos, setPagos] = useState<PromoterPayment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [generando, setGenerando] = useState(false);
 
-  // ── Estado modales ─────────────────────────────────────────────────────────
-  const [cobroSeleccionado, setCobroSeleccionado] = useState<CobroPedido | null>(null);
-  const [pagoSeleccionado, setPagoSeleccionado] = useState<PagoPromotor | null>(null);
+  const [cobroSel, setCobroSel] = useState<ClientInvoice | null>(null);
+  const [pagoSel, setPagoSel] = useState<PromoterPayment | null>(null);
+  const [configOpen, setConfigOpen] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const [rRes, cRes, pRes] = await Promise.all([
-          getResumenFinanzas(),
-          getCobros(),
-          getPagosPromotores(),
-        ]);
-        if (rRes.ok) setResumen(rRes.data);
-        if (cRes.ok) setCobros(cRes.data);
-        if (pRes.ok) setPagos(pRes.data);
-      } catch {
-        toast.error("Error al cargar datos financieros");
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+  const cargar = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [rRes, cRes, pRes] = await Promise.all([getSummary(), getInvoices(), getPromoterPayments()]);
+      if (rRes.ok) setResumen(rRes.data);
+      if (cRes.ok) setCobros(cRes.data);
+      if (pRes.ok) setPagos(pRes.data);
+    } catch {
+      toast.error("Error al cargar datos financieros");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // ── Callback éxito cobro ───────────────────────────────────────────────────
-  const handleCobroSuccess = (id_cobro: number, payload: RegistrarPagoPayload) => {
-    const cobro = cobros.find((c) => c.id_cobro === id_cobro);
-    setCobros((prev) =>
-      prev.map((c) =>
-        c.id_cobro === id_cobro
-          ? { ...c, status: "pagado", dt_pago: payload.dt_pago, f_pagado: c.f_total, f_pendiente: 0 }
-          : c
-      )
-    );
-    setResumen((prev) => {
-      if (!prev || !cobro) return prev;
-      return {
-        ...prev,
-        total_cobrado: prev.total_cobrado + cobro.f_total,
-        total_pendiente_cobro: prev.total_pendiente_cobro - cobro.f_pendiente,
-      };
-    });
+  useEffect(() => { cargar(); }, [cargar]);
+
+  const handleGenerar = async () => {
+    setGenerando(true);
+    try {
+      const res = await generateBilling();
+      if (res.ok) {
+        toast.success(`Generados: ${res.data.invoices_creadas} cobros, ${res.data.pagos_promotor_creados} pagos`);
+        await cargar();
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Error al generar");
+    } finally {
+      setGenerando(false);
+    }
   };
 
-  // ── Callback éxito pago promotor ───────────────────────────────────────────
-  const handlePagoPromotorSuccess = (id_pago: number, payload: RegistrarPagoPayload) => {
-    const pago = pagos.find((p) => p.id_pago === id_pago);
-    setPagos((prev) =>
-      prev.map((p) =>
-        p.id_pago === id_pago ? { ...p, status: "pagado", dt_pago: payload.dt_pago } : p
-      )
-    );
-    setResumen((prev) => {
-      if (!prev || !pago) return prev;
-      return {
-        ...prev,
-        total_pagado_promotores: prev.total_pagado_promotores + pago.f_monto,
-        total_pendiente_promotores: prev.total_pendiente_promotores - pago.f_monto,
-      };
-    });
-  };
-
-  // ── Columnas cobros ────────────────────────────────────────────────────────
-  const columnasCobros: ColumnDef<CobroPedido>[] = [
+  const columnasCobros: ColumnDef<ClientInvoice>[] = [
+    { accessorKey: "vc_folio", header: "Folio", cell: ({ row }) => <span className="font-bold text-muted-foreground">{row.original.vc_folio ?? `#${row.original.id_invoice}`}</span> },
+    { accessorKey: "client_name", header: "Cliente", cell: ({ row }) => <span className="font-medium">{row.original.client_name}</span> },
     {
-      accessorKey: "id_order",
-      header: "Pedido",
-      cell: ({ row }) => <span className="font-bold text-muted-foreground">#{row.getValue("id_order")}</span>,
+      accessorKey: "periodo", header: "Período",
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{fmtDate(row.original.dt_periodo_inicio)} – {fmtDate(row.original.dt_periodo_fin)}</span>,
     },
+    { accessorKey: "f_total", header: "Total", cell: ({ row }) => <span className="font-semibold text-foreground">{fmt(row.original.f_total)}</span> },
+    { accessorKey: "dt_vencimiento", header: "Vence", cell: ({ row }) => fmtDate(row.original.dt_vencimiento) },
+    { accessorKey: "status", header: "Estado", cell: ({ row }) => <BadgeInvoice status={row.original.status} /> },
     {
-      accessorKey: "client_name",
-      header: "Cliente",
-      cell: ({ row }) => <span className="font-medium">{row.getValue("client_name")}</span>,
-    },
-    {
-      accessorKey: "request_name",
-      header: "Campaña",
-    },
-    {
-      accessorKey: "f_total",
-      header: "Total",
-      cell: ({ row }) => (
-        <span className="font-semibold text-foreground">{fmt(row.getValue("f_total"))}</span>
-      ),
-    },
-    {
-      accessorKey: "dt_vencimiento",
-      header: "Vencimiento",
-      cell: ({ row }) => fmtDate(row.getValue("dt_vencimiento")),
-    },
-    {
-      accessorKey: "status",
-      header: "Estado",
-      cell: ({ row }) => <BadgeStatus status={row.getValue("status")} />,
-    },
-    {
-      id: "actions",
-      header: "Operaciones",
+      id: "actions", header: "Operaciones",
       cell: ({ row }) => {
-        const cobro = row.original;
-        if (cobro.status === "pagado") return <span className="text-xs text-muted-foreground/70">—</span>;
+        const c = row.original;
+        if (c.status === "aceptado") return <span className="text-xs text-muted-foreground/70">—</span>;
         return (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setCobroSeleccionado(cobro)}
-            className="text-success border-success/30 hover:bg-success/10"
-          >
-            <CheckCircle2 className="w-3 h-3 mr-1" />
-            Registrar cobro
+          <Button size="sm" variant="outline" onClick={() => setCobroSel(c)} className="text-info border-info/30 hover:bg-info/10">
+            <Receipt className="w-3 h-3 mr-1" /> Revisar
           </Button>
         );
       },
     },
   ];
 
-  // ── Columnas pagos promotores ──────────────────────────────────────────────
-  const columnasPagos: ColumnDef<PagoPromotor>[] = [
+  const columnasPagos: ColumnDef<PromoterPayment>[] = [
+    { accessorKey: "promoter_name", header: "Promotor", cell: ({ row }) => <span className="font-medium">{row.original.promoter_name}</span> },
     {
-      accessorKey: "promoter_name",
-      header: "Promotor",
-      cell: ({ row }) => <span className="font-medium">{row.getValue("promoter_name")}</span>,
+      accessorKey: "periodo", header: "Período",
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{fmtDate(row.original.dt_periodo_inicio)} – {fmtDate(row.original.dt_periodo_fin)}</span>,
     },
+    { accessorKey: "i_completed_tasks", header: "Tareas", cell: ({ row }) => <span className="tabular-nums">{row.original.i_completed_tasks}</span> },
+    { accessorKey: "f_monto", header: "Monto", cell: ({ row }) => <span className="font-semibold text-foreground">{fmt(row.original.f_monto)}</span> },
+    { accessorKey: "status", header: "Estado", cell: ({ row }) => <BadgePromoter status={row.original.status} /> },
     {
-      accessorKey: "request_name",
-      header: "Campaña",
-    },
-    {
-      accessorKey: "f_monto",
-      header: "Monto",
-      cell: ({ row }) => (
-        <span className="font-semibold text-foreground">{fmt(row.getValue("f_monto"))}</span>
-      ),
-    },
-    {
-      accessorKey: "dt_periodo_inicio",
-      header: "Período",
-      cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">
-          {fmtDate(row.original.dt_periodo_inicio)} – {fmtDate(row.original.dt_periodo_fin)}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "dt_pago",
-      header: "Fecha pago",
-      cell: ({ row }) => fmtDate(row.getValue("dt_pago")),
-    },
-    {
-      accessorKey: "status",
-      header: "Estado",
-      cell: ({ row }) => <BadgeStatus status={row.getValue("status")} />,
-    },
-    {
-      id: "actions",
-      header: "Operaciones",
+      id: "actions", header: "Operaciones",
       cell: ({ row }) => {
-        const pago = row.original;
-        if (pago.status === "pagado") return <span className="text-xs text-muted-foreground/70">—</span>;
+        const p = row.original;
+        if (p.status === "pagado") return <span className="text-xs text-muted-foreground/70">—</span>;
         return (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setPagoSeleccionado(pago)}
-            className="text-info border-info/30 hover:bg-info/10"
-          >
-            <CheckCircle2 className="w-3 h-3 mr-1" />
-            Registrar pago
+          <Button size="sm" variant="outline" onClick={() => setPagoSel(p)} className="text-success border-success/30 hover:bg-success/10">
+            <CheckCircle2 className="w-3 h-3 mr-1" /> Registrar pago
           </Button>
         );
       },
@@ -236,6 +142,16 @@ export default function FinanzasSuperAdmin() {
         title="Finanzas"
         subtitle="Gestión de cobros a clientes y pagos a promotores"
         icon={Banknote}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setConfigOpen(true)} className="flex items-center gap-2">
+              <Settings size={16} /> Configuración
+            </Button>
+            <Button onClick={handleGenerar} disabled={generando} className="flex items-center gap-2">
+              {generando ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />} Generar período
+            </Button>
+          </div>
+        }
       />
 
       {resumen && (
@@ -247,7 +163,6 @@ export default function FinanzasSuperAdmin() {
         </div>
       )}
 
-      {/* Tabs */}
       <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ backgroundColor: "var(--hover)" }}>
         {(["cobros", "promotores"] as Tab[]).map((t) => (
           <button
@@ -277,20 +192,9 @@ export default function FinanzasSuperAdmin() {
         )}
       </div>
 
-      {/* ── Modales ── */}
-      <ModalRegistrarCobro
-        cobro={cobroSeleccionado}
-        open={cobroSeleccionado !== null}
-        onClose={() => setCobroSeleccionado(null)}
-        onSuccess={handleCobroSuccess}
-      />
-
-      <ModalRegistrarPagoPromotor
-        pago={pagoSeleccionado}
-        open={pagoSeleccionado !== null}
-        onClose={() => setPagoSeleccionado(null)}
-        onSuccess={handlePagoPromotorSuccess}
-      />
+      <ModalRevisarCobro cobro={cobroSel} open={cobroSel !== null} onClose={() => setCobroSel(null)} onSuccess={cargar} />
+      <ModalRegistrarPagoPromotor pago={pagoSel} open={pagoSel !== null} onClose={() => setPagoSel(null)} onSuccess={cargar} />
+      <ModalConfigFinanzas open={configOpen} onClose={() => setConfigOpen(false)} />
     </PageWrapper>
   );
 }

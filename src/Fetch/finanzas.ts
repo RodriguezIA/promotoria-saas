@@ -1,328 +1,190 @@
-import { useAuthStore } from "../stores/authStore";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { api, ApiResponse } from "@/lib";
+import { useAuthStore } from "@/stores";
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 
-export type PaymentStatus = "pagado" | "pendiente" | "vencido";
-export type PromoterPaymentStatus = "pagado" | "pendiente";
+export type InvoiceStatus = "pendiente" | "en_revision" | "aceptado" | "rechazado" | "atrasado";
+export type PromoterPaymentStatus = "pendiente" | "pagado";
 export type MetodoPago = "efectivo" | "transferencia" | "tarjeta" | "oxxo";
 
-export interface RegistrarPagoPayload {
-  dt_pago: string;
-  metodo_pago: MetodoPago;
-  referencia?: string;
-  notas?: string;
+export interface InvoiceItem {
+  id_order: number;
+  id_request: number | null;
+  request_name: string | null;
+  i_completed_tasks: number;
+  f_subtotal: number;
 }
 
-export interface CobroPedido {
+export interface InvoicePaymentDetail {
+  id_invoice_payment: number;
+  f_amount: number;
+  vc_method: string;
+  vc_reference: string | null;
+  vc_receipt_url: string | null;
+  vc_notes: string | null;
+  vc_review_notes: string | null;
+  i_status: number; // 1=en_revision 2=aceptado 3=rechazado
+  dt_register: string;
+  dt_reviewed: string | null;
+}
+
+export interface ClientInvoice {
   id_cobro: number;
-  id_order: number;
+  id_invoice: number;
   id_client: number;
   client_name: string;
-  request_name: string;
-  f_total: number;
-  f_pagado: number;
-  f_pendiente: number;
+  vc_folio: string | null;
+  dt_periodo_inicio: string;
+  dt_periodo_fin: string;
   dt_vencimiento: string;
+  f_total: number;
+  status: InvoiceStatus;
   dt_pago: string | null;
-  status: PaymentStatus;
+  items: InvoiceItem[];
+  payments?: InvoicePaymentDetail[];
 }
 
-export interface PagoPromotor {
+export interface PromoterPayment {
   id_pago: number;
   id_promoter: number;
   promoter_name: string;
-  id_order: number;
-  request_name: string;
-  f_monto: number;
   dt_periodo_inicio: string;
   dt_periodo_fin: string;
-  dt_pago: string | null;
-  status: PromoterPaymentStatus;
-}
-
-export interface MiPago {
-  id_pago: number;
-  id_order: number;
-  request_name: string;
-  client_name: string;
+  i_completed_tasks: number;
   f_monto: number;
-  dt_periodo_inicio: string;
-  dt_periodo_fin: string;
-  dt_pago: string | null;
   status: PromoterPaymentStatus;
+  dt_pago: string | null;
+  vc_method: string | null;
+  vc_reference: string | null;
+  items: InvoiceItem[];
 }
 
-export interface ResumenFinanzas {
+export interface FinanceSummary {
   total_cobrado: number;
   total_pendiente_cobro: number;
   total_pagado_promotores: number;
   total_pendiente_promotores: number;
 }
 
-// ─── MOCK DATA ────────────────────────────────────────────────────────────────
+export interface FinanceConfigGlobal {
+  id_finance_settings: number;
+  f_promoter_pct: number | string;
+  i_default_period_days: number;
+  i_default_billing_weekday: number;
+  i_default_payment_due_days: number;
+}
 
-const MOCK_COBROS: CobroPedido[] = [
-  {
-    id_cobro: 1,
-    id_order: 101,
-    id_client: 1,
-    client_name: "Bimbo S.A. de C.V.",
-    request_name: "Auditoría Punto de Venta Q1",
-    f_total: 45000,
-    f_pagado: 45000,
-    f_pendiente: 0,
-    dt_vencimiento: "2025-01-31",
-    dt_pago: "2025-01-28",
-    status: "pagado",
-  },
-  {
-    id_cobro: 2,
-    id_order: 102,
-    id_client: 2,
-    client_name: "PepsiCo México",
-    request_name: "Campaña Exhibición Feb",
-    f_total: 32500,
-    f_pagado: 0,
-    f_pendiente: 32500,
-    dt_vencimiento: "2025-02-15",
-    dt_pago: null,
-    status: "vencido",
-  },
-  {
-    id_cobro: 3,
-    id_order: 103,
-    id_client: 1,
-    client_name: "Bimbo S.A. de C.V.",
-    request_name: "Revisión Precios Marzo",
-    f_total: 18000,
-    f_pagado: 0,
-    f_pendiente: 18000,
-    dt_vencimiento: "2025-03-30",
-    dt_pago: null,
-    status: "pendiente",
-  },
-  {
-    id_cobro: 4,
-    id_order: 104,
-    id_client: 3,
-    client_name: "Nestlé México",
-    request_name: "Auditoría Distribución Q1",
-    f_total: 60000,
-    f_pagado: 60000,
-    f_pendiente: 0,
-    dt_vencimiento: "2025-02-28",
-    dt_pago: "2025-02-25",
-    status: "pagado",
-  },
-  {
-    id_cobro: 5,
-    id_order: 105,
-    id_client: 2,
-    client_name: "PepsiCo México",
-    request_name: "Verificación Góndola Abril",
-    f_total: 27500,
-    f_pagado: 0,
-    f_pendiente: 27500,
-    dt_vencimiento: "2025-04-15",
-    dt_pago: null,
-    status: "pendiente",
-  },
-];
+export interface FinanceConfigClient {
+  id_client_billing_config: number;
+  id_client: number;
+  client_name: string;
+  i_period_days: number;
+  i_billing_weekday: number;
+  i_payment_due_days: number;
+  b_active: boolean;
+}
 
-const MOCK_PAGOS_PROMOTORES: PagoPromotor[] = [
-  {
-    id_pago: 1,
-    id_promoter: 10,
-    promoter_name: "Carlos Ramírez",
-    id_order: 101,
-    request_name: "Auditoría Punto de Venta Q1",
-    f_monto: 4500,
-    dt_periodo_inicio: "2025-01-01",
-    dt_periodo_fin: "2025-01-31",
-    dt_pago: "2025-02-05",
-    status: "pagado",
-  },
-  {
-    id_pago: 2,
-    id_promoter: 11,
-    promoter_name: "María López",
-    id_order: 101,
-    request_name: "Auditoría Punto de Venta Q1",
-    f_monto: 3800,
-    dt_periodo_inicio: "2025-01-01",
-    dt_periodo_fin: "2025-01-31",
-    dt_pago: "2025-02-05",
-    status: "pagado",
-  },
-  {
-    id_pago: 3,
-    id_promoter: 12,
-    promoter_name: "Jorge Hernández",
-    id_order: 103,
-    request_name: "Revisión Precios Marzo",
-    f_monto: 2200,
-    dt_periodo_inicio: "2025-03-01",
-    dt_periodo_fin: "2025-03-31",
-    dt_pago: null,
-    status: "pendiente",
-  },
-  {
-    id_pago: 4,
-    id_promoter: 10,
-    promoter_name: "Carlos Ramírez",
-    id_order: 105,
-    request_name: "Verificación Góndola Abril",
-    f_monto: 3100,
-    dt_periodo_inicio: "2025-04-01",
-    dt_periodo_fin: "2025-04-30",
-    dt_pago: null,
-    status: "pendiente",
-  },
-  {
-    id_pago: 5,
-    id_promoter: 13,
-    promoter_name: "Ana Torres",
-    id_order: 104,
-    request_name: "Auditoría Distribución Q1",
-    f_monto: 5500,
-    dt_periodo_inicio: "2025-02-01",
-    dt_periodo_fin: "2025-02-28",
-    dt_pago: "2025-03-03",
-    status: "pagado",
-  },
-];
+export interface FinanceConfig {
+  global: FinanceConfigGlobal;
+  clients: FinanceConfigClient[];
+}
 
-const MOCK_MIS_PAGOS: MiPago[] = [
-  {
-    id_pago: 1,
-    id_order: 101,
-    request_name: "Auditoría Punto de Venta Q1",
-    client_name: "Bimbo S.A. de C.V.",
-    f_monto: 4500,
-    dt_periodo_inicio: "2025-01-01",
-    dt_periodo_fin: "2025-01-31",
-    dt_pago: "2025-02-05",
-    status: "pagado",
-  },
-  {
-    id_pago: 4,
-    id_order: 105,
-    request_name: "Verificación Góndola Abril",
-    client_name: "PepsiCo México",
-    f_monto: 3100,
-    dt_periodo_inicio: "2025-04-01",
-    dt_periodo_fin: "2025-04-30",
-    dt_pago: null,
-    status: "pendiente",
-  },
-];
+export interface SubmitPaymentPayload {
+  f_amount: number;
+  vc_method: MetodoPago;
+  vc_reference?: string;
+  vc_notes?: string;
+  receipt?: File | null;
+}
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
+export interface ReviewPayload {
+  decision: "aceptado" | "rechazado";
+  vc_review_notes?: string;
+}
 
-const USE_MOCK = true; // Cambiar a false al integrar la API real
+export interface RegisterPromoterPayload {
+  vc_method?: MetodoPago;
+  vc_reference?: string;
+  vc_notes?: string;
+}
 
-const authHeaders = (): HeadersInit => {
-  const token = useAuthStore.getState().token;
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
+// ─── SUPER ADMIN: COBROS ──────────────────────────────────────────────────────
+
+export const getInvoices = (filters?: { id_client?: number; i_status?: number }) => {
+  const params = new URLSearchParams();
+  if (filters?.id_client) params.set("id_client", String(filters.id_client));
+  if (filters?.i_status) params.set("i_status", String(filters.i_status));
+  const qs = params.toString();
+  return api.get<ApiResponse<ClientInvoice[]>>(`/finance/invoices${qs ? `?${qs}` : ""}`);
 };
 
-const delay = (ms = 600) => new Promise((r) => setTimeout(r, ms));
+export const getInvoiceDetail = (id_invoice: number) =>
+  api.get<ApiResponse<ClientInvoice>>(`/finance/invoices/${id_invoice}`);
 
-// ─── SUPER ADMIN: COBROS DE PEDIDOS ──────────────────────────────────────────
+export const reviewInvoicePayment = (id_invoice_payment: number, payload: ReviewPayload) =>
+  api.put<ApiResponse<unknown>>(`/finance/invoice-payments/${id_invoice_payment}/review`, payload);
 
-export const getCobros = async (): Promise<{ ok: boolean; data: CobroPedido[] }> => {
-  if (USE_MOCK) {
-    await delay();
-    return { ok: true, data: MOCK_COBROS };
-  }
-  const res = await fetch(`${API_URL}/superadmin/finanzas/cobros`, {
-    headers: authHeaders(),
-  });
-  if (!res.ok) throw new Error("Error al obtener cobros");
-  return res.json();
-};
-
-export const marcarCobroPagado = async (
-  id_cobro: number,
-  payload: RegistrarPagoPayload
-): Promise<{ ok: boolean }> => {
-  if (USE_MOCK) {
-    await delay(400);
-    return { ok: true };
-  }
-  const res = await fetch(`${API_URL}/superadmin/finanzas/cobros/${id_cobro}/pagar`, {
-    method: "PUT",
-    headers: authHeaders(),
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error("Error al marcar cobro como pagado");
-  return res.json();
-};
+export const markInvoiceLate = (id_invoice: number) =>
+  api.put<ApiResponse<unknown>>(`/finance/invoices/${id_invoice}/late`);
 
 // ─── SUPER ADMIN: PAGOS A PROMOTORES ─────────────────────────────────────────
 
-export const getPagosPromotores = async (): Promise<{ ok: boolean; data: PagoPromotor[] }> => {
-  if (USE_MOCK) {
-    await delay();
-    return { ok: true, data: MOCK_PAGOS_PROMOTORES };
-  }
-  const res = await fetch(`${API_URL}/superadmin/finanzas/pagos-promotores`, {
-    headers: authHeaders(),
-  });
-  if (!res.ok) throw new Error("Error al obtener pagos de promotores");
-  return res.json();
+export const getPromoterPayments = (filters?: { id_promoter?: number; i_status?: number }) => {
+  const params = new URLSearchParams();
+  if (filters?.id_promoter) params.set("id_promoter", String(filters.id_promoter));
+  if (filters?.i_status) params.set("i_status", String(filters.i_status));
+  const qs = params.toString();
+  return api.get<ApiResponse<PromoterPayment[]>>(`/finance/promoter-payments${qs ? `?${qs}` : ""}`);
 };
 
-export const marcarPagoPromotorPagado = async (
-  id_pago: number,
-  payload: RegistrarPagoPayload
-): Promise<{ ok: boolean }> => {
-  if (USE_MOCK) {
-    await delay(400);
-    return { ok: true };
-  }
-  const res = await fetch(`${API_URL}/superadmin/finanzas/pagos-promotores/${id_pago}/pagar`, {
-    method: "PUT",
-    headers: authHeaders(),
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error("Error al marcar pago como realizado");
-  return res.json();
+export const registerPromoterPayment = (id_promoter_payment: number, payload: RegisterPromoterPayload) =>
+  api.put<ApiResponse<unknown>>(`/finance/promoter-payments/${id_promoter_payment}/pay`, payload);
+
+// ─── SUPER ADMIN: RESUMEN / GENERACIÓN / CONFIG ──────────────────────────────
+
+export const getSummary = () => api.get<ApiResponse<FinanceSummary>>(`/finance/summary`);
+
+export const generateBilling = (payload?: { id_client?: number; dt_period_start?: string; dt_period_end?: string }) =>
+  api.post<ApiResponse<{ invoices_creadas: number; pagos_promotor_creados: number; facturas_vencidas: number }>>(
+    `/finance/generate`,
+    payload ?? {},
+  );
+
+export const getConfig = () => api.get<ApiResponse<FinanceConfig>>(`/finance/config`);
+
+export const saveGlobalConfig = (payload: Partial<Omit<FinanceConfigGlobal, "id_finance_settings">>) =>
+  api.put<ApiResponse<unknown>>(`/finance/config`, payload);
+
+export const saveClientConfig = (
+  id_client: number,
+  payload: Partial<Omit<FinanceConfigClient, "id_client_billing_config" | "id_client" | "client_name">>,
+) => api.put<ApiResponse<unknown>>(`/finance/config/client/${id_client}`, payload);
+
+// ─── CLIENTE: MIS COBROS ──────────────────────────────────────────────────────
+
+export const getMyInvoices = () => api.get<ApiResponse<ClientInvoice[]>>(`/finance/my-invoices`);
+
+export const getMyInvoiceDetail = (id_invoice: number) =>
+  api.get<ApiResponse<ClientInvoice>>(`/finance/my-invoices/${id_invoice}`);
+
+export const submitInvoicePayment = (id_invoice: number, payload: SubmitPaymentPayload) => {
+  const fd = new FormData();
+  fd.append("f_amount", String(payload.f_amount));
+  fd.append("vc_method", payload.vc_method);
+  if (payload.vc_reference) fd.append("vc_reference", payload.vc_reference);
+  if (payload.vc_notes) fd.append("vc_notes", payload.vc_notes);
+  if (payload.receipt) fd.append("receipt", payload.receipt);
+  return api.upload<ApiResponse<unknown>>(`/finance/invoices/${id_invoice}/payments`, fd);
 };
 
-// ─── ADMIN: MIS PAGOS ─────────────────────────────────────────────────────────
-
-export const getMisPagos = async (id_promoter: number): Promise<{ ok: boolean; data: MiPago[] }> => {
-  if (USE_MOCK) {
-    await delay();
-    return { ok: true, data: MOCK_MIS_PAGOS };
-  }
-  const res = await fetch(`${API_URL}/admin/finanzas/mis-pagos/${id_promoter}`, {
-    headers: authHeaders(),
-  });
-  if (!res.ok) throw new Error("Error al obtener mis pagos");
-  return res.json();
+// Helper para etiquetas legibles de estatus.
+export const INVOICE_STATUS_LABEL: Record<InvoiceStatus, string> = {
+  pendiente: "Pendiente",
+  en_revision: "En revisión",
+  aceptado: "Pagado",
+  rechazado: "Rechazado",
+  atrasado: "Atrasado",
 };
 
-// ─── RESUMEN ──────────────────────────────────────────────────────────────────
-
-export const getResumenFinanzas = async (): Promise<{ ok: boolean; data: ResumenFinanzas }> => {
-  if (USE_MOCK) {
-    await delay(300);
-    const data: ResumenFinanzas = {
-      total_cobrado: MOCK_COBROS.filter((c) => c.status === "pagado").reduce((a, c) => a + c.f_total, 0),
-      total_pendiente_cobro: MOCK_COBROS.filter((c) => c.status !== "pagado").reduce((a, c) => a + c.f_pendiente, 0),
-      total_pagado_promotores: MOCK_PAGOS_PROMOTORES.filter((p) => p.status === "pagado").reduce((a, p) => a + p.f_monto, 0),
-      total_pendiente_promotores: MOCK_PAGOS_PROMOTORES.filter((p) => p.status === "pendiente").reduce((a, p) => a + p.f_monto, 0),
-    };
-    return { ok: true, data };
-  }
-  const res = await fetch(`${API_URL}/superadmin/finanzas/resumen`, { headers: authHeaders() });
-  if (!res.ok) throw new Error("Error al obtener resumen");
-  return res.json();
-};
+// Conserva acceso al store por si se requiere el id del usuario en componentes.
+export const getCurrentUser = () => useAuthStore.getState().user;

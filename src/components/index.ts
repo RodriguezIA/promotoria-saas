@@ -5,6 +5,7 @@
  * A:
  *  ALERT: COMPONENTES RELACIONADOS CON ALERTAS, INCLUYENDO ALERTAS DE ERROR, ÉXITO, ADVERTENCIA, ETC.
  *  ALERT DIALOG: COMPONENTE MODAL
+ *  AVATAR: COMPONENTE AVATAR PARA MOSTRAR IMÁGENES O FALLBACKS
  * B:
  *  BADGE: COMPONENTE BADGE
  *  BUTTON: COMPONENTES RELACIONADOS CON BOTONES, INCLUYENDO BOTONES PRINCIPALES, SECUNDARIOS, DE ACCIÓN, ETC.
@@ -47,6 +48,9 @@ export { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 // ALERT DIALOG
 export { AlertDialog,AlertDialogAction, AlertDialogCancel,AlertDialogContent,AlertDialogDescription,AlertDialogFooter,AlertDialogHeader,AlertDialogOverlay,AlertDialogPortal,AlertDialogTitle,AlertDialogTrigger } from './ui/alert-dialog'
+
+// AVATAR
+export { Avatar } from "./ui/avatar";
 
 // BADGE
 export { Badge, badgeVariants } from "./ui/badge";

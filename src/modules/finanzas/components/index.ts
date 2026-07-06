@@ -1,2 +1,4 @@
-export { ModalRegistrarCobro } from './ModalRegistrarCobro'
+export { ModalPagarCobro } from './ModalPagarCobro'
+export { ModalRevisarCobro } from './ModalRevisarCobro'
 export { ModalRegistrarPagoPromotor } from './ModalRegistrarPagoPromotor'
+export { ModalConfigFinanzas } from './ModalConfigFinanzas'

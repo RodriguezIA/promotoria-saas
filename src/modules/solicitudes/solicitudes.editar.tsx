@@ -66,16 +66,17 @@ export const EditarSolicitud = () => {
 
           if (dataSol.request_products && dataSol.request_products.length > 0) {
             const preSeleccionados: ProductoSeleccionado[] = dataSol.request_products.map((rp: any) => ({
+              ...(rp.product ?? {}),
               id_product: rp.id_product,
               name: rp.product?.name || `Producto #${rp.id_product}`,
-              vc_image: rp.product?.vc_image || null,
-              description: rp.product?.description || null,
+              vc_image: rp.product?.vc_image ?? null,
+              description: rp.product?.description ?? null,
               preguntas: rp.request_product_questions?.map((rpq: any) => ({
                 id_pregunta: rpq.question.id_question,
                 vc_pregunta: rpq.question.question || 'Pregunta',
                 dc_precio: 0
               })) || []
-            }));
+            } as ProductoSeleccionado));
 
             setProductosSeleccionados(preSeleccionados);
           }

@@ -9,3 +9,4 @@ export type { RequestDTO, RequestProductDTO, RequestProductQuestionDTO, RequestF
 export type { OrderDTO, OderListDTO, OrderItemSummaryDTO, OrderLogDTO } from './orders'
 export type { TaskDTO } from './tasks'
 export type { PromoterDTO } from './promoters'
+export type { PromoterBankAccountDTO, CreateBankAccountDTO } from './promoter-bank-accounts'
