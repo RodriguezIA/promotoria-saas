@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Store, ChevronLeft, ChevronRight, HomeIcon, ClipboardList, UsersRound, Users, Package, MessageCircleQuestion, Receipt, Banknote, UserCircle, Building2, CheckSquare2, LucideIcon } from "lucide-react"
+import { Store, ChevronLeft, ChevronRight, HomeIcon, ClipboardList, UsersRound, Users, Package, MessageCircleQuestion, Receipt, Banknote, UserCircle, Building2, CheckSquare2, BarChart3, HandCoins, CreditCard, Wallet, LucideIcon } from "lucide-react"
 
 
 import { cn } from "@/lib"
@@ -60,11 +60,25 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       ],
     },
     {
+      label: "Reportes",
+      items: [
+        { route: "/reportes/pedidos", icon: BarChart3, label: "Reporte de pedidos", show: isAdmin || isNegocio },
+      ],
+    },
+    {
       label: "Negocio",
       items: [
-        { route: "/finanzas", icon: Banknote, label: "Finanzas", show: isAdmin || isNegocio },
         { route: "/mi-negocio", icon: Building2, label: "Mi Negocio", show: isNegocio },
         { route: "/perfil", icon: UserCircle, label: "Mi perfil", show: true, mobileOnly: true },
+      ],
+    },
+    {
+      label: "Finanzas",
+      items: [
+        { route: "/finanzas/cobro-clientes", icon: HandCoins, label: "Cobro a clientes", show: isAdmin },
+        { route: "/finanzas/pago-promotores", icon: Banknote, label: "Pago a promotores", show: isAdmin },
+        { route: "/finanzas/gestion-pagos", icon: CreditCard, label: "Gestión de pagos", show: isNegocio },
+        { route: "/finanzas/gestion-gastos", icon: Wallet, label: "Gestión de gastos", show: isAdmin },
       ],
     },
   ];

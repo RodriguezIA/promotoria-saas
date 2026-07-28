@@ -1,15 +1,15 @@
 import { toast } from 'sonner'
 import { useState, useEffect } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
-import { Link, useNavigate } from "react-router-dom"
-import { Plus, Loader2, Store as StoreIcon, Eye, Trash2 } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { Plus, Store as StoreIcon, Eye, Trash2 } from "lucide-react"
 
 
 import { StoreDTO } from '@/dtos'
 import { api, ApiResponse } from '@/lib'
 import { deleteStore } from '@/Fetch/establecimientos'
 import { EstablecimientoModalRegistroMasivo } from './EstablecimientoModalRegistroMasivo'
-import { Button, DataTable, RowActions } from '@/components'
+import { Button, DataTable, PageHeader, RowActions } from '@/components'
 
 
 export function EstablecimientosSuperAdmin() {
@@ -126,70 +126,42 @@ export function EstablecimientosSuperAdmin() {
 
     return (
         <>
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-semibold text-foreground">Establecimientos</h1>
-                    <p className="text-sm text-muted-foreground mt-1">Administra los establecimientos</p>
-                </div>
-
-                <div className="flex gap-4">
-                    <Link to="/establecimiento">
-                        <Button className="flex items-center gap-2">
-                            <Plus size={18} />
-                            Nuevo Establecimiento
-                        </Button>
-                    </Link>
-
-                    <EstablecimientoModalRegistroMasivo 
-                        onSuccess={() => fetchEstablecimientos()}
-                    />
-                </div>
-            </div>
-
-            {/* Loading state */}
-            {loading && (
-                <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground/70" />
-                </div>
-            )}
-
-            {!loading && (
-                <div className="bg-white rounded-lg border border-border p-4">
-                    {establecimientos.length > 0 ? (
-                        <DataTable 
-                            columns={columns} 
-                            data={establecimientos}
-                            pagination={{
-                                mode: "client",
-                                pageSize: 10,
-                                pageSizeOptions: [5, 10, 20, 50],
-                                showPageSizeSelector: true,
-                                showSelectedCount: true,
-                                showPageNavigation: true,
-                            }}
+            <PageHeader
+                title="Establecimientos"
+                subtitle="Administra los establecimientos"
+                icon={StoreIcon}
+                actions={
+                    <>
+                        <EstablecimientoModalRegistroMasivo
+                            onSuccess={() => fetchEstablecimientos()}
                         />
-                    ) : (
-                        <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-                                <StoreIcon size={32} className="text-muted-foreground/70" />
-                            </div>
-                            <h4 className="text-lg font-medium text-foreground mb-1">
-                                Sin establecimientos
-                            </h4>
-                            <p className="text-muted-foreground mb-4">
-                                Aún no hay establecimientos registrados para este cliente.
-                            </p>
-                            <Link to="/establecimiento">
-                                <Button>
-                                    <Plus size={16} className="mr-2" />
-                                    Agregar primer establecimiento
-                                </Button>
-                            </Link>
-                        </div>
-                    )}
-                </div>
-            )}
+                        <Button onClick={() => navigate("/establecimiento")} className="flex items-center gap-2">
+                            <Plus size={16} /> Nuevo Establecimiento
+                        </Button>
+                    </>
+                }
+            />
+
+            <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+                <DataTable
+                    columns={columns}
+                    data={establecimientos}
+                    isLoading={loading}
+                    emptyMessage="Aún no hay establecimientos registrados para este cliente."
+                    emptyIcon={<StoreIcon size={32} className="text-muted-foreground/70" />}
+                    pagination={{
+                        mode: "client",
+                        pageSize: 10,
+                        pageSizeOptions: [5, 10, 20, 50],
+                        showPageSizeSelector: true,
+                        showSelectedCount: true,
+                        showPageNavigation: true,
+                    }}
+                    responsive={{
+                        enabled: true,
+                    }}
+                />
+            </div>
         </>
     );
 }

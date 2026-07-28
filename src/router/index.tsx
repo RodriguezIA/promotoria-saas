@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 
 import { Layout } from "@/layout"
 import { Home } from '@/modules/home'
+import { NotFound } from '@/modules/not-found'
+import { Maintenance } from '@/modules/maintenance'
 import { Finanzas } from '@/modules/finanzas'
 import { Perfil, MiNegocio } from '@/modules/perfil'
 import { PrivateRoute, Login, RestorePassword } from '@/modules/auth'
@@ -20,6 +22,7 @@ export default function AppRouter() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/restore-pwd" element={<RestorePassword />} />
+        <Route path="/mantenimiento" element={<Maintenance />} />
 
         <Route path="/" element={
             <PrivateRoute>
@@ -52,9 +55,17 @@ export default function AppRouter() {
           <Route path="promotores" element={<PromotoresList />} />
           <Route path="detalle-promotor/:id" element={<PromoterDetalle />} />
           <Route path="finanzas" element={<Finanzas />} />
+          <Route path="finanzas/cobro-clientes" element={<Maintenance />} />
+          <Route path="finanzas/pago-promotores" element={<Maintenance />} />
+          <Route path="finanzas/gestion-pagos" element={<Maintenance />} />
+          <Route path="finanzas/gestion-gastos" element={<Maintenance />} />
+          <Route path="reportes/pedidos" element={<Maintenance />} />
           <Route path="perfil" element={<Perfil />} />
           <Route path="mi-negocio" element={<MiNegocio />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
+
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
