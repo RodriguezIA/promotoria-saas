@@ -2,7 +2,7 @@ import React from "react";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "./button";
 import { cn } from "../../lib/utils";
-import { useTheme } from "../../hooks/useTheme";
+import { useTheme, DARK_THEME_ENABLED } from "../../hooks/useTheme";
 
 interface ThemeToggleProps {
   size?: "sm" | "md" | "lg";
@@ -22,9 +22,14 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
     <Button
       variant="outline"
       size={size === "sm" ? "sm" : size === "lg" ? "lg" : "default"}
-      onClick={toggleTheme}
+      onClick={DARK_THEME_ENABLED ? toggleTheme : undefined}
+      disabled={!DARK_THEME_ENABLED}
       className={cn("gap-2", className)}
-      title={`Cambiar a tema ${isLight ? "oscuro" : "claro"}`}
+      title={
+        DARK_THEME_ENABLED
+          ? `Cambiar a tema ${isLight ? "oscuro" : "claro"}`
+          : "Tema oscuro próximamente"
+      }
     >
       <span className="relative flex size-4 items-center justify-center overflow-hidden">
         <Sun

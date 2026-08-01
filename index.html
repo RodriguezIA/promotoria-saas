@@ -13,14 +13,19 @@
       rel="stylesheet"
     />
     <script>
-      // Aplica el tema antes del primer render para evitar el "flash" de tema incorrecto
+      // Aplica el tema antes del primer render para evitar el "flash" de tema incorrecto.
+      // NOTA: tema oscuro deshabilitado temporalmente, debe coincidir con
+      // DARK_THEME_ENABLED en src/hooks/useTheme.ts. Al reactivarlo, poner
+      // DARK_THEME_ENABLED en true aquí también.
       (function () {
         try {
+          var DARK_THEME_ENABLED = false;
           var t = localStorage.getItem("app-theme");
           var dark =
-            t === "dark" ||
-            (t === "system" &&
-              window.matchMedia("(prefers-color-scheme: dark)").matches);
+            DARK_THEME_ENABLED &&
+            (t === "dark" ||
+              (t === "system" &&
+                window.matchMedia("(prefers-color-scheme: dark)").matches));
           document.documentElement.classList.toggle("dark", dark);
         } catch (e) {}
       })();

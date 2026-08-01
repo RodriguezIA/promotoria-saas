@@ -4,6 +4,14 @@ export type Theme = 'light' | 'dark' | 'system';
 
 const THEME_KEY = 'app-theme';
 
+/**
+ * El tema oscuro aún no está terminado visualmente. Mientras se completa,
+ * la app se fuerza a tema claro sin borrar la lógica/tokens de dark.
+ * Para reactivarlo: poner esto en true y revertir el forzado equivalente
+ * en el script anti-flash de index.html.
+ */
+export const DARK_THEME_ENABLED = false;
+
 const getSystemTheme = (): 'light' | 'dark' => {
   if (typeof window === 'undefined') return 'light';
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -27,18 +35,24 @@ const applyTheme = (resolved: 'light' | 'dark') => {
   metaTheme?.setAttribute('content', resolved === 'dark' ? '#121410' : '#ffffff');
 };
 
+const resolveTheme = (t: Theme): 'light' | 'dark' => {
+  if (!DARK_THEME_ENABLED) return 'light';
+  return t === 'system' ? getSystemTheme() : t;
+};
+
 export const useTheme = () => {
   const [theme, setTheme] = useState<Theme>(getStoredTheme);
-  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>(() => {
-    const stored = getStoredTheme();
-    return stored === 'system' ? getSystemTheme() : stored;
-  });
+  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>(() =>
+    resolveTheme(getStoredTheme()),
+  );
 
   const changeTheme = (newTheme: Theme) => {
+    if (!DARK_THEME_ENABLED) return;
+
     setTheme(newTheme);
     localStorage.setItem(THEME_KEY, newTheme);
 
-    const resolved = newTheme === 'system' ? getSystemTheme() : newTheme;
+    const resolved = resolveTheme(newTheme);
     setActualTheme(resolved);
     applyTheme(resolved);
   };
@@ -49,7 +63,7 @@ export const useTheme = () => {
 
   // Seguir los cambios del sistema cuando el tema es 'system'
   useEffect(() => {
-    if (theme !== 'system') return;
+    if (!DARK_THEME_ENABLED || theme !== 'system') return;
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent) => {
@@ -64,7 +78,7 @@ export const useTheme = () => {
 
   // Aplicar el tema inicial
   useEffect(() => {
-    const resolved = theme === 'system' ? getSystemTheme() : theme;
+    const resolved = resolveTheme(theme);
     setActualTheme(resolved);
     applyTheme(resolved);
     // eslint-disable-next-line react-hooks/exhaustive-deps
