@@ -95,6 +95,8 @@ export { Input } from "./ui/input";
 // LABEL
 export { Label } from "./ui/label";
 export { LogoutButton } from './custom/LogoutButton'
+export { BitacoraDialog } from './custom/BitacoraDialog'
+export type { BitacoraDialogProps } from './custom/BitacoraDialog'
 
 // MODAL CUSTOM
 export { MensajeConfirmacion } from "./custom/mensajeConfirmaacion";

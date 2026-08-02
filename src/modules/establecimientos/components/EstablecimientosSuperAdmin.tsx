@@ -2,14 +2,14 @@ import { toast } from 'sonner'
 import { useState, useEffect } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { useNavigate } from "react-router-dom"
-import { Plus, Store as StoreIcon, Eye, Trash2 } from "lucide-react"
+import { Plus, Store as StoreIcon, Eye, Pencil, History, Trash2 } from "lucide-react"
 
 
-import { StoreDTO } from '@/dtos'
+import { StoreDTO, StoreLogDTO } from '@/dtos'
 import { api, ApiResponse } from '@/lib'
 import { deleteStore } from '@/Fetch/establecimientos'
 import { EstablecimientoModalRegistroMasivo } from './EstablecimientoModalRegistroMasivo'
-import { Button, DataTable, PageHeader, RowActions } from '@/components'
+import { Button, DataTable, PageHeader, RowActions, BitacoraDialog } from '@/components'
 
 
 export function EstablecimientosSuperAdmin() {
@@ -17,6 +17,10 @@ export function EstablecimientosSuperAdmin() {
 
     const [loading, setLoading] = useState(true);
     const [establecimientos, setEstablecimientos] = useState<StoreDTO[]>([]);
+
+    const [bitacoraOpen, setBitacoraOpen] = useState(false);
+    const [bitacoraLoading, setBitacoraLoading] = useState(false);
+    const [bitacoraLogs, setBitacoraLogs] = useState<StoreLogDTO[]>([]);
 
     useEffect(() => {
         fetchEstablecimientos();
@@ -56,29 +60,48 @@ export function EstablecimientosSuperAdmin() {
         }
     }
 
+    const handleOpenBitacora = async (id_store: number) => {
+        setBitacoraOpen(true);
+        setBitacoraLoading(true);
+        try {
+            const res = await api.get<ApiResponse<StoreDTO>>(`/stores/${id_store}`);
+            setBitacoraLogs(res.data.logs ?? []);
+        } catch (error) {
+            console.error("Error al cargar la bitácora:", error);
+            toast.error("Error al cargar la bitácora");
+        } finally {
+            setBitacoraLoading(false);
+        }
+    }
+
     const columns: ColumnDef<StoreDTO>[] = [
         {
             id: "sales_channel",
             header: "Canal de venta",
             meta: { className: "text-center" }, 
             cell: ({ row }) => {
-                const store = row.original;
+                const channel = row.original.sales_channel;
 
-                if(store.sales_channel){
-                    return (
-                        <div className="flex flex-col items-center justify-center gap-2 py-2">
-                            <img 
-                                src={store.sales_channel.url_image} 
-                                alt={store.sales_channel.name}
-                                className="h-10 w-10 rounded-full object-cover border border-border bg-white" 
-                            />
-                            <span className="text-xs font-medium text-foreground text-center leading-tight">
-                                {store.sales_channel.name}
-                            </span>
-                        </div>
-                    )
-                }
-                return <span className="text-xs text-muted-foreground/70">Sin canal</span>
+                return (
+                    <div className="flex flex-col items-center justify-center gap-2 py-2">
+                        {channel ? (
+                            <>
+                                {channel.url_image && (
+                                    <img
+                                        src={channel.url_image}
+                                        alt={channel.name}
+                                        className="h-10 w-10 rounded-full object-cover border border-border bg-white"
+                                    />
+                                )}
+                                <span className="text-xs font-medium text-foreground text-center leading-tight">
+                                    {channel.name}
+                                </span>
+                            </>
+                        ) : (
+                            <span className="text-xs text-muted-foreground/70">Sin canal</span>
+                        )}
+                    </div>
+                )
             }
         },
         {
@@ -110,6 +133,16 @@ export function EstablecimientosSuperAdmin() {
                                 icon: Eye,
                                 label: "Ver detalle",
                                 onClick: () => navigate(`/establecimiento/detalle/${store.id_store}`),
+                            },
+                            {
+                                icon: Pencil,
+                                label: "Editar",
+                                onClick: () => navigate(`/establecimiento/${store.id_store}`),
+                            },
+                            {
+                                icon: History,
+                                label: "Bitácora",
+                                onClick: () => handleOpenBitacora(store.id_store),
                             },
                             {
                                 icon: Trash2,
@@ -162,6 +195,14 @@ export function EstablecimientosSuperAdmin() {
                     }}
                 />
             </div>
+
+            <BitacoraDialog
+                open={bitacoraOpen}
+                onOpenChange={setBitacoraOpen}
+                logs={bitacoraLogs}
+                isLoading={bitacoraLoading}
+                title="Bitácora del establecimiento"
+            />
         </>
     );
 }

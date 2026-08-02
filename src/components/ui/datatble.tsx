@@ -114,6 +114,21 @@ interface ExpandedRowContentProps<TData> {
   collapsedColumns: ColumnDef<TData, unknown>[];
 }
 
+// Lee un valor anidado por path tipo "address.state.name" directo del dato
+// original de la fila. Las columnas colapsadas nunca se registran en la
+// instancia real de la tabla (por diseño, así no ocupan ancho en pantalla),
+// así que `row.getValue`/`table.getColumn` no las conocen y fallan con
+// "Column with id '...' does not exist". Hay que resolver el valor a mano.
+function getByPath(obj: unknown, path: string): unknown {
+  return path
+    .split(".")
+    .reduce<unknown>(
+      (acc, key) =>
+        acc && typeof acc === "object" ? (acc as Record<string, unknown>)[key] : undefined,
+      obj,
+    );
+}
+
 function ExpandedRowContent<TData>({
   row,
   collapsedColumns,
@@ -133,6 +148,18 @@ function ExpandedRowContent<TData>({
               headerContent = column.header;
             }
 
+            const accessorFn = (
+              column as { accessorFn?: (row: TData) => unknown }
+            ).accessorFn;
+            const accessorKey = (column as { accessorKey?: string })
+              .accessorKey;
+            const getValue = () =>
+              accessorFn
+                ? accessorFn(row.original)
+                : accessorKey
+                  ? getByPath(row.original, accessorKey)
+                  : undefined;
+
             // Renderizar la celda manualmente
             const cellDef = column.cell;
             let cellContent: React.ReactNode;
@@ -142,16 +169,16 @@ function ExpandedRowContent<TData>({
                 cellContent = cellDef({
                   row,
                   column: { id: columnId } as any,
-                  getValue: () => row.getValue(columnId),
-                  renderValue: () => row.getValue(columnId),
+                  getValue,
+                  renderValue: getValue,
                   cell: {} as any,
                   table: {} as any,
                 } as any);
               } catch {
-                cellContent = row.getValue(columnId) as React.ReactNode;
+                cellContent = getValue() as React.ReactNode;
               }
             } else {
-              cellContent = row.getValue(columnId) as React.ReactNode;
+              cellContent = getValue() as React.ReactNode;
             }
 
             return (
