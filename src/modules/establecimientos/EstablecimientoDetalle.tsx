@@ -1,13 +1,13 @@
 import { toast } from "sonner"
 import { useState, useEffect, useCallback } from "react"
 import { useNavigate, useParams, Link } from "react-router-dom"
-import { ArrowLeft, Loader2, Store as StoreIcon, MapPin, Hash, Edit, Trash2, Copy, ExternalLink } from "lucide-react"
-import { GoogleMap, OverlayView } from "@react-google-maps/api";
+import { ArrowLeft, Loader2, Store as StoreIcon, MapPin, Hash, Edit, Copy, ExternalLink, History } from "lucide-react"
+import { GoogleMap } from "@react-google-maps/api";
 
 import { Button } from "@/components";
-import { GOOGLE_MAPS_CONFIG, useJsApiLoader, api, ApiResponse } from '@/lib'
-import { getStoreById, Store } from "@/Fetch/establecimientos";
+import { GOOGLE_MAPS_CONFIG, useJsApiLoader, api, ApiResponse, formatDate } from '@/lib'
 import { StoreDTO } from '@/dtos'
+import { CustomMarker } from './components/CustomMarker'
 
 
 const mapContainerStyle = {
@@ -15,79 +15,6 @@ const mapContainerStyle = {
     height: "700px",
     borderRadius: "8px",
 };
-
-interface CustomMarkerProps {
-    position: google.maps.LatLngLiteral;
-    imageUrl: string | null;
-    storeName: string;
-}
-
-function CustomMarker({ position, imageUrl, storeName }: CustomMarkerProps) {
-    const MARKER_WIDTH = 120;
-    const MARKER_HEIGHT = 130;
-
-    return (
-        <OverlayView
-            position={position}
-            mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
-            getPixelPositionOffset={() => ({
-                x: -(MARKER_WIDTH / 2),
-                y: -MARKER_HEIGHT,
-            })}
-        >
-            <div style={{ width: MARKER_WIDTH, position: 'relative' }}>
-                {/* Tarjeta */}
-                <div className="bg-white rounded-lg shadow-lg border-2 border-brand overflow-hidden">
-                    {/* Imagen */}
-                    <div style={{ height: 70 }} className="w-full bg-muted">
-                        {imageUrl ? (
-                            <img
-                                src={imageUrl}
-                                alt={storeName}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                }}
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                                <StoreIcon size={28} className="text-muted-foreground/50" />
-                            </div>
-                        )}
-                    </div>
-                    
-                    {/* Nombre */}
-                    <div className="px-2 py-1.5 text-center">
-                        <p className="text-xs font-medium text-foreground truncate">
-                            {storeName || "Establecimiento"}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Flecha */}
-                <div className="flex justify-center">
-                    <div 
-                        style={{
-                            width: 0,
-                            height: 0,
-                            borderLeft: '10px solid transparent',
-                            borderRight: '10px solid transparent',
-                            borderTop: '12px solid var(--brand)',
-                        }}
-                    />
-                </div>
-
-                {/* Punto - ANCLA */}
-                <div className="flex justify-center">
-                    <div 
-                        className="bg-brand rounded-full border-2 border-white shadow-md"
-                        style={{ width: 12, height: 12 }}
-                    />
-                </div>
-            </div>
-        </OverlayView>
-    );
-}
 
 export default function EstablecimientoDetalle() {
     const navigate = useNavigate();
@@ -107,19 +34,23 @@ export default function EstablecimientoDetalle() {
     }, [establecimiento]);
 
     useEffect(() => {
+        let cancelled = false;
         setLoading(true);
-        try {
-            const fetch = async() => {
+
+        const fetchStore = async () => {
+            try {
                 const resp = await api.get<ApiResponse<StoreDTO>>(`/stores/${id_store_client}`);
-                console.log(resp);
-                setEstablecimiento(resp.data);
+                if (!cancelled) setEstablecimiento(resp.data);
+            } catch (error) {
+                console.error("Error al cargar el establecimiento:", error);
+                if (!cancelled) toast.error("Error al cargar el establecimiento");
+            } finally {
+                if (!cancelled) setLoading(false);
             }
-            fetch()
-        } catch (error) {
-            console.error("error establecimiento detalle uyseeffect main");
-        } finally {
-            setLoading(false);
-        }
+        };
+
+        fetchStore();
+        return () => { cancelled = true };
     }, [id_store_client])
 
     const copyToClipboard = (text: string) => {
@@ -143,12 +74,13 @@ export default function EstablecimientoDetalle() {
     };
 
     const onMapLoad = useCallback((map: google.maps.Map) => {
-        // Centrar el mapa en las coordenadas del establecimiento
-        if (establecimiento?.address.latitude && establecimiento?.address.longitude) {
-            map.setCenter({
-                lat: establecimiento.address.latitude,
-                lng: establecimiento.address.longitude,
-            });
+        // Prisma serializa Decimal (latitude/longitude) como string en el JSON,
+        // aunque el DTO diga `number` — hay que convertir antes de pasarlo a setCenter.
+        const lat = Number(establecimiento?.address.latitude);
+        const lng = Number(establecimiento?.address.longitude);
+
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+            map.setCenter({ lat, lng });
         }
     }, [establecimiento]);
 
@@ -200,14 +132,14 @@ export default function EstablecimientoDetalle() {
                     </div>
                 </div>
 
-                {/* <div className="flex gap-3">
-                    <Link to={`/establecimiento/${id_store_client}`}>
+                <div className="flex gap-3">
+                    <Link to={`/establecimiento/${establecimiento.id_store}`}>
                         <Button variant="outline">
                             <Edit size={18} className="mr-2" />
                             Editar
                         </Button>
                     </Link>
-                </div> */}
+                </div>
             </div>
 
             {/* Contenido */}
@@ -351,22 +283,41 @@ export default function EstablecimientoDetalle() {
 
                 {/* Metadatos */}
                 <div className="bg-white rounded-lg border border-border p-6">
-                    <h2 className="text-lg font-medium mb-4">Información del Sistema</h2>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        {/* <div>
-                            <p className="text-sm text-muted-foreground">Fecha de Creación</p>
-                            <p className="font-medium">
-                                {new Date(establecimiento.dt_register).toLocaleDateString("es-MX")}
-                            </p>
-                        </div> */}
-                        {/* <div>
-                            <p className="text-sm text-muted-foreground">Última Actualización</p>
-                            <p className="font-medium">
-                                {new Date(establecimiento.dt_updated).toLocaleDateString("es-MX")}
-                            </p>
-                        </div> */}
+                    <div className="flex items-center gap-2 mb-4">
+                        <History size={20} className="text-muted-foreground" />
+                        <h2 className="text-lg font-medium">Información del Sistema</h2>
                     </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <p className="text-sm text-muted-foreground">Fecha de Creación</p>
+                            <p className="font-medium">{formatDate(establecimiento.dt_register)}</p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Última Actualización</p>
+                            <p className="font-medium">{formatDate(establecimiento.dt_updated)}</p>
+                        </div>
+                    </div>
+
+                    {establecimiento.logs && establecimiento.logs.length > 0 && (
+                        <div>
+                            <p className="text-sm text-muted-foreground mb-3">Actividad reciente</p>
+                            <ul className="space-y-3">
+                                {establecimiento.logs.map((logEntry) => (
+                                    <li key={logEntry.id_store_log} className="flex gap-3">
+                                        <div className="mt-1.5 size-2 rounded-full bg-brand shrink-0" />
+                                        <div>
+                                            <p className="text-sm text-foreground">{logEntry.log}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {formatDate(logEntry.dt_register)}
+                                                {logEntry.users && ` · ${logEntry.users.name} ${logEntry.users.lastname}`}
+                                            </p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                 </div>
             </div>
 

@@ -40,6 +40,7 @@ export default function AppRouter() {
           <Route path="producto/detalle/:id_product" element={<ProductoDetalle />} />
           <Route path="establecimientos" element={<Establecimientos />} />
           <Route path="establecimiento" element={<Establecimiento />} />
+          <Route path="establecimiento/:id_store" element={<Establecimiento />} />
           <Route path="establecimiento/detalle/:id_store_client" element={<EstablecimientoDetalle />} />
           <Route path="preguntas" element={<ListadoPreguntas />} />
           <Route path="preguntas/detalle/:id" element={<PreguntaDetalle />} />

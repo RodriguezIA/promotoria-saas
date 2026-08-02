@@ -2,8 +2,8 @@ import { toast } from "sonner"
 import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useNavigate } from "react-router-dom"
-import { ArrowLeft, Store, MapPin, Map } from "lucide-react"
+import { useNavigate, useParams } from "react-router-dom"
+import { ArrowLeft, Store, MapPin, Map, Loader2 } from "lucide-react"
 import { GoogleMap } from "@react-google-maps/api"
 
 
@@ -20,7 +20,9 @@ import { CustomMarker } from './components/CustomMarker'
 
 export default function Establecimiento() {
     const navigate = useNavigate()
+    const { id_store } = useParams()
     const { user } = useAuthStore()
+    const isEditMode = Boolean(id_store)
 
     const form = useForm<StoreFormValues>({
         resolver: zodResolver(storeFormSchema),
@@ -31,6 +33,7 @@ export default function Establecimiento() {
     const [states, setStates] = useState<StateDTO[]>()
     const [cities, setCities] = useState<CityDTO[]>()
     const [channels, setChannels] = useState<channelSalesDTO[]>()
+    const [loadingData, setLoadingData] = useState(isEditMode)
 
     const [mapCenter, setMapCenter] = useState({ lat: 25.7460, lng: -100.2792 })
     const [markerPosition, setMarkerPosition] = useState<{lat: number, lng: number} | null>(null)
@@ -91,6 +94,56 @@ export default function Establecimiento() {
         }
     }, [idState]);
 
+    useEffect(() => {
+        if (!isEditMode) return;
+
+        let cancelled = false;
+
+        const fetchStore = async () => {
+            try {
+                setLoadingData(true);
+                const res = await api.get<ApiResponse<StoreDTO>>(`/stores/${id_store}`);
+                const store = res.data;
+                if (cancelled) return;
+
+                form.reset({
+                    name: store.name,
+                    store_code: store.store_code ?? "",
+                    id_channel_sale: store.id_channel_sale,
+                    address: {
+                        id_country: store.address.id_country ?? 0,
+                        id_state: store.address.id_state ?? 0,
+                        id_city: store.address.id_city ?? 0,
+                        street: store.address.street ?? "",
+                        ext_number: store.address.ext_number ?? "",
+                        int_number: store.address.int_number ?? "",
+                        neighborhood: store.address.neighborhood ?? "",
+                        postal_code: store.address.postal_code ?? "",
+                        address_references: store.address.address_references ?? "",
+                        latitude: Number(store.address.latitude) || 0,
+                        longitude: Number(store.address.longitude) || 0,
+                    },
+                });
+
+                if (store.address.latitude && store.address.longitude) {
+                    const pos = { lat: Number(store.address.latitude), lng: Number(store.address.longitude) };
+                    setMapCenter(pos);
+                    setMarkerPosition(pos);
+                }
+            } catch (error) {
+                console.error("Error al cargar el establecimiento:", error);
+                toast.error("Error al cargar el establecimiento");
+                navigate("/establecimientos");
+            } finally {
+                if (!cancelled) setLoadingData(false);
+            }
+        };
+
+        fetchStore();
+        return () => { cancelled = true };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id_store, isEditMode]);
+
     const onSubmit = async (values: StoreFormValues) => {
         const payload = {
             id_user: user?.id_user ?? 0,
@@ -105,18 +158,20 @@ export default function Establecimiento() {
         };
 
         try {
-            const res = await api.post<ApiResponse<StoreDTO>>(`/stores/`, payload);
+            const res = isEditMode
+                ? await api.put<ApiResponse<StoreDTO>>(`/stores/${id_store}`, payload)
+                : await api.post<ApiResponse<StoreDTO>>(`/stores/`, payload);
 
             if (res.error && res.error > 0) {
-                toast.error(res.message || "Error al crear el establecimiento");
+                toast.error(res.message || `Error al ${isEditMode ? "actualizar" : "crear"} el establecimiento`);
                 return;
             }
 
-            toast.success("Establecimiento creado correctamente");
-            navigate("/establecimientos");
+            toast.success(`Establecimiento ${isEditMode ? "actualizado" : "creado"} correctamente`);
+            navigate(isEditMode ? `/establecimiento/detalle/${id_store}` : "/establecimientos");
         } catch (error) {
             console.error("f.onSubmit: ", error);
-            toast.error("Error al crear el establecimiento");
+            toast.error(`Error al ${isEditMode ? "actualizar" : "crear"} el establecimiento`);
         }
     };
 
@@ -177,6 +232,15 @@ export default function Establecimiento() {
         }
     }
 
+    if (loadingData) {
+        return (
+            <div className="flex flex-col items-center justify-center gap-3 py-24">
+                <Loader2 size={32} className="animate-spin text-muted-foreground/70" />
+                <p className="text-muted-foreground">Cargando establecimiento...</p>
+            </div>
+        );
+    }
+
     return (
         <>
 
@@ -191,16 +255,20 @@ export default function Establecimiento() {
                 </Button>
                 <div>
                     <h1 className="text-2xl font-semibold text-foreground">
-                        {"Nuevo Establecimiento"}
+                        {isEditMode ? "Editar Establecimiento" : "Nuevo Establecimiento"}
                     </h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        {"Completa el formulario para registrar un nuevo establecimiento"}
+                        {isEditMode
+                            ? "Modifica los datos del establecimiento"
+                            : "Completa el formulario para registrar un nuevo establecimiento"}
                     </p>
                 </div>
             </div>
 
             <div className="flex justify-end mb-6 mr-6">
-                <Button type="submit" form="establecimiento-form">Guardar</Button>
+                <Button type="submit" form="establecimiento-form" disabled={form.formState.isSubmitting}>
+                    {isEditMode ? "Guardar cambios" : "Guardar"}
+                </Button>
             </div>
 
             <Form {...form}>
