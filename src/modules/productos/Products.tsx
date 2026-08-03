@@ -8,7 +8,7 @@ import { Loader2, Package, Plus, Pencil, Trash2, Eye } from "lucide-react"
 import { useAuthStore } from '@/stores';
 import { ProductDTO, ClientDTO } from "@/dtos";
 import { api, ApiResponse, formatDate } from '@/lib'
-import { Button, DataTable, PageWrapper, PageHeader, RowActions, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, ConfirmModal } from '@/components';
+import { Avatar, Button, DataTable, PageWrapper, PageHeader, RowActions, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, ConfirmModal } from '@/components';
 
 
 export default function ProductPage() {
@@ -108,15 +108,17 @@ export default function ProductPage() {
     {
       accessorKey: "vc_image",
       header: "#",
-      cell: ({ row }) => (
-        <div className="flex items-center justify-start">
-          <img
-            src={row.getValue("vc_image")}
-            alt={row.getValue("name")}
-            className="w-12 h-12 object-cover rounded-lg border border-border"
+      cell: ({ row }) => {
+        const imageUrl = row.getValue("vc_image") as string | null;
+        return (
+          <Avatar
+            size="sm"
+            src={imageUrl || undefined}
+            alt={row.original.name}
+            fallback={<Package size={16} />}
           />
-        </div>
-      ),
+        );
+      },
     },
     {
       accessorKey: "vc_folio",

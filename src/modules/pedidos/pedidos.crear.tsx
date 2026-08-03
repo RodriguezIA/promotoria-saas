@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { useNavigate } from 'react-router-dom'
 import { Plus, Trash2, Store, ClipboardList, Check, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 
 import { useAuthStore } from '@/stores'
@@ -19,15 +20,15 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
 } from '@/components'
-import { StoreDTO, RequestDTO, ClientListDTO } from '@/dtos'
+import { StoreDTO, RequestDTO, ClientListDTO, OrderDTO } from '@/dtos'
 
 interface RequestSeleccionada extends RequestDTO {
   storesSeleccionadas: number[]
 }
 
 export const CrearPedido = () => {
+  const navigate = useNavigate()
   const { user } = useAuthStore()
   const isSuperAdmin = user?.id_client === 0 || user?.i_rol === 1
 
@@ -211,14 +212,18 @@ export const CrearPedido = () => {
           })),
       }
 
-      const resp = await api.post<ApiResponse<any>>('/orders', payload);
-      console.log("respuesta: ", resp);
+      const resp = await api.post<ApiResponse<OrderDTO>>('/orders', payload)
 
-      console.log('BODY A ENVIAR:', JSON.stringify(payload, null, 2))
-      toast.success('Body impreso en consola. Revisa el navegador.')
-    } catch (error: any) {
+      if (!resp.ok) {
+        toast.error(resp.message || 'Error al guardar el pedido.')
+        return
+      }
+
+      toast.success(resp.message || 'Pedido creado exitosamente.')
+      navigate('/pedidos')
+    } catch (error) {
       console.error('Error al guardar:', error)
-      toast.error(error.message || 'Error al guardar el pedido.')
+      toast.error(error instanceof Error ? error.message : 'Error al guardar el pedido.')
     } finally {
       setGuardando(false)
     }
@@ -428,8 +433,9 @@ export const CrearPedido = () => {
                 <Button
                   onClick={handleGuardar}
                   disabled={guardando}
-                  className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 disabled:opacity-60 font-semibold py-3 px-8 rounded-lg shadow transition-colors text-lg w-full lg:w-auto"
+                  className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 disabled:opacity-60 font-semibold py-3 px-8 rounded-lg shadow transition-colors text-lg w-full lg:w-auto flex items-center justify-center gap-2"
                 >
+                  {guardando && <Loader2 size={18} className="animate-spin" />}
                   {guardando ? 'Guardando...' : 'Crear Pedido'}
                 </Button>
               </div>
