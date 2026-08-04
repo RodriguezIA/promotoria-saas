@@ -1,20 +1,23 @@
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { ArrowLeft, CheckSquare2, Loader2, MapPin, Store, User, FileText, Receipt } from "lucide-react"
+import { ColumnDef } from "@tanstack/react-table"
+import { ArrowLeft, CheckSquare2, ClipboardList, Loader2, MapPin, Store, User, FileText, Image as ImageIcon, Receipt } from "lucide-react"
 
 import { TaskDTO } from "@/dtos"
 import { api, ApiResponse, formatDate } from "@/lib"
-import { Button, Card, CardContent, PageHeader, PageWrapper } from "@/components"
+import { Button, Card, CardContent, DataTable, PageHeader, PageWrapper } from "@/components"
+import { getTaskStatus } from "./utils"
 
 const formatCurrency = (v: number) =>
   new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(v)
 
-const TASK_STATUS: Record<number, { label: string; dot: string; bg: string; text: string }> = {
-  0: { label: "Cancelada",   dot: "bg-destructive",   bg: "bg-destructive/10",   text: "text-destructive" },
-  1: { label: "Pendiente",   dot: "bg-warning", bg: "bg-warning/15", text: "text-warning-foreground dark:text-warning" },
-  2: { label: "En progreso", dot: "bg-primary",  bg: "bg-info/10",  text: "text-info" },
-  3: { label: "Completada",  dot: "bg-success", bg: "bg-success/10", text: "text-success" },
+interface ChecklistRow {
+  id_request_product_question: number
+  producto: string
+  pregunta: string
+  respuesta: string
+  evidencia: string | null
 }
 
 export function TareaDetalle() {
@@ -29,7 +32,7 @@ export function TareaDetalle() {
     const fetch = async () => {
       try {
         setLoading(true)
-        const resp = await api.get<ApiResponse<TaskDTO>>(`/tasks/${id_task}`)
+        const resp = await api.get<ApiResponse<TaskDTO>>(`/tasks/${id_task}/checklist`)
         setTask(resp.data)
       } catch {
         toast.error("Error al cargar la tarea")
@@ -64,7 +67,7 @@ export function TareaDetalle() {
     )
   }
 
-  const status = TASK_STATUS[task.id_status] ?? TASK_STATUS[1]
+  const status = getTaskStatus(task.id_status)
   const promotorNombre = task.promoter ? `${task.promoter.name} ${task.promoter.lastname}`.trim() : null
 
   const addressParts = [
@@ -74,6 +77,46 @@ export function TareaDetalle() {
     task.storeAddress?.city?.name,
     task.storeAddress?.state?.name,
   ].filter(Boolean)
+
+  const checklistRows: ChecklistRow[] = (task.request?.request_products ?? []).flatMap((rp) =>
+    rp.request_product_questions.map((rpq) => {
+      const answer = task.myAnswers?.find(
+        (a) => a.id_request_product_question === rpq.id_request_product_question,
+      )
+      return {
+        id_request_product_question: rpq.id_request_product_question,
+        producto: rp.product.name,
+        pregunta: rpq.question.question,
+        respuesta: answer?.vc_answer || "—",
+        evidencia: answer?.vc_image_url ?? null,
+      }
+    }),
+  )
+
+  const checklistColumns: ColumnDef<ChecklistRow>[] = [
+    { accessorKey: "producto", header: "Producto" },
+    { accessorKey: "pregunta", header: "Pregunta" },
+    { accessorKey: "respuesta", header: "Respuesta" },
+    {
+      id: "evidencia",
+      header: "Evidencia",
+      cell: ({ row }) => {
+        const url = row.original.evidencia
+        return url ? (
+          <a href={url} target="_blank" rel="noreferrer">
+            <img
+              src={url}
+              alt="Evidencia"
+              className="w-12 h-12 object-cover rounded border"
+              style={{ borderColor: "var(--border)" }}
+            />
+          </a>
+        ) : (
+          <span className="text-muted-foreground/70 text-sm">—</span>
+        )
+      },
+    },
+  ]
 
   return (
     <PageWrapper>
@@ -239,6 +282,49 @@ export function TareaDetalle() {
           </Card>
 
         </div>
+      </div>
+
+      {/* ── Foto de acomodo + Checklist (ancho completo, se llenan cuando la tarea ya se contestó) ── */}
+      <div className="space-y-4">
+        {task.arrangement_photo_url && (
+          <Card>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <ImageIcon size={18} style={{ color: "var(--text-secondary)" }} />
+                <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Foto de acomodo</h3>
+              </div>
+              <a href={task.arrangement_photo_url} target="_blank" rel="noreferrer">
+                <img
+                  src={task.arrangement_photo_url}
+                  alt="Foto de acomodo"
+                  className="max-h-96 rounded-lg border object-contain"
+                  style={{ borderColor: "var(--border)" }}
+                />
+              </a>
+            </CardContent>
+          </Card>
+        )}
+
+        {checklistRows.length > 0 && (
+          <Card>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <ClipboardList size={18} style={{ color: "var(--text-secondary)" }} />
+                <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Checklist de la tarea</h3>
+              </div>
+              <DataTable
+                columns={checklistColumns}
+                data={checklistRows}
+                emptyMessage="Sin respuestas registradas."
+                export={{
+                  enableExcel: true,
+                  fileName: `checklist_tarea_${task.id_task}`,
+                  sheetName: "Checklist",
+                }}
+              />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </PageWrapper>
   )

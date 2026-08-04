@@ -2,19 +2,18 @@ import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { ColumnDef } from "@tanstack/react-table"
-import { CheckSquare2, Eye, Loader2 } from "lucide-react"
+import { CheckSquare2, Eye, Loader2, X } from "lucide-react"
 
 import { useAuthStore } from "@/stores"
-import { ClientDTO, TaskDTO } from "@/dtos"
+import { ClientDTO, TaskDTO, OrderDTO, RequestDTO } from "@/dtos"
 import { api, ApiResponse, formatDate } from "@/lib"
-import { DataTable, PageHeader, PageWrapper, RowActions, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components"
+import {
+  Button, DataTable, Input, PageHeader, PageWrapper, RowActions,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components"
+import { getTaskStatus, TASK_STATUS_OPTIONS } from "./utils"
 
-const TASK_STATUS: Record<number, { label: string; color: string }> = {
-  0: { label: "Cancelada",   color: "bg-destructive/10 text-destructive" },
-  1: { label: "Pendiente",   color: "bg-warning/15 text-warning-foreground dark:text-warning" },
-  2: { label: "En progreso", color: "bg-info/10 text-info" },
-  3: { label: "Completada",  color: "bg-success/10 text-success" },
-}
+const ALL_VALUE = "all"
 
 export function TareasListado() {
   const navigate = useNavigate()
@@ -24,9 +23,21 @@ export function TareasListado() {
 
   const [tasks, setTasks] = useState<TaskDTO[]>([])
   const [loading, setLoading] = useState(true)
+  const [meta, setMeta] = useState({ total: 0, page: 1, limit: 10, totalPages: 0 })
   const [clientes, setClientes] = useState<ClientDTO[]>([])
   const [loadingClientes, setLoadingClientes] = useState(false)
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null)
+
+  const [orders, setOrders] = useState<OrderDTO[]>([])
+  const [requests, setRequests] = useState<RequestDTO[]>([])
+
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [statusFilter, setStatusFilter] = useState(ALL_VALUE)
+  const [orderFilter, setOrderFilter] = useState(ALL_VALUE)
+  const [requestFilter, setRequestFilter] = useState(ALL_VALUE)
+  const [dateFrom, setDateFrom] = useState("")
+  const [dateTo, setDateTo] = useState("")
 
   useEffect(() => {
     if (isSuperAdmin) {
@@ -36,14 +47,24 @@ export function TareasListado() {
     }
   }, [isSuperAdmin, user])
 
+  // Al cambiar de cliente, recarga los combos de pedido/solicitud y resetea filtros dependientes
+  useEffect(() => {
+    if (!selectedClientId) {
+      setOrders([])
+      setRequests([])
+      return
+    }
+    fetchFilterOptions(selectedClientId)
+  }, [selectedClientId])
+
   useEffect(() => {
     if (!selectedClientId) {
       setLoading(false)
       setTasks([])
       return
     }
-    fetchTasks(selectedClientId)
-  }, [selectedClientId])
+    fetchTasks(selectedClientId, page, pageSize)
+  }, [selectedClientId, page, pageSize, statusFilter, orderFilter, requestFilter, dateFrom, dateTo])
 
   const fetchClientes = async () => {
     try {
@@ -59,17 +80,58 @@ export function TareasListado() {
     }
   }
 
-  const fetchTasks = async (clientId: number) => {
+  const fetchFilterOptions = async (clientId: number) => {
+    try {
+      const [ordersResp, requestsResp] = await Promise.all([
+        api.get<ApiResponse<{ data: OrderDTO[] }>>(`/orders/?id_client=${clientId}&limit=200`),
+        api.get<ApiResponse<{ data: RequestDTO[] }>>(`/requests?id_client=${clientId}&limit=200`),
+      ])
+      setOrders(ordersResp.data?.data || [])
+      setRequests(requestsResp.data?.data || [])
+    } catch {
+      // Los combos de pedido/solicitud son un extra; si fallan no bloqueamos el listado.
+      setOrders([])
+      setRequests([])
+    }
+  }
+
+  const fetchTasks = async (clientId: number, pageArg: number, limitArg: number) => {
     try {
       setLoading(true)
-      const resp = await api.get<ApiResponse<TaskDTO[]>>(`/tasks?id_client=${clientId}`)
-      setTasks(resp.data || [])
+      const params = new URLSearchParams({
+        id_client: String(clientId),
+        page: String(pageArg),
+        limit: String(limitArg),
+      })
+      if (statusFilter !== ALL_VALUE) params.set("id_status", statusFilter)
+      if (orderFilter !== ALL_VALUE) params.set("id_order", orderFilter)
+      if (requestFilter !== ALL_VALUE) params.set("id_request", requestFilter)
+      if (dateFrom) params.set("dt_from", dateFrom)
+      if (dateTo) params.set("dt_to", dateTo)
+
+      const resp = await api.get<ApiResponse<{ data: TaskDTO[]; meta: typeof meta }>>(`/tasks?${params.toString()}`)
+      setTasks(resp.data?.data || [])
+      setMeta(resp.data?.meta || { total: 0, page: pageArg, limit: limitArg, totalPages: 0 })
     } catch {
       toast.error("Error al cargar las tareas")
     } finally {
       setLoading(false)
     }
   }
+
+  const resetToFirstPage = () => setPage(1)
+
+  const handleClearFilters = () => {
+    setStatusFilter(ALL_VALUE)
+    setOrderFilter(ALL_VALUE)
+    setRequestFilter(ALL_VALUE)
+    setDateFrom("")
+    setDateTo("")
+    resetToFirstPage()
+  }
+
+  const hasActiveFilters =
+    statusFilter !== ALL_VALUE || orderFilter !== ALL_VALUE || requestFilter !== ALL_VALUE || dateFrom !== "" || dateTo !== ""
 
   const columns: ColumnDef<TaskDTO>[] = [
     {
@@ -141,9 +203,9 @@ export function TareasListado() {
       accessorKey: "id_status",
       header: "Estado",
       cell: ({ row }) => {
-        const s = TASK_STATUS[row.getValue<number>("id_status")] ?? TASK_STATUS[1]
+        const s = getTaskStatus(row.getValue<number>("id_status"))
         return (
-          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${s.color}`}>
+          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${s.bg} ${s.text}`}>
             {s.label}
           </span>
         )
@@ -197,7 +259,13 @@ export function TareasListado() {
       {isSuperAdmin && clientes.length > 0 && (
         <div className="flex items-center gap-3 p-4 rounded-xl border" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
           <label className="text-sm font-medium shrink-0" style={{ color: "var(--text-secondary)" }}>Cliente:</label>
-          <Select value={selectedClientId?.toString() ?? ""} onValueChange={(v) => setSelectedClientId(Number(v))}>
+          <Select
+            value={selectedClientId?.toString() ?? ""}
+            onValueChange={(v) => {
+              setSelectedClientId(Number(v))
+              handleClearFilters()
+            }}
+          >
             <SelectTrigger className="w-64"><SelectValue placeholder="Selecciona un cliente" /></SelectTrigger>
             <SelectContent>
               {clientes.map((c) => (
@@ -208,12 +276,95 @@ export function TareasListado() {
         </div>
       )}
 
+      <div className="flex flex-wrap items-end gap-3 p-4 rounded-xl border" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+        <div className="space-y-1">
+          <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Estado</label>
+          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); resetToFirstPage() }}>
+            <SelectTrigger className="w-48"><SelectValue placeholder="Todos" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_VALUE}>Todos</SelectItem>
+              {TASK_STATUS_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Pedido</label>
+          <Select value={orderFilter} onValueChange={(v) => { setOrderFilter(v); resetToFirstPage() }}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Todos" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_VALUE}>Todos</SelectItem>
+              {orders.map((o) => (
+                <SelectItem key={o.id_order} value={String(o.id_order)}>
+                  {o.vc_folio || `#${String(o.id_order).padStart(4, "0")}`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Solicitud</label>
+          <Select value={requestFilter} onValueChange={(v) => { setRequestFilter(v); resetToFirstPage() }}>
+            <SelectTrigger className="w-52"><SelectValue placeholder="Todas" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_VALUE}>Todas</SelectItem>
+              {requests.map((r) => (
+                <SelectItem key={r.id_request} value={String(r.id_request)}>{r.vc_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Desde</label>
+          <Input
+            type="date"
+            className="w-40"
+            value={dateFrom}
+            onChange={(e) => { setDateFrom(e.target.value); resetToFirstPage() }}
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Hasta</label>
+          <Input
+            type="date"
+            className="w-40"
+            value={dateTo}
+            onChange={(e) => { setDateTo(e.target.value); resetToFirstPage() }}
+          />
+        </div>
+
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={handleClearFilters} className="gap-1.5">
+            <X size={14} /> Limpiar filtros
+          </Button>
+        )}
+      </div>
+
       <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
         <DataTable
+          key={`${selectedClientId}-${statusFilter}-${orderFilter}-${requestFilter}-${dateFrom}-${dateTo}`}
           columns={columns}
           data={tasks}
           isLoading={loading}
           emptyMessage="No hay tareas registradas para este cliente."
+          pagination={{
+            mode: "server",
+            pageSize,
+            pageSizeOptions: [10, 20, 50, 100],
+            totalRows: meta.total,
+            onPageChange: (pageIndex, newPageSize) => {
+              setPage(pageIndex + 1)
+              setPageSize(newPageSize)
+            },
+            showPageSizeSelector: true,
+            showSelectedCount: true,
+            showPageNavigation: true,
+          }}
         />
       </div>
     </PageWrapper>
