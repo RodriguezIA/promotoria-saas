@@ -13,16 +13,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components"
+import { getTaskStatus } from "../tareas/utils"
 
 const formatCurrency = (v: number) =>
   new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(v)
-
-const TASK_STATUS: Record<number, { label: string; color: string }> = {
-  0: { label: "Cancelada",    color: "bg-destructive/10 text-destructive" },
-  1: { label: "Pendiente",    color: "bg-warning/15 text-warning-foreground dark:text-warning" },
-  2: { label: "En progreso",  color: "bg-info/10 text-info" },
-  3: { label: "Completada",   color: "bg-success/10 text-success" },
-}
 
 export function PedidoDetalle() {
   const { id } = useParams()
@@ -49,11 +43,11 @@ export function PedidoDetalle() {
       setLoading(true)
       const [orderResp, tasksResp, promotoresResp] = await Promise.all([
         api.get<ApiResponse<OrderDTO>>(`/orders/${orderId}`),
-        api.get<ApiResponse<TaskDTO[]>>(`/tasks?id_order=${orderId}`),
+        api.get<ApiResponse<{ data: TaskDTO[]; meta: unknown }>>(`/tasks?id_order=${orderId}&limit=500`),
         api.get<ApiResponse<PromoterDTO[]>>("/promoters"),
       ])
       setOrder(orderResp.data)
-      setTasks(tasksResp.data || [])
+      setTasks(tasksResp.data?.data || [])
       setPromotores(promotoresResp.data || [])
     } catch {
       toast.error("Error al cargar el pedido")
@@ -158,8 +152,8 @@ export function PedidoDetalle() {
   ).entries()]
 
   const pendientes = tasks.filter((t) => t.id_status === 1).length
-  const enProgreso = tasks.filter((t) => t.id_status === 2).length
-  const completadas = tasks.filter((t) => t.id_status === 3).length
+  const enProgreso = tasks.filter((t) => t.id_status >= 2 && t.id_status <= 6).length
+  const completadas = tasks.filter((t) => t.id_status === 7 || t.id_status === 8).length
 
   return (
     <PageWrapper>
@@ -290,7 +284,7 @@ export function PedidoDetalle() {
           ) : (
             <div className="space-y-3">
               {tasks.map((task) => {
-                const status = TASK_STATUS[task.id_status] ?? TASK_STATUS[1]
+                const status = getTaskStatus(task.id_status)
                 const promotorNombre = task.promoter
                   ? `${task.promoter.name} ${task.promoter.lastname}`.trim()
                   : null
@@ -315,7 +309,8 @@ export function PedidoDetalle() {
                       </div>
 
                       <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:flex-col sm:items-end">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${status.color}`}>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${status.bg} ${status.text}`}>
+                          <div className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
                           {status.label}
                         </span>
 
