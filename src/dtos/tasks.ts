@@ -40,6 +40,8 @@ export interface TaskDTO {
   id_request: number
   id_promoter: number | null
   id_status: number
+  vc_cancel_reason?: string | null
+  vc_cancel_type?: string | null
   dt_register: string
   dt_update?: string
   i_notification_count?: number

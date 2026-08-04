@@ -1,15 +1,17 @@
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { Loader2, ArrowLeft, Receipt, Store, User, ClipboardList, Eye } from "lucide-react"
+import { Loader2, ArrowLeft, Receipt, Store, User, ClipboardList, Eye, Lock } from "lucide-react"
 
 import { OrderDTO, TaskDTO, PromoterDTO } from "@/dtos"
 import { api, ApiResponse, formatDate } from "@/lib"
+import { useAuthStore } from "@/stores/authStore"
 import {
   Button, Card, CardContent,
   PageWrapper, PageHeader,
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components"
 
 const formatCurrency = (v: number) =>
@@ -25,6 +27,7 @@ const TASK_STATUS: Record<number, { label: string; color: string }> = {
 export function PedidoDetalle() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { isAdmin, isSuperAdmin } = useAuthStore()
 
   const [order, setOrder] = useState<OrderDTO | null>(null)
   const [tasks, setTasks] = useState<TaskDTO[]>([])
@@ -36,30 +39,52 @@ export function PedidoDetalle() {
   })
   const [selectedPromoter, setSelectedPromoter] = useState<string>("")
 
-  useEffect(() => {
+  const [closeDialog, setCloseDialog] = useState(false)
+  const [closing, setClosing] = useState(false)
+
+  const fetchAll = async () => {
     if (!id) return
     const orderId = Number(id)
-
-    const fetchAll = async () => {
-      try {
-        setLoading(true)
-        const [orderResp, tasksResp, promotoresResp] = await Promise.all([
-          api.get<ApiResponse<OrderDTO>>(`/orders/${orderId}`),
-          api.get<ApiResponse<TaskDTO[]>>(`/tasks?id_order=${orderId}`),
-          api.get<ApiResponse<PromoterDTO[]>>("/promoters"),
-        ])
-        setOrder(orderResp.data)
-        setTasks(tasksResp.data || [])
-        setPromotores(promotoresResp.data || [])
-      } catch {
-        toast.error("Error al cargar el pedido")
-      } finally {
-        setLoading(false)
-      }
+    try {
+      setLoading(true)
+      const [orderResp, tasksResp, promotoresResp] = await Promise.all([
+        api.get<ApiResponse<OrderDTO>>(`/orders/${orderId}`),
+        api.get<ApiResponse<TaskDTO[]>>(`/tasks?id_order=${orderId}`),
+        api.get<ApiResponse<PromoterDTO[]>>("/promoters"),
+      ])
+      setOrder(orderResp.data)
+      setTasks(tasksResp.data || [])
+      setPromotores(promotoresResp.data || [])
+    } catch {
+      toast.error("Error al cargar el pedido")
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchAll()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
+
+  const handleCloseOrder = async () => {
+    if (!id) return
+    setClosing(true)
+    try {
+      const resp = await api.patch<ApiResponse<OrderDTO>>(`/orders/${id}/close`)
+      if (!resp.ok) {
+        toast.error(resp.message || "No se pudo cerrar el pedido")
+        return
+      }
+      toast.success("Pedido cerrado")
+      setCloseDialog(false)
+      await fetchAll()
+    } catch {
+      toast.error("Error al cerrar el pedido")
+    } finally {
+      setClosing(false)
+    }
+  }
 
   const openAssignModal = (task: TaskDTO) => {
     setAssignModal({ open: true, task, saving: false })
@@ -143,9 +168,16 @@ export function PedidoDetalle() {
         subtitle={`Creado el ${formatDate(order.dt_register)}`}
         icon={Receipt}
         actions={
-          <Button variant="outline" onClick={() => navigate("/pedidos")}>
-            <ArrowLeft size={16} className="mr-2" /> Volver a Pedidos
-          </Button>
+          <div className="flex gap-2">
+            {(isAdmin() || isSuperAdmin()) && order.id_status === 1 && (
+              <Button variant="destructive" onClick={() => setCloseDialog(true)}>
+                <Lock size={16} className="mr-2" /> Cerrar pedido
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => navigate("/pedidos")}>
+              <ArrowLeft size={16} className="mr-2" /> Volver a Pedidos
+            </Button>
+          </div>
         }
       />
 
@@ -375,6 +407,31 @@ export function PedidoDetalle() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ── Confirmación cierre de pedido ── */}
+      <AlertDialog open={closeDialog} onOpenChange={(v) => !closing && setCloseDialog(v)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cerrar pedido</AlertDialogTitle>
+            <AlertDialogDescription>
+              Las tareas que estén en revisión se aprobarán automáticamente. Las que ya estén terminadas no se
+              verán afectadas. Las que aún no se hayan contestado se cancelarán automáticamente con el motivo
+              "Cierre de pedido" y se notificará a los promotores asignados. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={closing}>Volver</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCloseOrder}
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={closing}
+            >
+              {closing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Cerrar pedido
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageWrapper>
   )
 }

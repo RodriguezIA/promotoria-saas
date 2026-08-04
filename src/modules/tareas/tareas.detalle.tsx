@@ -2,11 +2,15 @@ import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { ColumnDef } from "@tanstack/react-table"
-import { ArrowLeft, CheckSquare2, ClipboardList, Loader2, MapPin, Store, User, FileText, Image as ImageIcon, Receipt } from "lucide-react"
+import { ArrowLeft, CheckSquare2, ClipboardList, Loader2, MapPin, Store, User, FileText, Image as ImageIcon, Receipt, CheckCircle2, XCircle, Ban } from "lucide-react"
 
 import { TaskDTO } from "@/dtos"
 import { api, ApiResponse, formatDate } from "@/lib"
-import { Button, Card, CardContent, DataTable, PageHeader, PageWrapper } from "@/components"
+import {
+  Button, Card, CardContent, DataTable, PageHeader, PageWrapper,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+  Textarea,
+} from "@/components"
 import { getTaskStatus } from "./utils"
 
 const formatCurrency = (v: number) =>
@@ -26,22 +30,72 @@ export function TareaDetalle() {
 
   const [task, setTask] = useState<TaskDTO | null>(null)
   const [loading, setLoading] = useState(true)
+  const [approving, setApproving] = useState(false)
+  const [cancelDialog, setCancelDialog] = useState(false)
+  const [cancelComment, setCancelComment] = useState("")
+  const [cancelling, setCancelling] = useState(false)
+
+  const fetchTask = async () => {
+    if (!id_task) return
+    try {
+      setLoading(true)
+      const resp = await api.get<ApiResponse<TaskDTO>>(`/tasks/${id_task}/checklist`)
+      setTask(resp.data)
+    } catch {
+      toast.error("Error al cargar la tarea")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    if (!id_task) return
-    const fetch = async () => {
-      try {
-        setLoading(true)
-        const resp = await api.get<ApiResponse<TaskDTO>>(`/tasks/${id_task}/checklist`)
-        setTask(resp.data)
-      } catch {
-        toast.error("Error al cargar la tarea")
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetch()
+    fetchTask()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id_task])
+
+  const handleApprove = async () => {
+    if (!id_task) return
+    setApproving(true)
+    try {
+      const resp = await api.patch<ApiResponse<TaskDTO>>(`/tasks/${id_task}/approve`)
+      if (!resp.ok) {
+        toast.error(resp.message || "No se pudo aprobar la tarea")
+        return
+      }
+      toast.success("Tarea aprobada")
+      await fetchTask()
+    } catch {
+      toast.error("Error al aprobar la tarea")
+    } finally {
+      setApproving(false)
+    }
+  }
+
+  const handleCancel = async () => {
+    if (!id_task) return
+    if (!cancelComment.trim()) {
+      toast.error("Indica el motivo de la cancelación")
+      return
+    }
+    setCancelling(true)
+    try {
+      const resp = await api.patch<ApiResponse<TaskDTO>>(`/tasks/${id_task}/cancel`, {
+        comment: cancelComment.trim(),
+      })
+      if (!resp.ok) {
+        toast.error(resp.message || "No se pudo cancelar la tarea")
+        return
+      }
+      toast.success("Tarea cancelada")
+      setCancelDialog(false)
+      setCancelComment("")
+      await fetchTask()
+    } catch {
+      toast.error("Error al cancelar la tarea")
+    } finally {
+      setCancelling(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -126,6 +180,17 @@ export function TareaDetalle() {
         icon={CheckSquare2}
         actions={
           <div className="flex gap-2">
+            {task.id_status === 6 && (
+              <>
+                <Button variant="destructive" size="sm" onClick={() => setCancelDialog(true)} disabled={approving}>
+                  <XCircle size={14} className="mr-1.5" /> Rechazar
+                </Button>
+                <Button size="sm" onClick={handleApprove} disabled={approving}>
+                  {approving ? <Loader2 size={14} className="mr-1.5 animate-spin" /> : <CheckCircle2 size={14} className="mr-1.5" />}
+                  Aceptar
+                </Button>
+              </>
+            )}
             {task.id_order && (
               <Button variant="outline" size="sm" onClick={() => navigate(`/detalle-pedido/${task.id_order}`)}>
                 <Receipt size={14} className="mr-1.5" /> Ver pedido
@@ -255,6 +320,23 @@ export function TareaDetalle() {
             </Card>
           )}
 
+          {/* Cancelación */}
+          {task.id_status === 0 && task.vc_cancel_reason && (
+            <Card>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Ban size={18} className="text-destructive" />
+                  <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>
+                    Motivo de cancelación
+                    {task.vc_cancel_type === "negocio" && " (cierre de pedido)"}
+                    {task.vc_cancel_type === "cliente" && " (por el cliente)"}
+                  </h3>
+                </div>
+                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>{task.vc_cancel_reason}</p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Promotor */}
           <Card>
             <CardContent className="p-5">
@@ -326,6 +408,37 @@ export function TareaDetalle() {
           </Card>
         )}
       </div>
+
+      {/* ── Modal cancelación ── */}
+      <Dialog open={cancelDialog} onOpenChange={(v) => !cancelling && setCancelDialog(v)}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Cancelar tarea</DialogTitle>
+            <DialogDescription>
+              Explica el motivo de la cancelación. El promotor lo verá en la app y recibirá una notificación.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-2">
+            <Textarea
+              value={cancelComment}
+              onChange={(e) => setCancelComment(e.target.value)}
+              placeholder="Ej. El acomodo no cumple con lo solicitado..."
+              rows={4}
+            />
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setCancelDialog(false)} disabled={cancelling}>
+              Volver
+            </Button>
+            <Button variant="destructive" onClick={handleCancel} disabled={cancelling || !cancelComment.trim()}>
+              {cancelling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Confirmar cancelación
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageWrapper>
   )
 }
