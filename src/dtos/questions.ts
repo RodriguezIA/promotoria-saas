@@ -31,6 +31,7 @@ export interface QuestionDTO{
     dt_register: string
     dt_update: string
     question_type: string
+    f_cost?: number
     min_value?: number
     max_value?: number
     max_photos?: number

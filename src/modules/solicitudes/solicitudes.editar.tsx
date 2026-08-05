@@ -74,7 +74,7 @@ export const EditarSolicitud = () => {
               preguntas: rp.request_product_questions?.map((rpq: any) => ({
                 id_pregunta: rpq.question.id_question,
                 vc_pregunta: rpq.question.question || 'Pregunta',
-                dc_precio: 0
+                dc_precio: Number(rpq.question.f_cost ?? 0)
               })) || []
             } as ProductoSeleccionado));
 
@@ -118,7 +118,7 @@ export const EditarSolicitud = () => {
             nuevasPreguntas = [...prod.preguntas, {
               id_pregunta: preguntaDB.id_question,
               vc_pregunta: preguntaDB.question,
-              dc_precio: 0
+              dc_precio: Number(preguntaDB.f_cost ?? 0)
             }];
           }
           return { ...prod, preguntas: nuevasPreguntas };
@@ -159,16 +159,16 @@ export const EditarSolicitud = () => {
 
   const totalPreguntas = productosSeleccionados.reduce((sum, prod) => sum + prod.preguntas.length, 0);
 
-  const calcularCostoSolicitud = (numPreguntas: number) => {
-    const base = 45;
-    const preguntasExtra = Math.max(numPreguntas - 3, 0);
-    const costoExtra = preguntasExtra * 15;
-    return Math.min(base + costoExtra, 90);
-  };
+  const numProductos = productosSeleccionados.length;
+  const productosExtra = Math.max(numProductos - 3, 0);
+  const costoBase = numProductos <= 3 ? 45 : Math.min(45 + Math.min(productosExtra, 3) * 15, 90);
 
-  const granTotal = calcularCostoSolicitud(totalPreguntas);
-  const preguntasExtra = Math.max(totalPreguntas - 3, 0);
-  const costoExtra = Math.min(preguntasExtra * 15, 45);
+  const costoPreguntas = productosSeleccionados.reduce(
+    (sum, prod) => sum + prod.preguntas.reduce((s, q) => s + (q.dc_precio || 0), 0),
+    0
+  );
+
+  const granTotal = costoBase + costoPreguntas;
 
   const handleActualizar = async () => {
     if (!nombre.trim()) {
@@ -252,18 +252,24 @@ export const EditarSolicitud = () => {
 
             <div className="space-y-2 text-sm">
               <div className="flex justify-between gap-4">
-                <span className="text-primary-foreground/70">Costo base (hasta 3 preguntas):</span>
+                <span className="text-primary-foreground/70">Costo base (hasta 3 productos):</span>
                 <span className="font-medium tabular-nums">$45.00</span>
               </div>
-              {preguntasExtra > 0 && (
+              {costoBase > 45 && (
                 <div className="flex justify-between gap-4 text-primary-foreground/90">
-                  <span>Preguntas extra ({preguntasExtra}):</span>
-                  <span className="tabular-nums">+ ${costoExtra.toFixed(2)}</span>
+                  <span>Productos extra ({productosExtra}):</span>
+                  <span className="tabular-nums">+ ${(costoBase - 45).toFixed(2)}</span>
                 </div>
               )}
-              {granTotal >= 90 && totalPreguntas > 6 && (
+              {productosExtra > 0 && costoBase >= 90 && (
                 <div className="text-xs text-primary-foreground/70 italic">
-                  Precio máximo alcanzado. Puedes seguir agregando preguntas sin costo adicional.
+                  Precio base máximo alcanzado ($90). Puedes seguir agregando productos sin costo base adicional.
+                </div>
+              )}
+              {costoPreguntas > 0 && (
+                <div className="flex justify-between gap-4 text-primary-foreground/90">
+                  <span>Preguntas extra ({totalPreguntas}):</span>
+                  <span className="tabular-nums">+ ${costoPreguntas.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between gap-4 text-lg pt-3 border-t border-primary-foreground/20">
@@ -455,6 +461,13 @@ export const EditarSolicitud = () => {
                                   <span className={`text-sm font-medium flex-1 select-none ${seleccionada ? 'text-success' : 'text-foreground'}`}>
                                     {pregunta.question}
                                   </span>
+                                  {Number(pregunta.f_cost ?? 0) === 0 ? (
+                                    <span className="text-xs px-1.5 py-0.5 rounded bg-success/10 text-success shrink-0">Gratis</span>
+                                  ) : (
+                                    <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0 tabular-nums">
+                                      +${Number(pregunta.f_cost).toFixed(2)}
+                                    </span>
+                                  )}
                                 </div>
                               );
                             })

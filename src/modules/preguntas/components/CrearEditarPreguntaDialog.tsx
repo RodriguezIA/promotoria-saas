@@ -57,6 +57,10 @@ const numberOptional = () =>
 const formSchema = z.object({
   question: z.string().min(1, "La pregunta es requerida"),
   question_type: questionTypeEnum,
+  f_cost: z.preprocess(
+    (val) => (val === "" || val === undefined || val === null ? 0 : Number(val)),
+    z.number().min(0, "El costo no puede ser negativo")
+  ),
   min_value: numberOptional(),
   max_value: numberOptional(),
   max_photos: z.preprocess(
@@ -111,6 +115,7 @@ export function CrearEditarPreguntaDialog({ open, onOpenChange, id_question, onS
     defaultValues: {
       question: "",
       question_type: "open",
+      f_cost: 0,
       min_value: undefined,
       max_value: undefined,
       max_photos: undefined,
@@ -154,12 +159,13 @@ export function CrearEditarPreguntaDialog({ open, onOpenChange, id_question, onS
     fetchClients()
   }, [open])
 
-  // Resetear form al abrir/cerrar
+  // Resetear form al abrir en modo creación
   useEffect(() => {
     if (open && !isEditMode) {
       form.reset({
         question: "",
         question_type: "open",
+        f_cost: 0,
         min_value: undefined,
         max_value: undefined,
         max_photos: undefined,
@@ -168,6 +174,38 @@ export function CrearEditarPreguntaDialog({ open, onOpenChange, id_question, onS
       })
     }
   }, [open, isEditMode, form])
+
+  // Cargar los datos reales de la pregunta cuando se abre en modo edición
+  useEffect(() => {
+    if (!open || !isEditMode || !id_question) return
+
+    const fetchQuestion = async () => {
+      try {
+        const res = await api.get<ApiResponse<any>>(`/questions/${id_question}`)
+        const q = res.data
+        form.reset({
+          question: q.question ?? "",
+          question_type: q.question_type ?? "open",
+          f_cost: q.f_cost !== undefined && q.f_cost !== null ? Number(q.f_cost) : 0,
+          min_value: q.min_value !== undefined && q.min_value !== null ? Number(q.min_value) : undefined,
+          max_value: q.max_value !== undefined && q.max_value !== null ? Number(q.max_value) : undefined,
+          max_photos: q.max_photos ?? undefined,
+          options: (q.question_options ?? []).map((opt: any) => ({
+            option_text: opt.option_text,
+            option_value_numeric: opt.option_value_numeric !== null ? Number(opt.option_value_numeric) : undefined,
+            option_value_text: opt.option_value_text ?? undefined,
+            option_order: opt.option_order ?? undefined,
+          })),
+          clients: (q.questions_client ?? []).map((qc: any) => qc.id_client),
+        })
+      } catch (error) {
+        console.error("Error cargando pregunta:", error)
+        toast.error("Error al cargar la pregunta")
+      }
+    }
+
+    fetchQuestion()
+  }, [open, isEditMode, id_question, form])
 
   const showMinMax = watchType === "numeric" || watchType === "range"
   const showMaxPhotos = watchType === "evidence"
@@ -193,6 +231,7 @@ export function CrearEditarPreguntaDialog({ open, onOpenChange, id_question, onS
         id_user: user?.id_user,
         question: values.question,
         question_type: values.question_type,
+        f_cost: values.f_cost ?? 0,
         min_value: values.min_value,
         max_value: values.max_value,
         max_photos: values.max_photos,
@@ -208,14 +247,11 @@ export function CrearEditarPreguntaDialog({ open, onOpenChange, id_question, onS
         clients: values.clients && values.clients.length > 0 ? values.clients : [],
       }
 
-      console.log("Payload para crear pregunta:", payload)
-
-      // TODO: Aquí iría la petición real
-      // await api.post('/questions', payload);
-
-      const fetch = await api.post<ApiResponse>(`/questions`, payload);
-      console.log(fetch);
-
+      if (isEditMode && id_question) {
+        await api.put<ApiResponse>(`/questions/${id_question}`, payload);
+      } else {
+        await api.post<ApiResponse>(`/questions`, payload);
+      }
 
       toast.success(isEditMode ? "Pregunta actualizada" : "Pregunta creada exitosamente")
       onSuccess()
@@ -283,6 +319,36 @@ export function CrearEditarPreguntaDialog({ open, onOpenChange, id_question, onS
                       )}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Costo de la pregunta */}
+            <FormField
+              control={form.control}
+              name="f_cost"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Costo de esta pregunta</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      name={field.name}
+                      ref={field.ref}
+                      onBlur={field.onBlur}
+                      value={field.value ?? 0}
+                      onChange={(e) =>
+                        field.onChange(e.target.value === "" ? 0 : Number(e.target.value))
+                      }
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    Pon $0 si esta pregunta es gratuita. Si el cliente la elige, este costo se suma al precio de su solicitud.
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}

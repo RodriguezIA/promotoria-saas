@@ -133,11 +133,10 @@ export const CrearSolicitud = () => {
           if (preguntaExiste) {
             nuevasPreguntas = prod.preguntas.filter(q => q.id_pregunta !== preguntaDB.id_question);
           } else {
-            // Ya no guardamos precio individual, solo la referencia a la pregunta
             nuevasPreguntas = [...prod.preguntas, {
               id_pregunta: preguntaDB.id_question,
               vc_pregunta: preguntaDB.question,
-              dc_precio: 0
+              dc_precio: Number(preguntaDB.f_cost ?? 0)
             }];
           }
           return { ...prod, preguntas: nuevasPreguntas };
@@ -177,20 +176,22 @@ export const CrearSolicitud = () => {
     }
   };
 
-  // --- CÁLCULOS DINÁMICOS (NUEVA LÓGICA DE PRECIOS) ---
-  // Precio base $45 incluye hasta 3 preguntas. Después $15 c/u. Máximo $90.
+  // --- CÁLCULOS DINÁMICOS (LÓGICA DE PRECIOS REAL) ---
+  // Costo base según cantidad de PRODUCTOS: hasta 3 productos = $45.
+  // Cada producto extra (4to, 5to, 6to) suma $15, con tope de $90 total.
+  // Cada pregunta seleccionada suma su propio costo (lo pone el Master, puede ser $0 = gratis).
   const totalPreguntas = productosSeleccionados.reduce((sum, prod) => sum + prod.preguntas.length, 0);
 
-  const calcularCostoSolicitud = (numPreguntas: number) => {
-    const base = 45;
-    const preguntasExtra = Math.max(numPreguntas - 3, 0);
-    const costoExtra = preguntasExtra * 15;
-    return Math.min(base + costoExtra, 90);
-  };
+  const numProductos = productosSeleccionados.length;
+  const productosExtra = Math.max(numProductos - 3, 0);
+  const costoBase = numProductos <= 3 ? 45 : Math.min(45 + Math.min(productosExtra, 3) * 15, 90);
 
-  const granTotal = calcularCostoSolicitud(totalPreguntas);
-  const preguntasExtra = Math.max(totalPreguntas - 3, 0);
-  const costoExtra = Math.min(preguntasExtra * 15, 45); // 90 - 45 = 45 max extra
+  const costoPreguntas = productosSeleccionados.reduce(
+    (sum, prod) => sum + prod.preguntas.reduce((s, q) => s + (q.dc_precio || 0), 0),
+    0
+  );
+
+  const granTotal = costoBase + costoPreguntas;
 
   // --- GUARDAR ---
   const handleGuardar = async () => {
@@ -315,18 +316,24 @@ export const CrearSolicitud = () => {
 
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between gap-4">
-                  <span className="text-primary-foreground/70">Costo base (hasta 3 preguntas):</span>
+                  <span className="text-primary-foreground/70">Costo base (hasta 3 productos):</span>
                   <span className="font-medium tabular-nums">$45.00</span>
                 </div>
-                {preguntasExtra > 0 && (
+                {costoBase > 45 && (
                   <div className="flex justify-between gap-4 text-primary-foreground/90">
-                    <span>Preguntas extra ({preguntasExtra}):</span>
-                    <span className="tabular-nums">+ ${costoExtra.toFixed(2)}</span>
+                    <span>Productos extra ({productosExtra}):</span>
+                    <span className="tabular-nums">+ ${(costoBase - 45).toFixed(2)}</span>
                   </div>
                 )}
-                {granTotal >= 90 && totalPreguntas > 6 && (
+                {productosExtra > 0 && costoBase >= 90 && (
                   <div className="text-xs text-primary-foreground/70 italic">
-                    Precio máximo alcanzado. Puedes seguir agregando preguntas sin costo adicional.
+                    Precio base máximo alcanzado ($90). Puedes seguir agregando productos sin costo base adicional.
+                  </div>
+                )}
+                {costoPreguntas > 0 && (
+                  <div className="flex justify-between gap-4 text-primary-foreground/90">
+                    <span>Preguntas extra ({totalPreguntas}):</span>
+                    <span className="tabular-nums">+ ${costoPreguntas.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between gap-4 text-lg pt-3 border-t border-primary-foreground/20">
@@ -435,7 +442,7 @@ export const CrearSolicitud = () => {
                 <div className="border-2 border-dashed border-border rounded-xl p-8 flex flex-col items-center justify-center text-center text-muted-foreground">
                   <PackageOpen size={32} className="mb-2 opacity-60" />
                   <p className="text-sm">Aún no has añadido productos.</p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">Usa el botón “Añadir productos” para seleccionarlos del catálogo.</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">Usa el botón "Añadir productos" para seleccionarlos del catálogo.</p>
                 </div>
               ) : (
                 <div className="space-y-5">
@@ -518,6 +525,13 @@ export const CrearSolicitud = () => {
                                     <span className={`text-sm font-medium flex-1 select-none ${seleccionada ? 'text-success' : 'text-foreground'}`}>
                                       {pregunta.question}
                                     </span>
+                                    {Number(pregunta.f_cost ?? 0) === 0 ? (
+                                      <span className="text-xs px-1.5 py-0.5 rounded bg-success/10 text-success shrink-0">Gratis</span>
+                                    ) : (
+                                      <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0 tabular-nums">
+                                        +${Number(pregunta.f_cost).toFixed(2)}
+                                      </span>
+                                    )}
                                   </div>
                                 );
                               })

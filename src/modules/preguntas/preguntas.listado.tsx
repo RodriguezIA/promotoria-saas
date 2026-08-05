@@ -1,5 +1,5 @@
 import { toast } from 'sonner'
-import { Plus, Users } from 'lucide-react'
+import { Plus, Users, Pencil } from 'lucide-react'
 import { ColumnDef } from '@tanstack/react-table'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -23,6 +23,12 @@ export function Preguntas() {
     const [preguntaSeleccionada, setPreguntaSeleccionada] = useState<QuestionDTO | null>(null);
 
     const handleNuevaPregunta = () => {
+        setPreguntaSeleccionada(null);
+        setShowCrearDialog(true);
+    };
+
+    const handleEditarPregunta = (pregunta: QuestionDTO) => {
+        setPreguntaSeleccionada(pregunta);
         setShowCrearDialog(true);
     };
 
@@ -106,6 +112,20 @@ export function Preguntas() {
             },
         },
         {
+            accessorKey: "f_cost",
+            header: "Costo",
+            cell: ({ row }) => {
+                const cost = Number(row.original.f_cost ?? 0);
+                return cost === 0 ? (
+                    <span className="px-2 py-1 text-xs bg-success/15 text-success rounded font-medium">Gratis</span>
+                ) : (
+                    <span className="text-sm font-medium">
+                        {new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(cost)}
+                    </span>
+                );
+            },
+        },
+        {
             accessorKey: "clients",
             header: "Clientes asociados",
             cell: ({ row }) => {
@@ -156,6 +176,11 @@ export function Preguntas() {
             cell: ({ row }) => (
                 <RowActions
                     actions={[
+                        {
+                            icon: Pencil,
+                            label: "Editar",
+                            onClick: () => handleEditarPregunta(row.original),
+                        },
                         {
                             icon: Users,
                             label: "Conectar clientes",
@@ -220,9 +245,10 @@ export function Preguntas() {
             <CrearEditarPreguntaDialog
                 open={showCrearDialog}
                 onOpenChange={setShowCrearDialog}
-                id_question={null}
+                id_question={preguntaSeleccionada?.id_question ?? null}
                 onSuccess={() => {
                     setShowCrearDialog(false);
+                    setPreguntaSeleccionada(null);
                     fetchData();
                 }}
             />
@@ -238,4 +264,3 @@ export function Preguntas() {
         </>
     );
 }
-

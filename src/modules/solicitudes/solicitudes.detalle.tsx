@@ -51,7 +51,7 @@ export function SolicitudDetalle() {
                                 preguntas: p.request_product_questions?.map((q: any) => ({
                                     id_pregunta: q.id_request_product_question,
                                     texto: q.question.question || 'Pregunta sin texto',
-                                    // precio: q.precio_aplicado
+                                    precio: Number(q.question.f_cost ?? 0)
                                 })) || []
                             };
                         }) || []
@@ -173,26 +173,38 @@ export function SolicitudDetalle() {
                         <h2 className="text-lg font-bold mb-4 text-foreground border-b pb-2">Resumen Financiero</h2>
 
                         {(() => {
+                            const numProductos = solicitud.productos.length;
                             const totalPreguntas = solicitud.productos.reduce((sum: number, p: any) => sum + (p.preguntas?.length || 0), 0);
-                            const preguntasExtra = Math.max(totalPreguntas - 3, 0);
-                            const costoExtra = Math.min(preguntasExtra * 15, 45);
+                            const productosExtra = Math.max(numProductos - 3, 0);
+                            const costoBase = numProductos <= 3 ? 45 : Math.min(45 + Math.min(productosExtra, 3) * 15, 90);
+                            const costoPreguntas = solicitud.productos.reduce(
+                                (sum: number, p: any) => sum + (p.preguntas?.reduce((s: number, q: any) => s + (q.precio || 0), 0) || 0),
+                                0
+                            );
                             return (
                                 <div className="space-y-3 text-sm mb-4">
                                     <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Costo base (hasta 3 preguntas):</span>
+                                        <span className="text-muted-foreground">Costo base (hasta 3 productos):</span>
                                         <span className="font-medium">$45.00</span>
                                     </div>
 
-                                    {preguntasExtra > 0 && (
+                                    {costoBase > 45 && (
                                         <div className="flex justify-between text-warning-foreground dark:text-warning font-medium">
-                                            <span>Preguntas extra ({preguntasExtra}):</span>
-                                            <span>+ ${costoExtra.toFixed(2)}</span>
+                                            <span>Productos extra ({productosExtra}):</span>
+                                            <span>+ ${(costoBase - 45).toFixed(2)}</span>
                                         </div>
                                     )}
 
-                                    {Number(solicitud.total) >= 90 && totalPreguntas > 6 && (
+                                    {productosExtra > 0 && costoBase >= 90 && (
                                         <div className="text-xs text-muted-foreground italic">
-                                            Precio máximo alcanzado. Preguntas adicionales sin costo extra.
+                                            Precio base máximo alcanzado ($90). Productos adicionales sin costo base extra.
+                                        </div>
+                                    )}
+
+                                    {costoPreguntas > 0 && (
+                                        <div className="flex justify-between text-warning-foreground dark:text-warning font-medium">
+                                            <span>Preguntas extra ({totalPreguntas}):</span>
+                                            <span>+ ${costoPreguntas.toFixed(2)}</span>
                                         </div>
                                     )}
 
@@ -210,16 +222,6 @@ export function SolicitudDetalle() {
                             <span className="font-bold text-lg text-foreground">Total Solicitud</span>
                             <span className="font-black text-2xl text-info">${Number(solicitud.total).toFixed(2)}</span>
                         </div>
-
-                        {/* <div className="flex gap-2 mt-4">
-                            <span className={`w-full text-center px-4 py-3 rounded-md border font-bold ${
-                                solicitud.estatus === "Pendiente" ? "bg-warning/20 text-warning-foreground dark:text-warning border-warning/40" :
-                                solicitud.estatus === "Completada" ? "bg-success/15 text-success border-success/30" :
-                                "bg-muted text-foreground border-input"
-                            }`}>
-                                Estado actual: {solicitud.estatus}
-                            </span>
-                        </div> */}
                     </Card>
 
                     {/* Imagen del anaquel */}
