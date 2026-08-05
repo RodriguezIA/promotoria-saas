@@ -56,11 +56,11 @@ export default function AppRouter() {
           <Route path="promotores" element={<PromotoresList />} />
           <Route path="detalle-promotor/:id" element={<PromoterDetalle />} />
           <Route path="finanzas" element={<Finanzas />} />
-          <Route path="finanzas/cobro-clientes" element={<Maintenance />} />
+          <Route path="finanzas/cobro-clientes" element={<Finanzas />} />
           <Route path="finanzas/pago-promotores" element={<Maintenance />} />
-          <Route path="finanzas/gestion-pagos" element={<Maintenance />} />
+          <Route path="finanzas/gestion-pagos" element={<Finanzas />} />
           <Route path="finanzas/gestion-gastos" element={<Maintenance />} />
-          <Route path="reportes/pedidos" element={<Maintenance />} />
+          <Route path="reportes/pedidos" element={<PedidosList />} />
           <Route path="perfil" element={<Perfil />} />
           <Route path="mi-negocio" element={<MiNegocio />} />
           <Route path="*" element={<NotFound />} />

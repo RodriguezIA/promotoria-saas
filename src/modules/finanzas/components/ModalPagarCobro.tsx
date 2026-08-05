@@ -3,7 +3,7 @@ import { useState } from "react"
 import { Banknote, ArrowLeftRight, CreditCard, Store, Loader2, UploadCloud, Receipt, FileText, X } from "lucide-react"
 
 import { submitInvoicePayment, ClientInvoice, MetodoPago } from "@/Fetch/finanzas"
-import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input, Label, Textarea } from "@/components"
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input, Label } from "@/components"
 
 interface Props {
   cobro: ClientInvoice | null;
@@ -12,39 +12,27 @@ interface Props {
   onSuccess: () => void;
 }
 
-const METODOS: {
-  key: MetodoPago;
-  label: string;
-  icon: React.ElementType;
-  color: string;
-  border: string;
-  refLabel?: string;
-  refPlaceholder?: string;
-}[] = [
-  { key: "transferencia", label: "Transferencia", icon: ArrowLeftRight, color: "bg-info/10 text-info", border: "border-info/40", refLabel: "Folio / No. de referencia", refPlaceholder: "Ej. 123456789012345678" },
+const METODOS: { key: MetodoPago; label: string; icon: React.ElementType; color: string; border: string }[] = [
+  { key: "transferencia", label: "Transferencia", icon: ArrowLeftRight, color: "bg-info/10 text-info", border: "border-info/40" },
   { key: "efectivo", label: "Efectivo", icon: Banknote, color: "bg-success/10 text-success", border: "border-success/40" },
-  { key: "tarjeta", label: "Tarjeta", icon: CreditCard, color: "bg-muted/50 text-foreground", border: "border-border", refLabel: "Últimos 4 dígitos", refPlaceholder: "Ej. 4321" },
-  { key: "oxxo", label: "Depósito OXXO", icon: Store, color: "bg-destructive/10 text-destructive", border: "border-destructive/40", refLabel: "Folio de pago", refPlaceholder: "Ej. OXX-2025-00012345" },
+  { key: "tarjeta", label: "Tarjeta", icon: CreditCard, color: "bg-muted/50 text-foreground", border: "border-border" },
+  { key: "oxxo", label: "Depósito OXXO", icon: Store, color: "bg-destructive/10 text-destructive", border: "border-destructive/40" },
 ];
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n);
 
+const hoyISO = () => new Date().toISOString().slice(0, 10);
+
 export function ModalPagarCobro({ cobro, open, onClose, onSuccess }: Props) {
   const [metodo, setMetodo] = useState<MetodoPago>("transferencia");
-  const [monto, setMonto] = useState("");
-  const [referencia, setReferencia] = useState("");
-  const [notas, setNotas] = useState("");
+  const [fechaPago, setFechaPago] = useState(hoyISO());
   const [file, setFile] = useState<File | null>(null);
   const [guardando, setGuardando] = useState(false);
 
-  const metodoCfg = METODOS.find((m) => m.key === metodo)!;
-
   const reset = () => {
     setMetodo("transferencia");
-    setMonto("");
-    setReferencia("");
-    setNotas("");
+    setFechaPago(hoyISO());
     setFile(null);
   };
 
@@ -70,9 +58,8 @@ export function ModalPagarCobro({ cobro, open, onClose, onSuccess }: Props) {
 
   const handleConfirmar = async () => {
     if (!cobro) return;
-    const montoNum = Number(monto);
-    if (!monto || isNaN(montoNum) || montoNum <= 0) {
-      toast.error("Ingresa un monto válido");
+    if (!fechaPago) {
+      toast.error("Indica la fecha de pago");
       return;
     }
     if (!file) {
@@ -82,14 +69,12 @@ export function ModalPagarCobro({ cobro, open, onClose, onSuccess }: Props) {
 
     setGuardando(true);
     try {
-      await submitInvoicePayment(cobro.id_invoice, {
-        f_amount: montoNum,
-        vc_method: metodo,
-        vc_reference: referencia.trim() || undefined,
-        vc_notes: notas.trim() || undefined,
-        receipt: file,
+      await submitInvoicePayment(cobro.id, {
+        dt_payment: fechaPago,
+        vc_payment_method: metodo,
+        evidence: file,
       });
-      toast.success("Comprobante enviado. Queda en revisión.");
+      toast.success("Comprobante enviado. Queda en validación.");
       handleClose();
       onSuccess();
     } catch (e: any) {
@@ -111,15 +96,15 @@ export function ModalPagarCobro({ cobro, open, onClose, onSuccess }: Props) {
           </DialogTitle>
         </DialogHeader>
 
-        {/* Info del cobro */}
+        {/* Info de la factura */}
         <div className="bg-muted/50 rounded-lg p-4 space-y-1 text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Folio</span>
-            <span className="font-medium text-foreground">{cobro.vc_folio ?? `#${cobro.id_invoice}`}</span>
+            <span className="font-medium text-foreground">{cobro.vc_folio ?? `#${cobro.id}`}</span>
           </div>
           <div className="flex justify-between border-t border-border pt-2 mt-2">
-            <span className="text-muted-foreground font-medium">Monto a pagar</span>
-            <span className="text-xl font-bold text-info">{fmt(cobro.f_total)}</span>
+            <span className="text-muted-foreground font-medium">Total de la factura</span>
+            <span className="text-xl font-bold text-info">{fmt(Number(cobro.f_amount))}</span>
           </div>
         </div>
 
@@ -134,7 +119,7 @@ export function ModalPagarCobro({ cobro, open, onClose, onSuccess }: Props) {
                 <button
                   key={m.key}
                   type="button"
-                  onClick={() => { setMetodo(m.key); setReferencia(""); }}
+                  onClick={() => setMetodo(m.key)}
                   className={`flex items-center gap-2 p-3 rounded-lg border-2 text-sm font-medium transition-all ${
                     selected ? `${m.color} ${m.border}` : "bg-white border-border text-muted-foreground hover:border-input hover:bg-accent"
                   }`}
@@ -147,19 +132,11 @@ export function ModalPagarCobro({ cobro, open, onClose, onSuccess }: Props) {
           </div>
         </div>
 
-        {/* Monto */}
+        {/* Fecha de pago */}
         <div className="space-y-1.5">
-          <Label htmlFor="monto-pago" className="text-sm font-medium text-foreground">Monto pagado</Label>
-          <Input id="monto-pago" type="number" min="0" step="0.01" value={monto} onChange={(e) => setMonto(e.target.value)} placeholder="0.00" />
+          <Label htmlFor="fecha-pago" className="text-sm font-medium text-foreground">Fecha en que pagaste</Label>
+          <Input id="fecha-pago" type="date" value={fechaPago} onChange={(e) => setFechaPago(e.target.value)} />
         </div>
-
-        {/* Referencia */}
-        {metodoCfg.refLabel && (
-          <div className="space-y-1.5">
-            <Label htmlFor="referencia-pago" className="text-sm font-medium text-foreground">{metodoCfg.refLabel}</Label>
-            <Input id="referencia-pago" value={referencia} onChange={(e) => setReferencia(e.target.value)} placeholder={metodoCfg.refPlaceholder} />
-          </div>
-        )}
 
         {/* Comprobante */}
         <div className="space-y-1.5">
@@ -180,14 +157,6 @@ export function ModalPagarCobro({ cobro, open, onClose, onSuccess }: Props) {
               </button>
             </div>
           )}
-        </div>
-
-        {/* Notas */}
-        <div className="space-y-1.5">
-          <Label htmlFor="notas-pago" className="text-sm font-medium text-foreground">
-            Notas <span className="text-muted-foreground/70 font-normal">(opcional)</span>
-          </Label>
-          <Textarea id="notas-pago" rows={2} value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Ej. Pago realizado el día..." />
         </div>
 
         <DialogFooter className="gap-2">
