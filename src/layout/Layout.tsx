@@ -25,6 +25,7 @@ const ROUTE_LABELS: Record<string, string> = {
   "/finanzas": "Finanzas",
   "/finanzas/cobro-clientes": "Cobro a clientes",
   "/finanzas/pago-promotores": "Pago a promotores",
+  "/finanzas/pago-activadores": "Pago a activadores",
   "/finanzas/gestion-pagos": "Gestión de pagos",
   "/finanzas/gestion-gastos": "Gestión de gastos",
   "/reportes/pedidos": "Reporte de pedidos",

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Store, ChevronLeft, ChevronRight, HomeIcon, ClipboardList, UsersRound, Users, Package, MessageCircleQuestion, Receipt, Banknote, UserCircle, Building2, CheckSquare2, BarChart3, HandCoins, CreditCard, Wallet, LucideIcon } from "lucide-react"
+import { Store, ChevronLeft, ChevronRight, HomeIcon, ClipboardList, UsersRound, Users, Package, MessageCircleQuestion, Receipt, Banknote, UserCircle, Building2, CheckSquare2, BarChart3, HandCoins, CreditCard, Wallet, UserPlus, LucideIcon } from "lucide-react"
 
 
 import { cn } from "@/lib"
@@ -77,6 +77,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       items: [
         { route: "/finanzas/cobro-clientes", icon: HandCoins, label: "Cobro a clientes", show: isAdmin },
         { route: "/finanzas/pago-promotores", icon: Banknote, label: "Pago a promotores", show: isAdmin },
+        { route: "/finanzas/pago-activadores", icon: UserPlus, label: "Pago a activadores", show: isAdmin },
         { route: "/finanzas/gestion-pagos", icon: CreditCard, label: "Gestión de pagos", show: isNegocio },
         { route: "/finanzas/gestion-gastos", icon: Wallet, label: "Gestión de gastos", show: isAdmin },
       ],

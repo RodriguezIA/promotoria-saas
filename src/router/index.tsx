@@ -4,7 +4,7 @@ import { Layout } from "@/layout"
 import { Home } from '@/modules/home'
 import { NotFound } from '@/modules/not-found'
 import { Maintenance } from '@/modules/maintenance'
-import { Finanzas } from '@/modules/finanzas'
+import { Finanzas, FinanzasActivadores, FinanzasPromotores } from '@/modules/finanzas'
 import { Perfil, MiNegocio } from '@/modules/perfil'
 import { PrivateRoute, Login, RestorePassword } from '@/modules/auth'
 import { ListadoPreguntas, PreguntaDetalle } from '@/modules/preguntas'
@@ -57,7 +57,8 @@ export default function AppRouter() {
           <Route path="detalle-promotor/:id" element={<PromoterDetalle />} />
           <Route path="finanzas" element={<Finanzas />} />
           <Route path="finanzas/cobro-clientes" element={<Finanzas />} />
-          <Route path="finanzas/pago-promotores" element={<Maintenance />} />
+          <Route path="finanzas/pago-promotores" element={<FinanzasPromotores />} />
+          <Route path="finanzas/pago-activadores" element={<FinanzasActivadores />} />
           <Route path="finanzas/gestion-pagos" element={<Finanzas />} />
           <Route path="finanzas/gestion-gastos" element={<Maintenance />} />
           <Route path="reportes/pedidos" element={<PedidosList />} />

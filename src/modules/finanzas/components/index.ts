@@ -1,5 +1,8 @@
 export { ModalPagarCobro } from './ModalPagarCobro'
 export { ModalRevisarCobro } from './ModalRevisarCobro'
 export { ModalRegistrarPagoPromotor } from './ModalRegistrarPagoPromotor'
+export { ModalGenerarPagoPromotor } from './ModalGenerarPagoPromotor'
 export { ModalConfigFinanzas } from './ModalConfigFinanzas'
 export { ModalGenerarCorte } from './ModalGenerarCorte'
+export { ModalGenerarComisionActivador } from './ModalGenerarComisionActivador'
+export { ModalRegistrarPagoActivador } from './ModalRegistrarPagoActivador'

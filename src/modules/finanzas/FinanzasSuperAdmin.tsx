@@ -1,9 +1,9 @@
 import { toast } from "sonner"
 import { useEffect, useState, useCallback } from "react"
 import { ColumnDef } from "@tanstack/react-table"
-import { Clock, AlertCircle, Loader2, DollarSign, Users, Banknote, Settings, Plus, Receipt, AlertTriangle } from "lucide-react"
+import { Clock, AlertCircle, Loader2, Banknote, Settings, Plus, Receipt, AlertTriangle } from "lucide-react"
 
-import { ModalRegistrarPagoPromotor, ModalRevisarCobro, ModalConfigFinanzas, ModalGenerarCorte } from "./components"
+import { ModalRevisarCobro, ModalConfigFinanzas, ModalGenerarCorte } from "./components"
 import { Button, DataTable, PageWrapper, PageHeader, StatCard, Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components"
 import { getCLientsList } from "@/Fetch/clientes"
 import {
@@ -40,22 +40,18 @@ const BadgeInvoice = ({ invoice }: { invoice: ClientInvoice }) => {
   return <span className={`px-2 py-1 rounded-full text-xs font-semibold ${STATUS_STYLE[invoice.id_status]}`}>{INVOICE_STATUS_LABEL[invoice.id_status]}</span>;
 };
 
-type Tab = "cobros" | "promotores";
-
 interface ClienteOpcion {
   id_client: number;
   name: string;
 }
 
 export default function FinanzasSuperAdmin() {
-  const [tab, setTab] = useState<Tab>("cobros");
   const [facturas, setFacturas] = useState<ClientInvoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [clientes, setClientes] = useState<ClienteOpcion[]>([]);
   const [clienteFiltro, setClienteFiltro] = useState<string>("todos");
 
   const [cobroSel, setCobroSel] = useState<ClientInvoice | null>(null);
-  const [pagoSel] = useState<any>(null);
   const [configOpen, setConfigOpen] = useState(false);
   const [generarOpen, setGenerarOpen] = useState(false);
 
@@ -129,7 +125,7 @@ export default function FinanzasSuperAdmin() {
   return (
     <PageWrapper>
       <PageHeader
-        title="Finanzas"
+        title="Cobro a clientes"
         subtitle="Gestión de cobros a clientes"
         icon={Banknote}
         actions={
@@ -150,59 +146,25 @@ export default function FinanzasSuperAdmin() {
         <StatCard title="Vencido" value={fmt(totalVencido)} icon={AlertTriangle} accent="#b91c1c" />
       </div>
 
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ backgroundColor: "var(--hover)" }}>
-          {(["cobros", "promotores"] as Tab[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150"
-              style={
-                tab === t
-                  ? { backgroundColor: "var(--card-bg)", color: "var(--text-primary)", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }
-                  : { color: "var(--text-secondary)" }
-              }
-            >
-              {t === "cobros" ? <DollarSign className="w-4 h-4" /> : <Users className="w-4 h-4" />}
-              {t === "cobros" ? "Cobros a clientes" : "Pagos a promotores"}
-              {t === "cobros" && (
-                <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "var(--border)", color: "var(--text-secondary)" }}>
-                  {facturas.length}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-
-        {tab === "cobros" && (
-          <Select value={clienteFiltro} onValueChange={setClienteFiltro}>
-            <SelectTrigger className="w-[220px]">
-              <SelectValue placeholder="Filtrar por cliente" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos los clientes</SelectItem>
-              {clientes.map((c) => (
-                <SelectItem key={c.id_client} value={String(c.id_client)}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+      <div className="flex items-center justify-end flex-wrap gap-3">
+        <Select value={clienteFiltro} onValueChange={setClienteFiltro}>
+          <SelectTrigger className="w-[220px]">
+            <SelectValue placeholder="Filtrar por cliente" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos los clientes</SelectItem>
+            {clientes.map((c) => (
+              <SelectItem key={c.id_client} value={String(c.id_client)}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
-        {tab === "cobros" ? (
-          <DataTable columns={columnasFacturas} data={facturas} isLoading={loading} emptyMessage="No hay facturas registradas." />
-        ) : (
-          <div className="flex flex-col items-center justify-center py-16 gap-2 text-muted-foreground">
-            <Users className="w-8 h-8 opacity-50" />
-            <p className="text-sm font-medium">Próximamente</p>
-            <p className="text-xs">Los pagos a promotores se reconectarán en una siguiente actualización.</p>
-          </div>
-        )}
+        <DataTable columns={columnasFacturas} data={facturas} isLoading={loading} emptyMessage="No hay facturas registradas." />
       </div>
 
       <ModalRevisarCobro cobro={cobroSel} open={cobroSel !== null} onClose={() => setCobroSel(null)} onSuccess={cargar} />
-      <ModalRegistrarPagoPromotor pago={pagoSel} open={false} onClose={() => {}} onSuccess={cargar} />
       <ModalConfigFinanzas open={configOpen} onClose={() => setConfigOpen(false)} />
       <ModalGenerarCorte open={generarOpen} onClose={() => setGenerarOpen(false)} onSuccess={cargar} />
     </PageWrapper>
