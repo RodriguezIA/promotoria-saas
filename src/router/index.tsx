@@ -5,6 +5,7 @@ import { Home } from '@/modules/home'
 import { NotFound } from '@/modules/not-found'
 import { Maintenance } from '@/modules/maintenance'
 import { Finanzas, FinanzasActivadores, FinanzasPromotores } from '@/modules/finanzas'
+import { ConfigurarApp } from '@/modules/configuracion'
 import { Perfil, MiNegocio } from '@/modules/perfil'
 import { PrivateRoute, Login, RestorePassword } from '@/modules/auth'
 import { ListadoPreguntas, PreguntaDetalle } from '@/modules/preguntas'
@@ -61,6 +62,7 @@ export default function AppRouter() {
           <Route path="finanzas/pago-activadores" element={<FinanzasActivadores />} />
           <Route path="finanzas/gestion-pagos" element={<Finanzas />} />
           <Route path="finanzas/gestion-gastos" element={<Maintenance />} />
+          <Route path="configurar-app" element={<ConfigurarApp />} />
           <Route path="reportes/pedidos" element={<PedidosList />} />
           <Route path="perfil" element={<Perfil />} />
           <Route path="mi-negocio" element={<MiNegocio />} />

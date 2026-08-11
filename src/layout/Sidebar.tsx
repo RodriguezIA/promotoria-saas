@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Store, ChevronLeft, ChevronRight, HomeIcon, ClipboardList, UsersRound, Users, Package, MessageCircleQuestion, Receipt, Banknote, UserCircle, Building2, CheckSquare2, BarChart3, HandCoins, CreditCard, Wallet, UserPlus, LucideIcon } from "lucide-react"
+import { Store, ChevronLeft, ChevronRight, HomeIcon, ClipboardList, UsersRound, Users, Package, MessageCircleQuestion, Receipt, Banknote, UserCircle, Building2, CheckSquare2, BarChart3, HandCoins, CreditCard, Wallet, UserPlus, Settings, LucideIcon } from "lucide-react"
 
 
 import { cn } from "@/lib"
@@ -70,6 +70,12 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       items: [
         { route: "/mi-negocio", icon: Building2, label: "Mi Negocio", show: isNegocio },
         { route: "/perfil", icon: UserCircle, label: "Mi perfil", show: true, mobileOnly: true },
+      ],
+    },
+    {
+      label: "Sistema",
+      items: [
+        { route: "/configurar-app", icon: Settings, label: "Configurar app", show: isAdmin },
       ],
     },
     {

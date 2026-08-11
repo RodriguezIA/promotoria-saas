@@ -28,6 +28,7 @@ const ROUTE_LABELS: Record<string, string> = {
   "/finanzas/pago-activadores": "Pago a activadores",
   "/finanzas/gestion-pagos": "Gestión de pagos",
   "/finanzas/gestion-gastos": "Gestión de gastos",
+  "/configurar-app": "Configurar app",
   "/reportes/pedidos": "Reporte de pedidos",
   "/mi-negocio": "Mi Negocio",
   "/perfil": "Mi Perfil",

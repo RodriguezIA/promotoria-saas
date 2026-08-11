@@ -169,6 +169,34 @@ export function ModalRegistrarPagoPromotor({ pago, open, onClose, onSuccess }: P
                   {detalle.promoter.promoter_bank_accounts.length === 0 && (
                     <p className="text-xs text-destructive">Este promotor no tiene cuentas bancarias registradas.</p>
                   )}
+                  {idCuenta && (() => {
+                    const cuenta = detalle.promoter.promoter_bank_accounts.find((c) => String(c.id) === idCuenta);
+                    if (!cuenta) return null;
+                    return (
+                      <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-1.5 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Banco</span>
+                          <span className="font-medium text-foreground">{cuenta.bank_name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Titular</span>
+                          <span className="font-medium text-foreground">{cuenta.account_holder_name}</span>
+                        </div>
+                        {cuenta.clabe && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">CLABE</span>
+                            <span className="font-medium text-foreground font-mono">{cuenta.clabe}</span>
+                          </div>
+                        )}
+                        {cuenta.card_number && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Tarjeta</span>
+                            <span className="font-medium text-foreground font-mono">{cuenta.card_number}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="space-y-1.5">
