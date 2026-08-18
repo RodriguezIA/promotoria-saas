@@ -54,11 +54,9 @@ export const getStockMatchingStores = (filters: {
 }
 
 export const bulkAssignStockMinimum = (data: {
+    id_stores: number[]
     id_products: number[]
     i_minimum: number
-    id_channels?: number[]
-    id_state?: number
-    id_municipios?: number[]
 }) => {
     return api.post<ApiResponse<{ stores_affected: number; assignments: number }>>('/stock/minimums/bulk-assign', data)
 }
