@@ -11,3 +11,4 @@ export type { OrderDTO, OderListDTO, OrderItemSummaryDTO, OrderLogDTO } from './
 export type { TaskDTO, TaskAnswerDTO, RequestProductDetailDTO, RequestProductQuestionDetailDTO, QuestionOptionLiteDTO } from './tasks'
 export type { PromoterDTO } from './promoters'
 export type { PromoterBankAccountDTO, CreateBankAccountDTO } from './promoter-bank-accounts'
+export type { MapStoreDTO, MapProductDTO, MapActivePromoterDTO, StockSemaphore, StockMinimumDTO } from './stock'

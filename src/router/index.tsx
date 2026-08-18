@@ -15,6 +15,7 @@ import { TareasListado, TareaDetalle } from '@/modules/tareas'
 import { PromotoresList, PromoterDetalle } from '@/modules/promotores'
 import { ProductPage, ProductoDetalle, ProductoForm } from '@/modules/productos'
 import { Establecimientos, Establecimiento, EstablecimientoDetalle } from '@/modules/establecimientos'
+import { Mapa } from '@/modules/mapa'
 import { CrearSolicitud, EditarSolicitud, SolicitudDetalle, SolicitudesList } from '@/modules/solicitudes'
 
 export default function AppRouter() {
@@ -54,6 +55,7 @@ export default function AppRouter() {
           <Route path="detalle-pedido/:id" element={<PedidoDetalle />} />
           <Route path="tareas" element={<TareasListado />} />
           <Route path="tareas/:id_task" element={<TareaDetalle />} />
+          <Route path="mapa" element={<Mapa />} />
           <Route path="promotores" element={<PromotoresList />} />
           <Route path="detalle-promotor/:id" element={<PromoterDetalle />} />
           <Route path="finanzas" element={<Finanzas />} />
