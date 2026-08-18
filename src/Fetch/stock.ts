@@ -29,6 +29,30 @@ export const countStockMatchingStores = (filters: { id_channels?: number[]; id_s
     return api.get<ApiResponse<{ count: number }>>(`/stock/minimums/matching-stores/count${qs ? `?${qs}` : ''}`)
 }
 
+export interface MatchingStoreDTO {
+    id_store: number
+    name: string
+    channel_name: string | null
+    municipio_name: string | null
+    products_with_minimum: number
+    products_total: number
+}
+
+export const getStockMatchingStores = (filters: {
+    id_channels?: number[]
+    id_state?: number
+    id_municipios?: number[]
+    id_products?: number[]
+}) => {
+    const params = new URLSearchParams()
+    filters.id_channels?.forEach((id) => params.append('id_channels', String(id)))
+    if (filters.id_state) params.set('id_state', String(filters.id_state))
+    filters.id_municipios?.forEach((id) => params.append('id_municipios', String(id)))
+    filters.id_products?.forEach((id) => params.append('id_products', String(id)))
+    const qs = params.toString()
+    return api.get<ApiResponse<MatchingStoreDTO[]>>(`/stock/minimums/matching-stores${qs ? `?${qs}` : ''}`)
+}
+
 export const bulkAssignStockMinimum = (data: {
     id_products: number[]
     i_minimum: number

@@ -21,7 +21,7 @@ import {
 } from '@/components'
 import { channelSalesDTO, ProductDTO, StateDTO, CityDTO } from '@/dtos'
 import { getProductsByClient } from '@/Fetch/products'
-import { countStockMatchingStores, bulkAssignStockMinimum } from '@/Fetch/stock'
+import { bulkAssignStockMinimum, getStockMatchingStores, MatchingStoreDTO } from '@/Fetch/stock'
 
 const FILTRO_TODOS = 'todos'
 const DEFAULT_COUNTRY_ID = 1
@@ -43,6 +43,7 @@ export default function AsignarMinimos() {
   const [minimum, setMinimum] = useState('')
 
   const [matchingCount, setMatchingCount] = useState<number | null>(null)
+  const [matchingStores, setMatchingStores] = useState<MatchingStoreDTO[]>([])
   const [loadingCount, setLoadingCount] = useState(false)
   const [saving, setSaving] = useState(false)
   const [lastResult, setLastResult] = useState<{ stores_affected: number; assignments: number } | null>(null)
@@ -86,11 +87,15 @@ export default function AsignarMinimos() {
 
   useEffect(() => {
     setLoadingCount(true)
-    countStockMatchingStores(filterPayload)
-      .then((res) => setMatchingCount(res.data.count))
-      .catch(() => setMatchingCount(null))
+    getStockMatchingStores({ ...filterPayload, id_products: selectedProducts })
+      .then((res) => {
+        setMatchingStores(res.data)
+        setMatchingCount(res.data.length)
+      })
+      .catch(() => { setMatchingStores([]); setMatchingCount(null) })
       .finally(() => setLoadingCount(false))
-  }, [filterPayload])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterPayload, selectedProducts])
 
   const toggleProduct = (id: number) => {
     setSelectedProducts((prev) => prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id])
@@ -105,6 +110,17 @@ export default function AsignarMinimos() {
   }
 
   const canSubmit = selectedProducts.length > 0 && minimum !== '' && !Number.isNaN(Number(minimum)) && Number(minimum) >= 0
+
+  const refreshMatchingStores = () => {
+    setLoadingCount(true)
+    getStockMatchingStores({ ...filterPayload, id_products: selectedProducts })
+      .then((res) => {
+        setMatchingStores(res.data)
+        setMatchingCount(res.data.length)
+      })
+      .catch(() => { setMatchingStores([]); setMatchingCount(null) })
+      .finally(() => setLoadingCount(false))
+  }
 
   const handleSubmit = async () => {
     if (!canSubmit) {
@@ -121,6 +137,7 @@ export default function AsignarMinimos() {
       })
       setLastResult(res.data)
       toast.success(`Mínimo asignado en ${res.data.stores_affected} tienda(s)`)
+      refreshMatchingStores()
     } catch {
       toast.error('Error al asignar los mínimos')
     } finally {
@@ -240,14 +257,54 @@ export default function AsignarMinimos() {
               </>
             )}
 
-            <div className="mt-4 p-3 rounded-lg bg-muted/40 flex items-center gap-2 text-sm">
-              {loadingCount ? (
-                <Loader2 size={14} className="animate-spin text-muted-foreground" />
-              ) : (
-                <>
-                  <span className="font-bold text-foreground">{matchingCount ?? 0}</span>
-                  <span className="text-muted-foreground">tienda(s) coinciden con este filtro</span>
-                </>
+            <div className="mt-4 p-3 rounded-lg bg-muted/40">
+              <div className="flex items-center gap-2 text-sm mb-2">
+                {loadingCount ? (
+                  <Loader2 size={14} className="animate-spin text-muted-foreground" />
+                ) : (
+                  <>
+                    <span className="font-bold text-foreground">{matchingCount ?? 0}</span>
+                    <span className="text-muted-foreground">tienda(s) coinciden con este filtro</span>
+                  </>
+                )}
+              </div>
+
+              {matchingStores.length > 0 && (
+                <div className="max-h-48 overflow-y-auto space-y-1 pr-1">
+                  {matchingStores.map((s) => {
+                    const hasSelection = selectedProducts.length > 0
+                    const complete = hasSelection && s.products_with_minimum === s.products_total
+                    const partial = hasSelection && s.products_with_minimum > 0 && !complete
+                    return (
+                      <div
+                        key={s.id_store}
+                        className="flex items-center justify-between gap-2 text-xs bg-white rounded-md px-2.5 py-1.5 border border-border/60"
+                      >
+                        <span className="truncate">
+                          {s.name}
+                          {s.municipio_name && <span className="text-muted-foreground"> · {s.municipio_name}</span>}
+                        </span>
+                        {hasSelection && (
+                          <span
+                            className={`shrink-0 px-1.5 py-0.5 rounded font-medium ${
+                              complete
+                                ? 'bg-success/10 text-success'
+                                : partial
+                                ? 'bg-warning/10 text-warning'
+                                : 'bg-muted text-muted-foreground'
+                            }`}
+                          >
+                            {complete
+                              ? 'Ya tiene mínimo'
+                              : partial
+                              ? `${s.products_with_minimum}/${s.products_total} con mínimo`
+                              : 'Sin mínimo aún'}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
               )}
             </div>
           </CardContent>
