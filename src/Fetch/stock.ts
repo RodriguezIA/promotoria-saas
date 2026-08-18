@@ -19,3 +19,22 @@ export const getStockMinimumsByStore = (id_store: number, id_client?: number) =>
 export const setStockMinimum = (data: { id_product: number; id_store: number; i_minimum: number }) => {
     return api.put<ApiResponse<StockMinimumDTO>>('/stock/minimums', data)
 }
+
+export const countStockMatchingStores = (filters: { id_channels?: number[]; id_state?: number; id_municipios?: number[] }) => {
+    const params = new URLSearchParams()
+    filters.id_channels?.forEach((id) => params.append('id_channels', String(id)))
+    if (filters.id_state) params.set('id_state', String(filters.id_state))
+    filters.id_municipios?.forEach((id) => params.append('id_municipios', String(id)))
+    const qs = params.toString()
+    return api.get<ApiResponse<{ count: number }>>(`/stock/minimums/matching-stores/count${qs ? `?${qs}` : ''}`)
+}
+
+export const bulkAssignStockMinimum = (data: {
+    id_products: number[]
+    i_minimum: number
+    id_channels?: number[]
+    id_state?: number
+    id_municipios?: number[]
+}) => {
+    return api.post<ApiResponse<{ stores_affected: number; assignments: number }>>('/stock/minimums/bulk-assign', data)
+}

@@ -1,3 +1,4 @@
 import Mapa from './Mapa'
+import AsignarMinimos from './AsignarMinimos'
 
-export { Mapa }
+export { Mapa, AsignarMinimos }

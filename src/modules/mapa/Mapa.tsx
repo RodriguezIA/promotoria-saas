@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { GoogleMap } from '@react-google-maps/api'
-import { Loader2, MapPin, ChevronLeft } from 'lucide-react'
+import { Loader2, MapPin, ChevronLeft, ListChecks } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 import { api, ApiResponse, useJsApiLoader, GOOGLE_MAPS_CONFIG } from '@/lib'
 import { useAuthStore } from '@/stores'
@@ -42,6 +43,7 @@ const SEMAPHORE_DOT: Record<string, string> = {
 export default function Mapa() {
   const { isLoaded } = useJsApiLoader(GOOGLE_MAPS_CONFIG)
   const { user } = useAuthStore()
+  const navigate = useNavigate()
   const idClient = user?.id_client && user.id_client > 0 ? user.id_client : undefined
 
   const [channels, setChannels] = useState<channelSalesDTO[]>([])
@@ -112,6 +114,12 @@ export default function Mapa() {
   return (
     <PageWrapper>
       <PageHeader title="Mapa" subtitle="Ubicación de tiendas, promotores activos e inventario en vivo" />
+
+      <div className="flex justify-end mb-3">
+        <Button variant="outline" size="sm" onClick={() => navigate('/mapa/asignar-minimos')}>
+          <ListChecks size={16} className="mr-1.5" /> Asignar mínimos por lote
+        </Button>
+      </div>
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-3 mb-4">
