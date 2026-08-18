@@ -586,6 +586,22 @@ export const CrearPedido = () => {
                                           {store.address?.street || ''} {store.address?.ext_number || ''}
                                         </p>
                                       </div>
+                                      <Badge
+                                        variant="outline"
+                                        className={`shrink-0 gap-1 text-[11px] ${
+                                          (store.i_active_promoters ?? 0) > 0
+                                            ? 'border-success/40 text-success bg-success/10'
+                                            : 'border-border text-muted-foreground/70'
+                                        }`}
+                                        title="Promotores activos en esta tienda ahora mismo"
+                                      >
+                                        <span
+                                          className={`h-1.5 w-1.5 rounded-full ${
+                                            (store.i_active_promoters ?? 0) > 0 ? 'bg-success' : 'bg-muted-foreground/40'
+                                          }`}
+                                        />
+                                        {store.i_active_promoters ?? 0} activo{(store.i_active_promoters ?? 0) === 1 ? '' : 's'}
+                                      </Badge>
                                     </div>
                                   )
                                 })}

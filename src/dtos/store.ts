@@ -25,4 +25,5 @@ export interface StoreDTO {
     address: AddressDTO,
     sales_channel: channelSaleEstablecimientoDTO
     logs?: StoreLogDTO[]
+    i_active_promoters?: number
 }
