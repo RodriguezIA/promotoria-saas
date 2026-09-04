@@ -6,6 +6,7 @@ import {
   getPromoterPaymentById,
   submitPromoterPayment,
   cancelPromoterPayment,
+  revealBankAccount,
   PromoterPayment,
   PromoterPaymentDetail,
   PROMOTER_PAYMENT_STATUS,
@@ -32,6 +33,9 @@ export function ModalRegistrarPagoPromotor({ pago, open, onClose, onSuccess }: P
   const [notas, setNotas] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [accion, setAccion] = useState<null | "pagar" | "cancelar">(null);
+  const [revealedAccountId, setRevealedAccountId] = useState<number | null>(null);
+  const [revealedNumber, setRevealedNumber] = useState<string | null>(null);
+  const [revealing, setRevealing] = useState(false);
 
   useEffect(() => {
     if (!open || !pago) return;
@@ -40,11 +44,28 @@ export function ModalRegistrarPagoPromotor({ pago, open, onClose, onSuccess }: P
     setIdCuenta("");
     setNotas("");
     setFile(null);
+    setRevealedAccountId(null);
+    setRevealedNumber(null);
     getPromoterPaymentById(pago.id_payment)
       .then((res) => { if (res.ok) setDetalle(res.data); })
       .catch(() => toast.error("Error al cargar el pago"))
       .finally(() => setLoading(false));
   }, [open, pago]);
+
+  const handleReveal = async (idAccount: number) => {
+    setRevealing(true);
+    try {
+      const res = await revealBankAccount(idAccount);
+      if (res.ok) {
+        setRevealedAccountId(idAccount);
+        setRevealedNumber(res.data.clabe || res.data.card_number || null);
+      }
+    } catch {
+      toast.error("Error al obtener el número completo");
+    } finally {
+      setRevealing(false);
+    }
+  };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -154,7 +175,7 @@ export function ModalRegistrarPagoPromotor({ pago, open, onClose, onSuccess }: P
 
                 <div className="space-y-1.5">
                   <Label>Cuenta bancaria del promotor</Label>
-                  <Select value={idCuenta} onValueChange={setIdCuenta}>
+                  <Select value={idCuenta} onValueChange={(v) => { setIdCuenta(v); setRevealedAccountId(null); setRevealedNumber(null); }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona una cuenta" />
                     </SelectTrigger>
@@ -183,16 +204,38 @@ export function ModalRegistrarPagoPromotor({ pago, open, onClose, onSuccess }: P
                           <span className="font-medium text-foreground">{cuenta.account_holder_name}</span>
                         </div>
                         {cuenta.clabe && (
-                          <div className="flex justify-between">
+                          <div className="flex justify-between items-center">
                             <span className="text-muted-foreground">CLABE</span>
-                            <span className="font-medium text-foreground font-mono">{cuenta.clabe}</span>
+                            <span className="font-medium text-foreground font-mono">
+                              {revealedAccountId === cuenta.id ? revealedNumber : cuenta.clabe}
+                            </span>
                           </div>
                         )}
                         {cuenta.card_number && (
-                          <div className="flex justify-between">
+                          <div className="flex justify-between items-center">
                             <span className="text-muted-foreground">Tarjeta</span>
-                            <span className="font-medium text-foreground font-mono">{cuenta.card_number}</span>
+                            <span className="font-medium text-foreground font-mono">
+                              {revealedAccountId === cuenta.id ? revealedNumber : cuenta.card_number}
+                            </span>
                           </div>
+                        )}
+                        {revealedAccountId !== cuenta.id && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="w-full mt-1 h-8 text-xs"
+                            disabled={revealing}
+                            onClick={() => handleReveal(cuenta.id)}
+                          >
+                            {revealing ? <Loader2 className="animate-spin mr-1.5" size={14} /> : null}
+                            Ver número completo para transferir
+                          </Button>
+                        )}
+                        {revealedAccountId === cuenta.id && (
+                          <p className="text-[11px] text-muted-foreground pt-1 border-t border-border/60">
+                            Esta consulta quedó registrada en la bitácora de auditoría.
+                          </p>
                         )}
                       </div>
                     );

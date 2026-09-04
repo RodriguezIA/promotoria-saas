@@ -6,6 +6,7 @@ import {
   getActivatorPaymentById,
   submitActivatorPayment,
   cancelActivatorPayment,
+  revealBankAccount,
   ActivatorPayment,
   ActivatorPaymentDetail,
   ACTIVATOR_PAYMENT_STATUS,
@@ -31,6 +32,9 @@ export function ModalRegistrarPagoActivador({ pago, open, onClose, onSuccess }: 
   const [idCuenta, setIdCuenta] = useState<string>("");
   const [notas, setNotas] = useState("");
   const [accion, setAccion] = useState<null | "pagar" | "cancelar">(null);
+  const [revealedAccountId, setRevealedAccountId] = useState<number | null>(null);
+  const [revealedNumber, setRevealedNumber] = useState<string | null>(null);
+  const [revealing, setRevealing] = useState(false);
 
   useEffect(() => {
     if (!open || !pago) return;
@@ -38,11 +42,28 @@ export function ModalRegistrarPagoActivador({ pago, open, onClose, onSuccess }: 
     setFechaPago(hoyISO());
     setIdCuenta("");
     setNotas("");
+    setRevealedAccountId(null);
+    setRevealedNumber(null);
     getActivatorPaymentById(pago.id_payment)
       .then((res) => { if (res.ok) setDetalle(res.data); })
       .catch(() => toast.error("Error al cargar el pago"))
       .finally(() => setLoading(false));
   }, [open, pago]);
+
+  const handleReveal = async (idAccount: number) => {
+    setRevealing(true);
+    try {
+      const res = await revealBankAccount(idAccount);
+      if (res.ok) {
+        setRevealedAccountId(idAccount);
+        setRevealedNumber(res.data.clabe || res.data.card_number || null);
+      }
+    } catch {
+      toast.error("Error al obtener el número completo");
+    } finally {
+      setRevealing(false);
+    }
+  };
 
   const handlePagar = async () => {
     if (!pago) return;
@@ -129,7 +150,7 @@ export function ModalRegistrarPagoActivador({ pago, open, onClose, onSuccess }: 
                 {detalle.activator.promoter_bank_accounts.length > 0 && (
                   <div className="space-y-1.5">
                     <Label>Cuenta bancaria (opcional)</Label>
-                    <Select value={idCuenta} onValueChange={setIdCuenta}>
+                    <Select value={idCuenta} onValueChange={(v) => { setIdCuenta(v); setRevealedAccountId(null); setRevealedNumber(null); }}>
                       <SelectTrigger>
                         <SelectValue placeholder="Sin especificar" />
                       </SelectTrigger>
@@ -141,6 +162,41 @@ export function ModalRegistrarPagoActivador({ pago, open, onClose, onSuccess }: 
                         ))}
                       </SelectContent>
                     </Select>
+                    {idCuenta && (() => {
+                      const cuenta = detalle.activator.promoter_bank_accounts.find((c) => String(c.id) === idCuenta);
+                      if (!cuenta) return null;
+                      const numero = cuenta.clabe || cuenta.card_number;
+                      return (
+                        <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-1.5 text-sm">
+                          {numero && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-muted-foreground">{cuenta.clabe ? "CLABE" : "Tarjeta"}</span>
+                              <span className="font-medium text-foreground font-mono">
+                                {revealedAccountId === cuenta.id ? revealedNumber : numero}
+                              </span>
+                            </div>
+                          )}
+                          {revealedAccountId !== cuenta.id && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="w-full mt-1 h-8 text-xs"
+                              disabled={revealing}
+                              onClick={() => handleReveal(cuenta.id)}
+                            >
+                              {revealing ? <Loader2 className="animate-spin mr-1.5" size={14} /> : null}
+                              Ver número completo para transferir
+                            </Button>
+                          )}
+                          {revealedAccountId === cuenta.id && (
+                            <p className="text-[11px] text-muted-foreground pt-1 border-t border-border/60">
+                              Esta consulta quedó registrada en la bitácora de auditoría.
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 

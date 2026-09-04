@@ -389,6 +389,19 @@ export interface PromoterPaymentDetail extends PromoterPayment {
 export const getPromoterPaymentById = (id_payment: number) =>
   api.get<ApiResponse<PromoterPaymentDetail>>(`/finances/promoter-payments/${id_payment}`);
 
+export interface RevealedBankAccount {
+  id: number;
+  id_promoter: number;
+  clabe: string | null;
+  card_number: string | null;
+}
+
+// Descifra el numero completo de una cuenta bancaria, exclusivamente para
+// hacer la transferencia manual. Restringido a Admin/Finanzas en el backend,
+// y cada consulta queda registrada en bitacora (quien, que cuenta, cuando).
+export const revealBankAccount = (id_account: number) =>
+  api.get<ApiResponse<RevealedBankAccount>>(`/finances/promoter-payments/bank-accounts/${id_account}/reveal`);
+
 export interface SubmitPromoterPaymentPayload {
   dt_payment: string;
   id_bank_account: number;
