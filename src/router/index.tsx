@@ -8,6 +8,7 @@ import { Finanzas, FinanzasActivadores, FinanzasPromotores } from '@/modules/fin
 import { ConfigurarApp } from '@/modules/configuracion'
 import { Perfil, MiNegocio } from '@/modules/perfil'
 import { PrivateRoute, Login, RestorePassword } from '@/modules/auth'
+import { EliminarCuenta } from '@/modules/eliminar-cuenta'
 import { ListadoPreguntas, PreguntaDetalle } from '@/modules/preguntas'
 import { Clientes, ClienteDetalle, CrearCliente } from '@/modules/clientes'
 import { CrearPedido, PedidoDetalle, PedidosList } from '@/modules/pedidos'
@@ -25,6 +26,7 @@ export default function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/restore-pwd" element={<RestorePassword />} />
         <Route path="/mantenimiento" element={<Maintenance />} />
+        <Route path="/eliminar-cuenta" element={<EliminarCuenta />} />
 
         <Route path="/" element={
             <PrivateRoute>
