@@ -67,3 +67,11 @@ export const updateBankAccount = (idPromoter: number, idAccount: number, payload
  */
 export const deleteBankAccount = (idPromoter: number, idAccount: number) =>
   api.delete<ApiResponse<null>>(`/promoters/${idPromoter}/bank-accounts/${idAccount}`);
+
+/**
+ * Restablece la contraseña de un promotor que no tiene correo registrado
+ * (no puede autoservirse). Regresa una contraseña temporal para compartirle
+ * por otro medio (WhatsApp, llamada, etc.). Restringido a Admin/Finanzas.
+ */
+export const adminResetPromoterPassword = (idPromoter: number) =>
+  api.post<ApiResponse<{ tempPassword: string }>>(`/promoters/${idPromoter}/admin-reset-password`);

@@ -2,13 +2,13 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useParams, useNavigate } from "react-router-dom";
-import { Loader2, Edit2, Trash, Plus, User } from "lucide-react";
+import { Loader2, Edit2, Trash, Plus, User, KeyRound, Copy } from "lucide-react";
 
 import { api, ApiResponse } from '@/lib'
-import { PromoterDTO, PromoterBankAccountDTO } from "@/dtos"; 
+import { PromoterDTO, PromoterBankAccountDTO } from "@/dtos";
 import { UploadImageModal, BankAccountModal } from "./components";
-import { getPromoterById, getBankAccounts, deleteBankAccount } from "@/Fetch/promotores"; 
-import { Button, Card, Separator, DataTable, PageWrapper, ConfirmModal, Avatar } from "@/components";  
+import { getPromoterById, getBankAccounts, deleteBankAccount, adminResetPromoterPassword } from "@/Fetch/promotores";
+import { Button, Card, Separator, DataTable, PageWrapper, ConfirmModal, Avatar } from "@/components";
 
 export function PromoterDetalle() { 
   const { id } = useParams(); 
@@ -24,6 +24,9 @@ export function PromoterDetalle() {
   const [selectedAccount, setSelectedAccount] = useState<PromoterBankAccountDTO | null>(null); 
   const [accountToDelete, setAccountToDelete] = useState<PromoterBankAccountDTO | null>(null); 
   const [deletingAccount, setDeletingAccount] = useState(false); 
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
   
   useEffect(() => { 
     const fetchDatos = async () => {
@@ -77,6 +80,29 @@ export function PromoterDetalle() {
       setDeletingAccount(false); 
     } 
   }; 
+
+  const handleResetPassword = async () => {
+    setResettingPassword(true);
+    try {
+      const res = await adminResetPromoterPassword(idPromoter);
+      if (res.ok && res.data) {
+        setTempPassword(res.data.tempPassword);
+        setConfirmResetOpen(false);
+      } else {
+        toast.error(res.message || "No se pudo restablecer la contraseña");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "No se pudo restablecer la contraseña");
+    } finally {
+      setResettingPassword(false);
+    }
+  };
+
+  const handleCopyTempPassword = () => {
+    if (!tempPassword) return;
+    navigator.clipboard.writeText(tempPassword);
+    toast.success("Contraseña copiada");
+  };
   
   const handleUploadImageSuccess = (imageUrl: string) => { 
     setPromoter(prev => prev ? { ...prev, vc_image: imageUrl } : null); 
@@ -121,8 +147,17 @@ export function PromoterDetalle() {
             {promoter.email && <p className="text-sm mt-2"><strong>Email:</strong> {promoter.email}</p>}
             {promoter.phone && <p className="text-sm"><strong>Tel:</strong> {promoter.phone}</p>}
             <p className="text-sm"><strong>Estado:</strong> {promoter.isActive ? "Activo" : "Inactivo"}</p>
-            
-            <Button variant="outline" className="mt-6" onClick={() => navigate("/promotores")}>Volver</Button>  
+
+            <div className="flex gap-2 mt-6">
+              <Button variant="outline" onClick={() => navigate("/promotores")}>Volver</Button>
+              <Button
+                variant="outline"
+                className="gap-2 text-amber-700 border-amber-300 hover:bg-amber-50"
+                onClick={() => setConfirmResetOpen(true)}
+              >
+                <KeyRound size={14} /> Restablecer contraseña
+              </Button>
+            </div>
           </div>  
         </div>
         
@@ -174,6 +209,47 @@ export function PromoterDetalle() {
         confirmLabel="Sí, eliminar"
         cancelLabel="Cancelar"
       />
+
+      {/* Modal de Confirmación Restablecer Contraseña */}
+      <ConfirmModal
+        open={confirmResetOpen}
+        onClose={() => setConfirmResetOpen(false)}
+        onConfirm={handleResetPassword}
+        loading={resettingPassword}
+        variant="danger"
+        title="¿Restablecer contraseña?"
+        description={`Se generará una contraseña temporal nueva para ${promoter.name}. Su contraseña actual dejará de funcionar de inmediato.`}
+        confirmLabel="Sí, restablecer"
+        cancelLabel="Cancelar"
+      />
+
+      {/* Modal para mostrar la contraseña temporal generada */}
+      {tempPassword && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-sm w-full p-6">
+            <h3 className="text-lg font-bold mb-2">Contraseña temporal generada</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Compártesela a {promoter.name} por WhatsApp, llamada, o el medio que uses —
+              esta pantalla no la vuelve a mostrar.
+            </p>
+            <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3 mb-4">
+              <span className="font-mono text-lg font-bold flex-1 text-center tracking-wider">
+                {tempPassword}
+              </span>
+              <button
+                onClick={handleCopyTempPassword}
+                className="p-2 hover:bg-muted rounded-lg"
+                title="Copiar"
+              >
+                <Copy size={16} />
+              </button>
+            </div>
+            <Button className="w-full" onClick={() => setTempPassword(null)}>
+              Listo, ya se la compartí
+            </Button>
+          </Card>
+        </div>
+      )}
     </PageWrapper>
   ); 
 }
