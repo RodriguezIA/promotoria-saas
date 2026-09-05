@@ -198,11 +198,11 @@ export function Login() {
 
           <div className="text-center text-xs text-muted-foreground mt-8">
             Al iniciar sesión, aceptas nuestros{" "}
-            <a href="#" className="text-foreground hover:underline">
+            <a href="/terminos" target="_blank" rel="noopener noreferrer" className="text-foreground hover:underline">
               Términos de Servicio
             </a>{" "}
             y{" "}
-            <a href="#" className="text-foreground hover:underline">
+            <a href="/aviso-de-privacidad" target="_blank" rel="noopener noreferrer" className="text-foreground hover:underline">
               Política de Privacidad
             </a>
           </div>
