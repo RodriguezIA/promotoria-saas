@@ -7,6 +7,7 @@ import { api, ApiResponse } from '@/lib'
 import { ClientListDTO, ProductDTO, QuestionDTO } from '@/dtos'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button, Input, Checkbox } from '@/components'
 import { ProductoPickerModal } from './components/ProductoPickerModal'
+import { getTaskSettings } from '@/Fetch/taskSettings'
 
 interface ProductoSeleccionado extends ProductDTO {
   preguntas: {
@@ -192,7 +193,29 @@ export const CrearSolicitud = () => {
     0
   );
 
-  const granTotal = costoBase + costoPreguntas;
+  const subtotalSinPrepedido = costoBase + costoPreguntas;
+
+  const [prepedidoConfig, setPrepedidoConfig] = useState<{ tipo: 'FIXED' | 'PERCENTAGE'; valor: number } | null>(null);
+  useEffect(() => {
+    getTaskSettings()
+      .then((res) => {
+        if (res.ok) {
+          setPrepedidoConfig({
+            tipo: res.data.preorder_pricing_type ?? 'FIXED',
+            valor: Number(res.data.preorder_pricing_value ?? 0),
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const cargoPrepedido = !prepedido || !prepedidoConfig
+    ? 0
+    : prepedidoConfig.tipo === 'PERCENTAGE'
+      ? Math.round(subtotalSinPrepedido * (prepedidoConfig.valor / 100) * 100) / 100
+      : prepedidoConfig.valor;
+
+  const granTotal = subtotalSinPrepedido + cargoPrepedido;
 
   // --- GUARDAR ---
   const handleGuardar = async () => {
@@ -337,6 +360,12 @@ export const CrearSolicitud = () => {
                   <div className="flex justify-between gap-4 text-primary-foreground/90">
                     <span>Preguntas extra ({totalPreguntas}):</span>
                     <span className="tabular-nums">+ ${costoPreguntas.toFixed(2)}</span>
+                  </div>
+                )}
+                {prepedido && cargoPrepedido > 0 && (
+                  <div className="flex justify-between gap-4 text-primary-foreground/90">
+                    <span>Cargo por Prepedido:</span>
+                    <span className="tabular-nums">+ ${cargoPrepedido.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between gap-4 text-lg pt-3 border-t border-primary-foreground/20">
