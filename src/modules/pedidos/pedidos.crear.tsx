@@ -564,13 +564,14 @@ export const CrearPedido = () => {
                             {tiendasFiltradas.length === 0 ? (
                               <p className="text-sm text-muted-foreground py-2">No hay tiendas que coincidan con este filtro.</p>
                             ) : (
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-80 overflow-y-auto pr-1">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-80 overflow-y-auto pr-1">
                                 {tiendasFiltradas.map((store) => {
                                   const seleccionada = item.storesSeleccionadas.includes(store.id_store)
                                   return (
                                     <div
                                       key={store.id_store}
                                       onClick={() => toggleStore(item.id_request, store.id_store)}
+                                      title={store.name}
                                       className={`flex items-center gap-3 p-2.5 rounded-lg border cursor-pointer transition-colors ${
                                         seleccionada
                                           ? 'bg-info/10 border-info/30'
