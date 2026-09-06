@@ -26,3 +26,8 @@ export interface PreorderDTO {
 
 export const getPreordersByClient = (id_client: number) =>
     api.get<ApiResponse<PreorderDTO[]>>(`/preorder/clients/${id_client}`)
+
+// El endpoint de una sola tarea no incluye la relacion `task` (ya se tiene
+// ese contexto en la pantalla que lo llama), asi que aqui es opcional.
+export const getPreorder = (id_task: number) =>
+    api.get<ApiResponse<Omit<PreorderDTO, 'task'> | null>>(`/preorder/tasks/${id_task}`)

@@ -2,10 +2,11 @@ import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { ColumnDef } from "@tanstack/react-table"
-import { ArrowLeft, CheckSquare2, ClipboardList, Loader2, MapPin, Store, User, FileText, Image as ImageIcon, Receipt, CheckCircle2, XCircle, Ban } from "lucide-react"
+import { ArrowLeft, CheckSquare2, ClipboardList, Loader2, MapPin, Store, User, FileText, Image as ImageIcon, Receipt, CheckCircle2, XCircle, Ban, PackagePlus, Phone, Calendar, Sun, Moon } from "lucide-react"
 
 import { TaskDTO } from "@/dtos"
 import { api, ApiResponse, formatDate } from "@/lib"
+import { getPreorder, PreorderDTO } from "@/Fetch/preorder"
 import {
   Button, Card, CardContent, DataTable, PageHeader, PageWrapper,
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
@@ -15,6 +16,8 @@ import { getTaskStatus } from "./utils"
 
 const formatCurrency = (v: number) =>
   new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(v)
+
+const PREORDER_TIME_LABEL: Record<string, string> = { MAÑANA: "Por la mañana", TARDE: "Por la tarde" }
 
 interface ChecklistRow {
   id_request_product_question: number
@@ -34,6 +37,7 @@ export function TareaDetalle() {
   const [cancelDialog, setCancelDialog] = useState(false)
   const [cancelComment, setCancelComment] = useState("")
   const [cancelling, setCancelling] = useState(false)
+  const [preorder, setPreorder] = useState<Omit<PreorderDTO, 'task'> | null>(null)
 
   const fetchTask = async () => {
     if (!id_task) return
@@ -48,8 +52,21 @@ export function TareaDetalle() {
     }
   }
 
+  const fetchPreorder = async () => {
+    if (!id_task) return
+    try {
+      const resp = await getPreorder(Number(id_task))
+      setPreorder(resp.data)
+    } catch {
+      // Sin prepedido levantado para esta tarea, o la solicitud no tiene el
+      // extra activado — no es un error que valga la pena mostrarle al
+      // cliente, la seccion simplemente no aparece.
+    }
+  }
+
   useEffect(() => {
     fetchTask()
+    fetchPreorder()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id_task])
 
@@ -366,22 +383,81 @@ export function TareaDetalle() {
         </div>
       </div>
 
-      {/* ── Foto de acomodo + Checklist (ancho completo, se llenan cuando la tarea ya se contestó) ── */}
+      {/* ── Fotos de acomodo + Prepedido + Checklist (ancho completo) ── */}
       <div className="space-y-4">
-        {task.arrangement_photo_url && (
+        {(task.arrangement_photo_url || task.arrangement_photo_after_url) && (
           <Card>
             <CardContent className="p-5">
               <div className="flex items-center gap-2 mb-4">
                 <ImageIcon size={18} style={{ color: "var(--text-secondary)" }} />
-                <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Foto de acomodo</h3>
+                <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Fotos de acomodo</h3>
               </div>
-              <a href={task.arrangement_photo_url} target="_blank" rel="noreferrer">
-                <img
-                  src={task.arrangement_photo_url}
-                  alt="Foto de acomodo"
-                  className="max-h-96 rounded-lg border object-contain"
-                  style={{ borderColor: "var(--border)" }}
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {task.arrangement_photo_url && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1.5">Antes de acomodar</p>
+                    <a href={task.arrangement_photo_url} target="_blank" rel="noreferrer">
+                      <img
+                        src={task.arrangement_photo_url}
+                        alt="Foto antes del acomodo"
+                        className="max-h-96 w-full rounded-lg border object-contain"
+                        style={{ borderColor: "var(--border)" }}
+                      />
+                    </a>
+                  </div>
+                )}
+                {task.arrangement_photo_after_url && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1.5">Después de acomodar</p>
+                    <a href={task.arrangement_photo_after_url} target="_blank" rel="noreferrer">
+                      <img
+                        src={task.arrangement_photo_after_url}
+                        alt="Foto después del acomodo"
+                        className="max-h-96 w-full rounded-lg border object-contain"
+                        style={{ borderColor: "var(--border)" }}
+                      />
+                    </a>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {preorder && (
+          <Card>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <PackagePlus size={18} style={{ color: "var(--text-secondary)" }} />
+                <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Prepedido levantado</h3>
+              </div>
+              <div className="flex flex-wrap gap-4 mb-4 text-sm">
+                <span className="flex items-center gap-1.5 text-muted-foreground">
+                  <Calendar size={14} /> {formatDate(preorder.preferred_date)}
+                </span>
+                <span className="flex items-center gap-1.5 text-muted-foreground">
+                  {preorder.preferred_time === "MAÑANA" ? <Sun size={14} /> : <Moon size={14} />}
+                  {PREORDER_TIME_LABEL[preorder.preferred_time]}
+                </span>
+                <span className="flex items-center gap-1.5 text-muted-foreground">
+                  <Phone size={14} /> {preorder.manager_whatsapp}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+                {preorder.items.map((item) => (
+                  <div key={item.id_item} className="rounded-lg bg-muted/40 px-3 py-2 text-sm">
+                    <span className="font-bold text-foreground">{item.i_quantity}</span>{" "}
+                    <span className="text-muted-foreground">{item.product.name}</span>
+                  </div>
+                ))}
+              </div>
+              <a
+                href={preorder.manager_signature}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm text-primary underline"
+              >
+                Ver firma del encargado
               </a>
             </CardContent>
           </Card>

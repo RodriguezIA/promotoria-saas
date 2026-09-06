@@ -41,16 +41,29 @@ export function PedidoDetalle() {
     const orderId = Number(id)
     try {
       setLoading(true)
-      const [orderResp, tasksResp, promotoresResp] = await Promise.all([
+      // Promise.allSettled en vez de Promise.all: si el cliente (negocio) no
+      // tiene permiso para /promoters (endpoint solo de admin, usado nada
+      // mas para "Cambiar promotor"), esa llamada falla sola sin tumbar el
+      // pedido ni las tareas, que si debe poder ver cualquier rol.
+      const [orderResult, tasksResult, promotoresResult] = await Promise.allSettled([
         api.get<ApiResponse<OrderDTO>>(`/orders/${orderId}`),
         api.get<ApiResponse<{ data: TaskDTO[]; meta: unknown }>>(`/tasks?id_order=${orderId}&limit=500`),
-        api.get<ApiResponse<PromoterDTO[]>>("/promoters"),
+        (isAdmin() || isSuperAdmin())
+          ? api.get<ApiResponse<PromoterDTO[]>>("/promoters")
+          : Promise.resolve({ ok: true, error: 0, data: [] as PromoterDTO[] }),
       ])
-      setOrder(orderResp.data)
-      setTasks(tasksResp.data?.data || [])
-      setPromotores(promotoresResp.data || [])
-    } catch {
-      toast.error("Error al cargar el pedido")
+
+      if (orderResult.status === "fulfilled") {
+        setOrder(orderResult.value.data)
+      } else {
+        setOrder(null)
+      }
+      setTasks(tasksResult.status === "fulfilled" ? (tasksResult.value.data?.data || []) : [])
+      setPromotores(promotoresResult.status === "fulfilled" ? (promotoresResult.value.data || []) : [])
+
+      if (orderResult.status === "rejected") {
+        toast.error("Error al cargar el pedido")
+      }
     } finally {
       setLoading(false)
     }
@@ -151,9 +164,14 @@ export function PedidoDetalle() {
     (order.order_items ?? []).map((i) => [i.id_request, i.request?.vc_name])
   ).entries()]
 
+  // id_status: 1=creada, 2-5=en progreso (asignada/en camino/en ejecucion/
+  // enviada a validacion), 6=el promotor ya termino y esta en revision del
+  // cliente ("Completada" desde este punto de vista), 7=el cliente ya la
+  // aprobo ("Terminada", cierre definitivo).
   const pendientes = tasks.filter((t) => t.id_status === 1).length
-  const enProgreso = tasks.filter((t) => t.id_status >= 2 && t.id_status <= 6).length
-  const completadas = tasks.filter((t) => t.id_status === 7 || t.id_status === 8).length
+  const enProgreso = tasks.filter((t) => t.id_status >= 2 && t.id_status <= 5).length
+  const completadas = tasks.filter((t) => t.id_status === 6).length
+  const terminadas = tasks.filter((t) => t.id_status === 7).length
 
   return (
     <PageWrapper>
@@ -188,26 +206,30 @@ export function PedidoDetalle() {
               {/* Estado */}
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Estado</span>
-                {order.id_status === 1 ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-success/10 text-success text-sm rounded-full">
-                    <div className="w-1.5 h-1.5 bg-success rounded-full" /> Activo
-                  </span>
-                ) : (
+                {order.id_status !== 1 ? (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-destructive/10 text-destructive text-sm rounded-full">
                     <div className="w-1.5 h-1.5 bg-destructive rounded-full" /> Cancelado
+                  </span>
+                ) : tasks.length > 0 && tasks.every((t) => t.id_status === 7) ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-sm rounded-full">
+                    <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full" /> Finalizado
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-success/10 text-success text-sm rounded-full">
+                    <div className="w-1.5 h-1.5 bg-success rounded-full" /> Activo
                   </span>
                 )}
               </div>
 
               {/* Total */}
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Total cobrado</span>
+                <span className="text-sm text-muted-foreground">Total a pagar</span>
                 <span className="font-semibold text-foreground text-lg">{formatCurrency(Number(order.f_total))}</span>
               </div>
 
               {/* Tareas */}
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Total de tiendas</span>
+                <span className="text-sm text-muted-foreground">Total de tiendas solicitadas</span>
                 <span className="font-semibold">{tasks.length}</span>
               </div>
 
@@ -223,48 +245,21 @@ export function PedidoDetalle() {
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Completadas</span><span className="font-medium text-foreground">{completadas}</span>
                   </div>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Terminada</span><span className="font-medium text-foreground">{terminadas}</span>
+                  </div>
                 </div>
               )}
 
               {/* Solicitudes */}
               {uniqueRequests.length > 0 && (
-                <div>
-                  <p className="text-xs mb-2 text-muted-foreground">Solicitudes</p>
-                  <div className="flex flex-wrap gap-1">
-                    {uniqueRequests.map(([id, name]) => (
-                      <span key={id} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
-                        {name ?? `#${id}`}
-                      </span>
-                    ))}
-                  </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Solicitudes</span>
+                  <span className="font-semibold">{uniqueRequests.length}</span>
                 </div>
               )}
             </CardContent>
           </Card>
-
-          {/* Logs */}
-          {(order.order_logs ?? []).length > 0 && (
-            <Card>
-              <CardContent className="p-5">
-                <h3 className="font-semibold text-sm uppercase tracking-wide mb-3 text-muted-foreground">
-                  Actividad
-                </h3>
-                <div className="space-y-3">
-                  {order.order_logs!.map((log, i) => (
-                    <div key={i} className="flex gap-2 text-sm">
-                      <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-muted-foreground/60 shrink-0" />
-                      <div>
-                        <p className="text-foreground">{log.vc_log}</p>
-                        <p className="text-xs mt-0.5 text-muted-foreground">
-                          {formatDate(log.dt_registro)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
 
         {/* ── Lista de tareas ── */}
@@ -284,7 +279,9 @@ export function PedidoDetalle() {
           ) : (
             <div className="space-y-3">
               {tasks.map((task) => {
-                const status = getTaskStatus(task.id_status)
+                const status = task.id_status === 6
+                  ? { bg: 'bg-info/10', text: 'text-info', dot: 'bg-info', label: 'Concluida y en revisión por cliente' }
+                  : getTaskStatus(task.id_status)
                 const promotorNombre = task.promoter
                   ? `${task.promoter.name} ${task.promoter.lastname}`.trim()
                   : null
@@ -314,13 +311,16 @@ export function PedidoDetalle() {
                           {status.label}
                         </span>
 
-                        <div className="flex items-center gap-1.5 text-sm">
-                          <User size={14} className="text-muted-foreground" />
-                          {promotorNombre ? (
-                            <span className="font-medium text-foreground">{promotorNombre}</span>
-                          ) : (
-                            <span className="text-xs font-medium text-warning-foreground dark:text-warning bg-warning/15 px-2 py-0.5 rounded-full">Sin asignar</span>
-                          )}
+                        <div className="flex flex-col items-end gap-0.5 text-sm">
+                          <span className="text-[11px] text-muted-foreground">Promotor que realizó la tarea</span>
+                          <div className="flex items-center gap-1.5">
+                            <User size={14} className="text-muted-foreground" />
+                            {promotorNombre ? (
+                              <span className="font-medium text-foreground">{promotorNombre}</span>
+                            ) : (
+                              <span className="text-xs font-medium text-warning-foreground dark:text-warning bg-warning/15 px-2 py-0.5 rounded-full">Sin asignar</span>
+                            )}
+                          </div>
                         </div>
 
                         <div className="flex gap-2">
@@ -329,15 +329,17 @@ export function PedidoDetalle() {
                             variant="outline"
                             onClick={() => navigate(`/tareas/${task.id_task}`)}
                           >
-                            <Eye size={14} className="mr-1.5" /> Ver detalle
+                            <Eye size={14} className="mr-1.5" /> Ver TODO el detalle
                           </Button>
-                          <Button
-                            size="sm"
-                            variant={promotorNombre ? "outline" : "default"}
-                            onClick={() => openAssignModal(task)}
-                          >
-                            {promotorNombre ? "Cambiar promotor" : "Asignar promotor"}
-                          </Button>
+                          {(isAdmin() || isSuperAdmin()) && (
+                            <Button
+                              size="sm"
+                              variant={promotorNombre ? "outline" : "default"}
+                              onClick={() => openAssignModal(task)}
+                            >
+                              {promotorNombre ? "Cambiar promotor" : "Asignar promotor"}
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>

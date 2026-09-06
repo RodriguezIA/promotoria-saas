@@ -76,4 +76,5 @@ export interface TaskDTO {
   myAnswers?: TaskAnswerDTO[]
   /** Solo la trae GET /tasks/:id/checklist, no GET /tasks/:id */
   arrangement_photo_url?: string | null
+  arrangement_photo_after_url?: string | null
 }
