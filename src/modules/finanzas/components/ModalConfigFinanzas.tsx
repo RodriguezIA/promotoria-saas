@@ -1,8 +1,9 @@
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
-import { Loader2, Settings, Clock, PackagePlus } from "lucide-react"
+import { Loader2, Settings, Clock, PackagePlus, Percent } from "lucide-react"
 
 import { getTaskSettings, updateTaskSettings, updatePreorderPricing } from "@/Fetch/taskSettings"
+import { getFinanceSettings, updateFinanceSettings } from "@/Fetch/financeSettings"
 import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input, Label } from "@/components"
 
 interface Props {
@@ -14,18 +15,24 @@ export function ModalConfigFinanzas({ open, onClose }: Props) {
   const [horas, setHoras] = useState("24");
   const [prepedidoTipo, setPrepedidoTipo] = useState<'FIXED' | 'PERCENTAGE'>('FIXED');
   const [prepedidoValor, setPrepedidoValor] = useState("0");
+  const [comisionPromotor, setComisionPromotor] = useState("0");
+  const [comisionActivador, setComisionActivador] = useState("10");
   const [loading, setLoading] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setLoading(true);
-    getTaskSettings()
-      .then((res) => {
-        if (res.ok) {
-          setHoras(String(res.data.i_review_timeout_hours));
-          setPrepedidoTipo(res.data.preorder_pricing_type ?? 'FIXED');
-          setPrepedidoValor(String(res.data.preorder_pricing_value ?? 0));
+    Promise.all([getTaskSettings(), getFinanceSettings()])
+      .then(([taskRes, financeRes]) => {
+        if (taskRes.ok) {
+          setHoras(String(taskRes.data.i_review_timeout_hours));
+          setPrepedidoTipo(taskRes.data.preorder_pricing_type ?? 'FIXED');
+          setPrepedidoValor(String(taskRes.data.preorder_pricing_value ?? 0));
+        }
+        if (financeRes.ok) {
+          setComisionPromotor(String(financeRes.data.f_promoter_commission_percentage ?? 0));
+          setComisionActivador(String(financeRes.data.f_activator_commission_percentage ?? 10));
         }
       })
       .catch(() => toast.error("Error al cargar la configuración"))
@@ -43,10 +50,24 @@ export function ModalConfigFinanzas({ open, onClose }: Props) {
       toast.error("El valor del cargo por Prepedido debe ser 0 o mayor");
       return;
     }
+    const comisionPromotorNum = Number(comisionPromotor);
+    const comisionActivadorNum = Number(comisionActivador);
+    if (isNaN(comisionPromotorNum) || comisionPromotorNum < 0 || comisionPromotorNum > 100) {
+      toast.error("El % de comisión del promotor debe estar entre 0 y 100");
+      return;
+    }
+    if (isNaN(comisionActivadorNum) || comisionActivadorNum < 0 || comisionActivadorNum > 100) {
+      toast.error("El % de comisión del activador debe estar entre 0 y 100");
+      return;
+    }
     setGuardando(true);
     try {
       await updateTaskSettings(horasNum);
       await updatePreorderPricing(prepedidoTipo, valorNum);
+      await updateFinanceSettings({
+        f_promoter_commission_percentage: comisionPromotorNum,
+        f_activator_commission_percentage: comisionActivadorNum,
+      });
       toast.success("Configuración guardada exitosamente");
       onClose();
     } catch (e: any) {
@@ -127,6 +148,49 @@ export function ModalConfigFinanzas({ open, onClose }: Props) {
                 {prepedidoTipo === 'FIXED'
                   ? 'Se suma este monto al total de la solicitud si tiene Prepedido activado.'
                   : 'Se suma este porcentaje sobre el total de la solicitud si tiene Prepedido activado.'}
+              </p>
+            </div>
+
+            <div className="space-y-2 pt-3 border-t border-border">
+              <Label className="text-sm font-medium flex items-center gap-1.5">
+                <Percent className="w-4 h-4" />
+                Comisiones
+              </Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="text-xs text-muted-foreground">% para el promotor</span>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={comisionPromotor}
+                    onChange={(e) => setComisionPromotor(e.target.value)}
+                    placeholder="Ej. 70"
+                  />
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground">% para el activador</span>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={comisionActivador}
+                    onChange={(e) => setComisionActivador(e.target.value)}
+                    placeholder="Ej. 10"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                El promotor recibe este % de lo que se le cobra al cliente por cada tarea.
+                El activador (quien lo invitó) recibe este % adicional, calculado sobre lo que
+                gana el promotor — no sobre lo que se le cobra al cliente.
+                {Number(comisionPromotor) <= 0 && (
+                  <span className="block mt-1 font-medium text-warning">
+                    ⚠ Con 0% no se pueden generar pagos a promotores todavía.
+                  </span>
+                )}
               </p>
             </div>
           </div>
