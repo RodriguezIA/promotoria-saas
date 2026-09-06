@@ -119,11 +119,24 @@ export function PedidoDetalle() {
         XLSX.utils.json_to_sheet(existenciasRows.length ? existenciasRows : [{ "Sin datos": "" }]),
         "Existencias"
       )
-      XLSX.utils.book_append_sheet(
-        wb,
-        XLSX.utils.json_to_sheet(evidenciasRows.length ? evidenciasRows : [{ "Sin datos": "" }]),
-        "Evidencias"
+
+      const evidenciasSheet = XLSX.utils.json_to_sheet(
+        evidenciasRows.length ? evidenciasRows : [{ "Sin datos": "" }]
       )
+      if (evidenciasRows.length > 0) {
+        // "URL" es la 4ta columna (D): ID Tarea, Tienda, Tipo, URL. Le
+        // agregamos el hyperlink real a cada celda para que sea clicleable
+        // en Excel, no solo texto plano.
+        evidenciasRows.forEach((row, i) => {
+          const url = row["URL"]
+          if (!url) return
+          const cellRef = XLSX.utils.encode_cell({ r: i + 1, c: 3 })
+          const cell = evidenciasSheet[cellRef]
+          if (cell) cell.l = { Target: String(url), Tooltip: "Abrir imagen" }
+        })
+      }
+      XLSX.utils.book_append_sheet(wb, evidenciasSheet, "Evidencias")
+
       XLSX.writeFile(wb, `Pedido_${String(order.id_order).padStart(4, "0")}.xlsx`)
     } catch {
       toast.error("Error al exportar el pedido")
