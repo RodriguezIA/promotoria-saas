@@ -36,6 +36,7 @@ export const EditarSolicitud = () => {
   // Imagen de anaquel
   const [imagenAnaquel, setImagenAnaquel] = useState<File | null>(null);
   const [previewAnaquel, setPreviewAnaquel] = useState<string | null>(null);
+  const [prepedido, setPrepedido] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -53,6 +54,7 @@ export const EditarSolicitud = () => {
         const dataSol = resSolicitud.data;
         setNombre(dataSol.vc_name);
         setSelectedClientId(dataSol.id_client || null);
+        setPrepedido(Boolean(dataSol.b_preorder));
 
         if (dataSol.url_rack_image) {
           setPreviewAnaquel(dataSol.url_rack_image);
@@ -204,6 +206,7 @@ export const EditarSolicitud = () => {
         })),
         rackImage: imagenAnaquel,
         url_rack_image: !imagenAnaquel ? previewAnaquel : null,
+        b_preorder: prepedido,
       });
 
       if (respuesta.ok) {
@@ -359,6 +362,24 @@ export const EditarSolicitud = () => {
                 </div>
               )}
             </div>
+
+            {/* Extra: Prepedido */}
+            <label className="flex items-start gap-3 p-4 rounded-xl border border-border cursor-pointer hover:border-ring transition-colors">
+              <input
+                type="checkbox"
+                checked={prepedido}
+                onChange={(e) => setPrepedido(e.target.checked)}
+                className="mt-1 h-4 w-4"
+              />
+              <div>
+                <p className="font-semibold text-foreground">Agregar Prepedido</p>
+                <p className="text-sm text-muted-foreground">
+                  Si el promotor detecta que a la tienda le faltan piezas contra el mínimo
+                  configurado, podrá levantar un pedido con el encargado y mandárselo por
+                  WhatsApp directamente desde la app.
+                </p>
+              </div>
+            </label>
           </div>
 
           {/* Productos a auditar */}

@@ -47,6 +47,7 @@ export const CrearSolicitud = () => {
   // Imagen de anaquel
   const [imagenAnaquel, setImagenAnaquel] = useState<File | null>(null);
   const [previewAnaquel, setPreviewAnaquel] = useState<string | null>(null);
+  const [prepedido, setPrepedido] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -221,6 +222,7 @@ export const CrearSolicitud = () => {
       formData.append("id_client", selectedClientId.toString());
       formData.append("vc_name", nombre.trim());
       formData.append("f_value", granTotal.toString());
+      formData.append("b_preorder", prepedido.toString());
 
       if (imagenAnaquel) {
         formData.append("rackImage", imagenAnaquel);
@@ -241,6 +243,7 @@ export const CrearSolicitud = () => {
       setImagenAnaquel(null);
       setPreviewAnaquel(null);
       setBusquedaPreguntas({});
+      setPrepedido(false);
     } catch (error: any) {
       console.error("Error al guardar:", error);
       toast.error(error.message || "Ocurrió un error al guardar la solicitud.");
@@ -417,6 +420,24 @@ export const CrearSolicitud = () => {
                   </div>
                 )}
               </div>
+
+              {/* Extra: Prepedido */}
+              <label className="flex items-start gap-3 p-4 rounded-xl border border-border cursor-pointer hover:border-ring transition-colors">
+                <input
+                  type="checkbox"
+                  checked={prepedido}
+                  onChange={(e) => setPrepedido(e.target.checked)}
+                  className="mt-1 h-4 w-4"
+                />
+                <div>
+                  <p className="font-semibold text-foreground">Agregar Prepedido</p>
+                  <p className="text-sm text-muted-foreground">
+                    Si el promotor detecta que a la tienda le faltan piezas contra el mínimo
+                    configurado, podrá levantar un pedido con el encargado y mandárselo por
+                    WhatsApp directamente desde la app.
+                  </p>
+                </div>
+              </label>
             </div>
 
             {/* Productos a auditar */}

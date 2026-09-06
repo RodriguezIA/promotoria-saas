@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Store, ChevronLeft, ChevronRight, HomeIcon, ClipboardList, UsersRound, Users, Package, MessageCircleQuestion, Receipt, Banknote, UserCircle, Building2, CheckSquare2, BarChart3, HandCoins, CreditCard, Wallet, UserPlus, Settings, Map, LucideIcon } from "lucide-react"
+import { Store, ChevronLeft, ChevronRight, HomeIcon, ClipboardList, ClipboardCheck, UsersRound, Users, Package, MessageCircleQuestion, Receipt, Banknote, UserCircle, Building2, CheckSquare2, BarChart3, HandCoins, CreditCard, Wallet, UserPlus, Settings, Map, LucideIcon } from "lucide-react"
 
 
 import { cn } from "@/lib"
@@ -48,6 +48,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         { route: "/pedidos", icon: Receipt, label: "Pedidos", show: isAdmin || isNegocio },
         { route: "/tareas", icon: CheckSquare2, label: "Tareas", show: isAdmin || isNegocio },
         { route: "/mapa", icon: Map, label: "Mapa", show: isAdmin || isNegocio },
+        { route: "/mis-prepedidos", icon: ClipboardCheck, label: "Mis Prepedidos", show: isNegocio },
       ],
     },
     {

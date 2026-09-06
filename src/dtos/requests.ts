@@ -10,6 +10,7 @@ export interface RequestDTO {
     url_rack_image?: string;
     id_status: number;
     b_active: boolean;
+    b_preorder?: boolean;
     dt_register: Date;
     dt_update: Date;
     request_products?: RequestProductDTO[];

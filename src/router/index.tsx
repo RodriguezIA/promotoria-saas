@@ -18,6 +18,7 @@ import { PromotoresList, PromoterDetalle } from '@/modules/promotores'
 import { ProductPage, ProductoDetalle, ProductoForm } from '@/modules/productos'
 import { Establecimientos, Establecimiento, EstablecimientoDetalle } from '@/modules/establecimientos'
 import { Mapa, AsignarMinimos } from '@/modules/mapa'
+import { MisPrepedidos } from '@/modules/prepedidos'
 import { CrearSolicitud, EditarSolicitud, SolicitudDetalle, SolicitudesList } from '@/modules/solicitudes'
 
 export default function AppRouter() {
@@ -61,6 +62,7 @@ export default function AppRouter() {
           <Route path="tareas" element={<TareasListado />} />
           <Route path="tareas/:id_task" element={<TareaDetalle />} />
           <Route path="mapa" element={<Mapa />} />
+          <Route path="mis-prepedidos" element={<MisPrepedidos />} />
           <Route path="mapa/asignar-minimos" element={<AsignarMinimos />} />
           <Route path="promotores" element={<PromotoresList />} />
           <Route path="detalle-promotor/:id" element={<PromoterDetalle />} />
