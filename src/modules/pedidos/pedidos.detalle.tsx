@@ -1,7 +1,7 @@
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { Loader2, ArrowLeft, Receipt, Store, User, ClipboardList, Eye, Lock, FileSpreadsheet } from "lucide-react"
+import { Loader2, ArrowLeft, Receipt, Store, User, ClipboardList, Eye, Lock, FileSpreadsheet, CheckCircle2, XCircle } from "lucide-react"
 
 import { OrderDTO, TaskDTO, PromoterDTO } from "@/dtos"
 import { api, ApiResponse, formatDate } from "@/lib"
@@ -12,6 +12,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  Textarea, Checkbox,
 } from "@/components"
 import { getTaskStatus } from "../tareas/utils"
 
@@ -36,6 +37,93 @@ export function PedidoDetalle() {
   const [closeDialog, setCloseDialog] = useState(false)
   const [closing, setClosing] = useState(false)
   const [exporting, setExporting] = useState(false)
+
+  const [approvingTaskId, setApprovingTaskId] = useState<number | null>(null)
+  const [rejectDialog, setRejectDialog] = useState<{ open: boolean; task: TaskDTO | null }>({ open: false, task: null })
+  const [rejectComment, setRejectComment] = useState("")
+  const [rejecting, setRejecting] = useState(false)
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<number>>(new Set())
+  const [bulkApproving, setBulkApproving] = useState(false)
+
+  const approvableTasks = tasks.filter((t) => t.id_status === 6)
+
+  const toggleTaskSelected = (id_task: number) => {
+    setSelectedTaskIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id_task)) next.delete(id_task)
+      else next.add(id_task)
+      return next
+    })
+  }
+
+  const toggleSelectAllApprovable = () => {
+    setSelectedTaskIds((prev) =>
+      prev.size === approvableTasks.length ? new Set() : new Set(approvableTasks.map((t) => t.id_task))
+    )
+  }
+
+  const handleBulkApprove = async () => {
+    if (selectedTaskIds.size === 0) return
+    setBulkApproving(true)
+    try {
+      const results = await Promise.allSettled(
+        [...selectedTaskIds].map((id) => api.patch<ApiResponse<TaskDTO>>(`/tasks/${id}/approve`))
+      )
+      const fallidas = results.filter((r) => r.status === "rejected").length
+      if (fallidas > 0) {
+        toast.error(`${fallidas} tarea(s) no se pudieron aprobar`)
+      } else {
+        toast.success(`${selectedTaskIds.size} tarea(s) aprobada(s)`)
+      }
+      setSelectedTaskIds(new Set())
+      await fetchAll()
+    } finally {
+      setBulkApproving(false)
+    }
+  }
+
+  const handleApproveTask = async (task: TaskDTO) => {
+    setApprovingTaskId(task.id_task)
+    try {
+      const resp = await api.patch<ApiResponse<TaskDTO>>(`/tasks/${task.id_task}/approve`)
+      if (!resp.ok) {
+        toast.error(resp.message || "No se pudo aprobar la tarea")
+        return
+      }
+      toast.success("Tarea aprobada")
+      await fetchAll()
+    } catch {
+      toast.error("Error al aprobar la tarea")
+    } finally {
+      setApprovingTaskId(null)
+    }
+  }
+
+  const handleRejectTask = async () => {
+    if (!rejectDialog.task) return
+    if (!rejectComment.trim()) {
+      toast.error("Indica el motivo del rechazo")
+      return
+    }
+    setRejecting(true)
+    try {
+      const resp = await api.patch<ApiResponse<TaskDTO>>(`/tasks/${rejectDialog.task.id_task}/cancel`, {
+        comment: rejectComment.trim(),
+      })
+      if (!resp.ok) {
+        toast.error(resp.message || "No se pudo rechazar la tarea")
+        return
+      }
+      toast.success("Tarea rechazada")
+      setRejectDialog({ open: false, task: null })
+      setRejectComment("")
+      await fetchAll()
+    } catch {
+      toast.error("Error al rechazar la tarea")
+    } finally {
+      setRejecting(false)
+    }
+  }
 
   const handleExportAll = async () => {
     if (!order || tasks.length === 0) return
@@ -379,11 +467,34 @@ export function PedidoDetalle() {
 
         {/* ── Lista de tareas ── */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center gap-2">
-            <Store size={20} className="text-muted-foreground" />
-            <h2 className="font-semibold text-lg text-foreground">
-              Tareas en establecimientos
-            </h2>
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Store size={20} className="text-muted-foreground" />
+              <h2 className="font-semibold text-lg text-foreground">
+                Tareas en establecimientos
+              </h2>
+            </div>
+            {approvableTasks.length > 0 && (
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                  <Checkbox
+                    checked={selectedTaskIds.size === approvableTasks.length}
+                    onCheckedChange={toggleSelectAllApprovable}
+                  />
+                  Seleccionar todas ({approvableTasks.length} en revisión)
+                </label>
+                <Button
+                  size="sm"
+                  onClick={handleBulkApprove}
+                  disabled={selectedTaskIds.size === 0 || bulkApproving}
+                >
+                  {bulkApproving
+                    ? <Loader2 size={14} className="mr-1.5 animate-spin" />
+                    : <CheckCircle2 size={14} className="mr-1.5" />}
+                  Aceptar seleccionadas ({selectedTaskIds.size})
+                </Button>
+              </div>
+            )}
           </div>
 
           {tasks.length === 0 ? (
@@ -404,6 +515,13 @@ export function PedidoDetalle() {
                 return (
                   <Card key={task.id_task} className="transition-shadow hover:shadow-md">
                     <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+                      {task.id_status === 6 && (
+                        <Checkbox
+                          checked={selectedTaskIds.has(task.id_task)}
+                          onCheckedChange={() => toggleTaskSelected(task.id_task)}
+                          className="shrink-0"
+                        />
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span className="text-xs font-semibold px-2 py-0.5 rounded bg-muted text-muted-foreground">
@@ -439,6 +557,28 @@ export function PedidoDetalle() {
                         </div>
 
                         <div className="flex gap-2">
+                          {task.id_status === 6 && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => setRejectDialog({ open: true, task })}
+                                disabled={approvingTaskId === task.id_task}
+                              >
+                                <XCircle size={14} className="mr-1.5" /> Rechazar
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleApproveTask(task)}
+                                disabled={approvingTaskId === task.id_task}
+                              >
+                                {approvingTaskId === task.id_task
+                                  ? <Loader2 size={14} className="mr-1.5 animate-spin" />
+                                  : <CheckCircle2 size={14} className="mr-1.5" />}
+                                Aceptar
+                              </Button>
+                            </>
+                          )}
                           <Button
                             size="sm"
                             variant="outline"
@@ -544,6 +684,37 @@ export function PedidoDetalle() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ── Rechazar tarea (con motivo) ── */}
+      <Dialog open={rejectDialog.open} onOpenChange={(v) => !rejecting && setRejectDialog({ open: v, task: v ? rejectDialog.task : null })}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Rechazar tarea</DialogTitle>
+            <DialogDescription>
+              Explica el motivo del rechazo. El promotor lo verá en la app y recibirá una notificación.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-2">
+            <Textarea
+              value={rejectComment}
+              onChange={(e) => setRejectComment(e.target.value)}
+              placeholder="Ej. El acomodo no cumple con lo solicitado..."
+              rows={4}
+            />
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setRejectDialog({ open: false, task: null })} disabled={rejecting}>
+              Volver
+            </Button>
+            <Button variant="destructive" onClick={handleRejectTask} disabled={rejecting || !rejectComment.trim()}>
+              {rejecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Confirmar rechazo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageWrapper>
   )
 }

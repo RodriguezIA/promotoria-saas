@@ -41,7 +41,12 @@ export const useAuthStore = create<AuthState>()(
       // Selectores como funciones para evitar problemas de reactividad
       isAuthenticated: () => !!get().token,
       isSuperAdmin: () => get().user?.i_rol === 1,
-      isAdmin: () => get().user?.i_rol === 2,
+      // NOTA: aqui vivia un bug — isAdmin() checaba i_rol === 2, que en
+      // realidad es el rol de "Negocio/Cliente" (ver Sidebar.tsx, todas las
+      // demas pantallas del proyecto usan i_rol===1 para admin/master). Eso
+      // hacia que botones de solo-admin (Cambiar promotor, Cerrar pedido)
+      // tambien aparecieran para cuentas de cliente.
+      isAdmin: () => get().user?.i_rol === 1,
     }),
     {
       name: "auth-storage",
