@@ -1,7 +1,7 @@
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { Loader2, ArrowLeft, Receipt, Store, User, ClipboardList, Eye, Lock } from "lucide-react"
+import { Loader2, ArrowLeft, Receipt, Store, User, ClipboardList, Eye, Lock, FileSpreadsheet } from "lucide-react"
 
 import { OrderDTO, TaskDTO, PromoterDTO } from "@/dtos"
 import { api, ApiResponse, formatDate } from "@/lib"
@@ -35,6 +35,102 @@ export function PedidoDetalle() {
 
   const [closeDialog, setCloseDialog] = useState(false)
   const [closing, setClosing] = useState(false)
+  const [exporting, setExporting] = useState(false)
+
+  const handleExportAll = async () => {
+    if (!order || tasks.length === 0) return
+    setExporting(true)
+    try {
+      const XLSX = await import("xlsx")
+
+      // Trae el checklist completo (productos, preguntas, respuestas, fotos)
+      // de cada tarea del pedido, para poder armar las hojas de Existencias
+      // y Evidencias. Una tarea individual ya se ve asi en tareas.detalle.tsx.
+      const details = await Promise.all(
+        tasks.map((t) =>
+          api.get<ApiResponse<TaskDTO>>(`/tasks/${t.id_task}/checklist`).catch(() => null)
+        )
+      )
+
+      const pedidosRows = tasks.map((t) => ({
+        "ID Tarea": t.id_task,
+        "Folio": t.vc_folio ?? "",
+        "Tienda": t.store?.name ?? `Tienda #${t.id_store}`,
+        "Solicitud": t.request?.vc_name ?? "",
+        "Estatus": getTaskStatus(t.id_status).label,
+        "Promotor": t.promoter ? `${t.promoter.name} ${t.promoter.lastname}`.trim() : "Sin asignar",
+        "Valor": Number(t.request?.f_value ?? 0),
+      }))
+
+      const existenciasRows: Record<string, unknown>[] = []
+      const evidenciasRows: Record<string, unknown>[] = []
+
+      details.forEach((resp, idx) => {
+        const t = tasks[idx]
+        const tiendaNombre = t.store?.name ?? `Tienda #${t.id_store}`
+        const full = resp?.data
+        if (!full) return
+
+        if (full.arrangement_photo_url || full.arrangement_photo_after_url) {
+          evidenciasRows.push({
+            "ID Tarea": t.id_task,
+            "Tienda": tiendaNombre,
+            "Tipo": "Foto de acomodo (antes)",
+            "URL": full.arrangement_photo_url ?? "",
+          })
+          evidenciasRows.push({
+            "ID Tarea": t.id_task,
+            "Tienda": tiendaNombre,
+            "Tipo": "Foto de acomodo (después)",
+            "URL": full.arrangement_photo_after_url ?? "",
+          })
+        }
+
+        for (const rp of full.request?.request_products ?? []) {
+          for (const rpq of rp.request_product_questions) {
+            const answer = full.myAnswers?.find(
+              (a) => a.id_request_product_question === rpq.id_request_product_question
+            )
+            if (rpq.question.question_type === "numeric") {
+              existenciasRows.push({
+                "ID Tarea": t.id_task,
+                "Tienda": tiendaNombre,
+                "Producto": rp.product.name,
+                "Pregunta": rpq.question.question,
+                "Cantidad": answer?.vc_answer ?? "",
+              })
+            }
+            if (rpq.question.question_type === "photo" && answer?.vc_image_url) {
+              evidenciasRows.push({
+                "ID Tarea": t.id_task,
+                "Tienda": tiendaNombre,
+                "Tipo": `Evidencia: ${rp.product.name} — ${rpq.question.question}`,
+                "URL": answer.vc_image_url,
+              })
+            }
+          }
+        }
+      })
+
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(pedidosRows), "Pedidos")
+      XLSX.utils.book_append_sheet(
+        wb,
+        XLSX.utils.json_to_sheet(existenciasRows.length ? existenciasRows : [{ "Sin datos": "" }]),
+        "Existencias"
+      )
+      XLSX.utils.book_append_sheet(
+        wb,
+        XLSX.utils.json_to_sheet(evidenciasRows.length ? evidenciasRows : [{ "Sin datos": "" }]),
+        "Evidencias"
+      )
+      XLSX.writeFile(wb, `Pedido_${String(order.id_order).padStart(4, "0")}.xlsx`)
+    } catch {
+      toast.error("Error al exportar el pedido")
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const fetchAll = async () => {
     if (!id) return
@@ -181,6 +277,12 @@ export function PedidoDetalle() {
         icon={Receipt}
         actions={
           <div className="flex gap-2">
+            {tasks.length > 0 && (
+              <Button variant="outline" onClick={handleExportAll} disabled={exporting}>
+                {exporting ? <Loader2 size={16} className="mr-2 animate-spin" /> : <FileSpreadsheet size={16} className="mr-2" />}
+                Exportar todo a Excel
+              </Button>
+            )}
             {(isAdmin() || isSuperAdmin()) && order.id_status === 1 && (
               <Button variant="destructive" onClick={() => setCloseDialog(true)}>
                 <Lock size={16} className="mr-2" /> Cerrar pedido
