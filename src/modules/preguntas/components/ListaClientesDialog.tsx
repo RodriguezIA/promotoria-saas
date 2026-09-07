@@ -124,17 +124,17 @@ export function ListaClientesDialog({
                                             </TableCell>
                                             <TableCell>
                                                 <span className="font-medium">
-                                                    ${assignment.client_price.toFixed(2)}
+                                                    ${Number(assignment.client_price).toFixed(2)}
                                                 </span>
-                                                {assignment.client_price !== pregunta?.base_price && (
+                                                {Number(assignment.client_price) !== Number(pregunta?.base_price) && (
                                                     <span className="text-xs text-muted-foreground/70 ml-1">
-                                                        (base: ${pregunta?.base_price.toFixed(2)})
+                                                        (base: ${Number(pregunta?.base_price ?? 0).toFixed(2)})
                                                     </span>
                                                 )}
                                             </TableCell>
                                             <TableCell>
                                                 <span className="text-success font-medium">
-                                                    ${assignment.client_promoter_earns.toFixed(2)}
+                                                    ${Number(assignment.client_promoter_earns).toFixed(2)}
                                                 </span>
                                             </TableCell>
                                             <TableCell className="text-muted-foreground">

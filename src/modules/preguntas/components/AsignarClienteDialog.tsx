@@ -187,8 +187,8 @@ export function AsignarClienteDialog({
                         <p className="text-sm font-medium text-foreground">Pregunta:</p>
                         <p className="text-sm text-muted-foreground">{pregunta.question}</p>
                         <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
-                            <span>Precio base: ${pregunta.base_price.toFixed(2)}</span>
-                            <span>Ganancia promotor: ${pregunta.promoter_earns.toFixed(2)}</span>
+                            <span>Precio base: ${Number(pregunta.base_price).toFixed(2)}</span>
+                            <span>Ganancia promotor: ${Number(pregunta.promoter_earns).toFixed(2)}</span>
                         </div>
                     </div>
                 )}
@@ -291,7 +291,7 @@ export function AsignarClienteDialog({
                             </div>
                             <p className="text-xs text-muted-foreground">
                                 Si no especificas, se usara el precio base: $
-                                {pregunta?.base_price.toFixed(2)}
+                                {Number(pregunta?.base_price ?? 0).toFixed(2)}
                             </p>
                         </div>
 
@@ -317,7 +317,7 @@ export function AsignarClienteDialog({
                             </div>
                             <p className="text-xs text-muted-foreground">
                                 Si no especificas, se usara la ganancia base: $
-                                {pregunta?.promoter_earns.toFixed(2)}
+                                {Number(pregunta?.promoter_earns ?? 0).toFixed(2)}
                             </p>
                         </div>
                     </div>
