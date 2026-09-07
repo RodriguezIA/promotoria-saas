@@ -251,12 +251,12 @@ export function PreguntaDetalle() {
 
     // Vista para Admin (solo lectura)
     if (!isSuperAdmin && preguntaClient) {
-        const efectivePrice = preguntaClient.client_price > 0
-            ? preguntaClient.client_price
-            : preguntaClient.base_price;
-        const efectiveEarns = preguntaClient.client_promoter_earns > 0
-            ? preguntaClient.client_promoter_earns
-            : preguntaClient.promoter_earns;
+        const efectivePrice = Number(preguntaClient.client_price) > 0
+            ? Number(preguntaClient.client_price)
+            : Number(preguntaClient.base_price);
+        const efectiveEarns = Number(preguntaClient.client_promoter_earns) > 0
+            ? Number(preguntaClient.client_promoter_earns)
+            : Number(preguntaClient.promoter_earns);
 
         return (
             <>
@@ -323,10 +323,10 @@ export function PreguntaDetalle() {
                                 <p className="text-2xl font-bold">
                                     ${efectivePrice.toFixed(2)}
                                 </p>
-                                {preguntaClient.client_price > 0 &&
-                                 preguntaClient.client_price !== preguntaClient.base_price && (
+                                {Number(preguntaClient.client_price) > 0 &&
+                                 Number(preguntaClient.client_price) !== Number(preguntaClient.base_price) && (
                                     <p className="text-xs text-muted-foreground/70">
-                                        Precio base: ${preguntaClient.base_price.toFixed(2)}
+                                        Precio base: ${Number(preguntaClient.base_price).toFixed(2)}
                                     </p>
                                 )}
                             </div>
@@ -455,13 +455,13 @@ export function PreguntaDetalle() {
                         <div>
                             <p className="text-sm text-muted-foreground">Precio base</p>
                             <p className="text-2xl font-bold">
-                                ${pregunta.base_price.toFixed(2)}
+                                ${Number(pregunta.base_price).toFixed(2)}
                             </p>
                         </div>
                         <div>
                             <p className="text-sm text-muted-foreground">Ganancia promotor</p>
                             <p className="text-xl font-bold text-success">
-                                ${pregunta.promoter_earns.toFixed(2)}
+                                ${Number(pregunta.promoter_earns).toFixed(2)}
                             </p>
                         </div>
                     </CardContent>
@@ -509,15 +509,15 @@ export function PreguntaDetalle() {
                                                 {cliente.client_name}
                                             </TableCell>
                                             <TableCell>
-                                                ${cliente.client_price.toFixed(2)}
-                                                {cliente.client_price !== pregunta.base_price && (
+                                                ${Number(cliente.client_price).toFixed(2)}
+                                                {Number(cliente.client_price) !== Number(pregunta.base_price) && (
                                                     <Badge variant="outline" className="ml-2 text-xs">
                                                         Personalizado
                                                     </Badge>
                                                 )}
                                             </TableCell>
                                             <TableCell className="text-success">
-                                                ${cliente.client_promoter_earns.toFixed(2)}
+                                                ${Number(cliente.client_promoter_earns).toFixed(2)}
                                             </TableCell>
                                             <TableCell className="text-muted-foreground">
                                                 {formatDate(cliente.assigned_at)}
