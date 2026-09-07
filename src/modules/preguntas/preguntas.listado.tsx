@@ -1,7 +1,8 @@
 import { toast } from 'sonner'
-import { Plus, Users, Pencil } from 'lucide-react'
+import { Plus, Users, Pencil, Trash2 } from 'lucide-react'
 import { ColumnDef } from '@tanstack/react-table'
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 
 import { ClientListDTO, QuestionDTO,  } from '@/dtos'
@@ -14,6 +15,7 @@ import { Button, PageWrapper, PageHeader, Select, SelectContent, SelectItem, Sel
 
 export function Preguntas() {
     const { user } = useAuthStore();
+    const navigate = useNavigate();
 
     const [preguntas, setPreguntas] = useState<QuestionDTO[]>([]);
     const [clientes, setClientes] = useState<ClientListDTO[]>([]);
@@ -185,6 +187,11 @@ export function Preguntas() {
                             icon: Users,
                             label: "Conectar clientes",
                             onClick: () => handleAbrirConectar(row.original),
+                        },
+                        {
+                            icon: Trash2,
+                            label: "Ver detalle / Eliminar",
+                            onClick: () => navigate(`/preguntas/detalle/${row.original.id_question}`),
                         },
                     ]}
                 />
