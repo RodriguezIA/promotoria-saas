@@ -449,7 +449,7 @@ export function PedidoDetalle() {
                     <span>Completadas</span><span className="font-medium text-foreground">{completadas}</span>
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Terminada</span><span className="font-medium text-foreground">{terminadas}</span>
+                    <span>Finalizada</span><span className="font-medium text-foreground">{terminadas}</span>
                   </div>
                 </div>
               )}

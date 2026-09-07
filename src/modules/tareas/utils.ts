@@ -21,7 +21,7 @@ export const TASK_STATUS: Record<number, TaskStatusInfo> = {
   4: { label: "Llegó al establecimiento", dot: "bg-purple-500", bg: "bg-purple-500/10", text: "text-purple-600" },
   5: { label: "Iniciada", dot: "bg-primary", bg: "bg-primary/10", text: "text-primary" },
   6: { label: "En revisión", dot: "bg-teal-500", bg: "bg-teal-500/10", text: "text-teal-600" },
-  7: { label: "Terminada con éxito", dot: "bg-success", bg: "bg-success/10", text: "text-success" },
+  7: { label: "Finalizada", dot: "bg-success", bg: "bg-success/10", text: "text-success" },
   8: { label: "Terminada con incidencia", dot: "bg-destructive", bg: "bg-destructive/15", text: "text-destructive" },
 }
 
