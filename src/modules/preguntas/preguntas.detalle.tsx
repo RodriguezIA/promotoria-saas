@@ -5,8 +5,8 @@ import { ArrowLeft, Loader2, HelpCircle, DollarSign, Users, Calendar, User, Edit
 
 
 import { useAuthStore } from "@/stores"
-import { CrearEditarPreguntaDialog, AsignarClienteDialog} from "./components"
-import { getQuestionById, getClientsForQuestion, getQuestionClientById, deleteQuestion, unassignQuestionFromClient, Question, QuestionClient, ClientAssignment, QUESTION_TYPE_LABELS, QuestionType } from "@/Fetch/questions"
+import { CrearEditarPreguntaDialog} from "./components"
+import { getQuestionById, getClientsForQuestion, getQuestionClientById, deleteQuestion, Question, QuestionClient, ClientAssignment, QUESTION_TYPE_LABELS, QuestionType } from "@/Fetch/questions"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,Badge, Button, Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components"
 
 
@@ -26,10 +26,7 @@ export function PreguntaDetalle() {
 
     // Dialogs
     const [showEditDialog, setShowEditDialog] = useState(false);
-    const [showAsignarDialog, setShowAsignarDialog] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [showUnassignConfirm, setShowUnassignConfirm] = useState(false);
-    const [selectedClientToUnassign, setSelectedClientToUnassign] = useState<ClientAssignment | null>(null);
 
     const [deleting, setDeleting] = useState(false);
 
@@ -104,31 +101,6 @@ export function PreguntaDetalle() {
         } finally {
             setDeleting(false);
             setShowDeleteConfirm(false);
-        }
-    };
-
-    const handleUnassign = async () => {
-        if (!pregunta || !selectedClientToUnassign || !user) return;
-
-        try {
-            const result = await unassignQuestionFromClient(
-                pregunta.id_question,
-                selectedClientToUnassign.id_client,
-                user.id_user
-            );
-
-            if (result.ok) {
-                toast.success("Cliente desasignado correctamente");
-                fetchData();
-            } else {
-                toast.error(result.message || "Error al desasignar");
-            }
-        } catch (error) {
-            console.error("Error desasignando:", error);
-            toast.error("Error al desasignar el cliente");
-        } finally {
-            setShowUnassignConfirm(false);
-            setSelectedClientToUnassign(null);
         }
     };
 
@@ -458,12 +430,6 @@ export function PreguntaDetalle() {
                                 ${Number(pregunta.base_price).toFixed(2)}
                             </p>
                         </div>
-                        <div>
-                            <p className="text-sm text-muted-foreground">Ganancia promotor</p>
-                            <p className="text-xl font-bold text-success">
-                                ${Number(pregunta.promoter_earns).toFixed(2)}
-                            </p>
-                        </div>
                     </CardContent>
                 </Card>
 
@@ -474,8 +440,8 @@ export function PreguntaDetalle() {
                             <Users className="h-5 w-5" />
                             Clientes Asignados ({clientesAsignados.length})
                         </CardTitle>
-                        <Button onClick={() => setShowAsignarDialog(true)}>
-                            Asignar cliente
+                        <Button onClick={() => setShowEditDialog(true)}>
+                            Editar clientes asignados
                         </Button>
                     </CardHeader>
                     <CardContent>
@@ -486,7 +452,7 @@ export function PreguntaDetalle() {
                                 <Button
                                     variant="outline"
                                     className="mt-3"
-                                    onClick={() => setShowAsignarDialog(true)}
+                                    onClick={() => setShowEditDialog(true)}
                                 >
                                     Asignar primer cliente
                                 </Button>
@@ -496,10 +462,7 @@ export function PreguntaDetalle() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Cliente</TableHead>
-                                        <TableHead>Precio Cliente</TableHead>
-                                        <TableHead>Ganancia Promotor</TableHead>
                                         <TableHead>Fecha Asignacion</TableHead>
-                                        <TableHead className="w-[100px]"></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -508,38 +471,18 @@ export function PreguntaDetalle() {
                                             <TableCell className="font-medium">
                                                 {cliente.client_name}
                                             </TableCell>
-                                            <TableCell>
-                                                ${Number(cliente.client_price).toFixed(2)}
-                                                {Number(cliente.client_price) !== Number(pregunta.base_price) && (
-                                                    <Badge variant="outline" className="ml-2 text-xs">
-                                                        Personalizado
-                                                    </Badge>
-                                                )}
-                                            </TableCell>
-                                            <TableCell className="text-success">
-                                                ${Number(cliente.client_promoter_earns).toFixed(2)}
-                                            </TableCell>
                                             <TableCell className="text-muted-foreground">
                                                 {formatDate(cliente.assigned_at)}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="text-destructive hover:text-destructive"
-                                                    onClick={() => {
-                                                        setSelectedClientToUnassign(cliente);
-                                                        setShowUnassignConfirm(true);
-                                                    }}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
                                             </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
                         )}
+                        <p className="text-xs text-muted-foreground mt-3">
+                            Para agregar o quitar clientes, usa "Editar clientes asignados" —
+                            ahí puedes marcar y desmarcar los clientes que deben tener esta pregunta.
+                        </p>
                     </CardContent>
                 </Card>
             </div>
@@ -551,16 +494,6 @@ export function PreguntaDetalle() {
                 pregunta={pregunta}
                 onSuccess={() => {
                     setShowEditDialog(false);
-                    fetchData();
-                }}
-            />
-
-            <AsignarClienteDialog
-                open={showAsignarDialog}
-                onOpenChange={setShowAsignarDialog}
-                pregunta={pregunta}
-                onSuccess={() => {
-                    setShowAsignarDialog(false);
                     fetchData();
                 }}
             />
@@ -584,28 +517,6 @@ export function PreguntaDetalle() {
                         >
                             {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Eliminar
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
-            {/* Confirmacion de desasignacion */}
-            <AlertDialog open={showUnassignConfirm} onOpenChange={setShowUnassignConfirm}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Desasignar cliente</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Esta seguro de desasignar a "{selectedClientToUnassign?.client_name}"
-                            de esta pregunta?
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleUnassign}
-                            className="bg-destructive hover:bg-destructive/90"
-                        >
-                            Desasignar
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
