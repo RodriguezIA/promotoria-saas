@@ -244,7 +244,7 @@ export function Preguntas() {
                         Nueva pregunta
                     </Button>
                 </div>
-                <DataTable columns={columns} data={preguntasFiltradas} />
+                <DataTable columns={columns} data={preguntasFiltradas} pagination={{ pageSize: 100 }} />
             </PageWrapper>
 
             
