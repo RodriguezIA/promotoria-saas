@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
+import { useNavigate } from 'react-router-dom'
 import { Loader2, Navigation, History, CheckCircle2, Circle } from 'lucide-react'
 
 import { Button, Badge } from '@/components'
 import { getMyRoutes, updateDriverLocation, DriverRouteStopDTO } from '@/Fetch/driverPanel'
-import { StopHistorialDialog } from './StopHistorialDialog'
 
 // Formula de haversine, para ordenar de la parada mas cercana a la mas lejana.
 function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -18,10 +18,10 @@ function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
 }
 
 export default function RutaListada() {
+  const navigate = useNavigate()
   const [stops, setStops] = useState<DriverRouteStopDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null)
-  const [selectedStop, setSelectedStop] = useState<DriverRouteStopDTO | null>(null)
 
   const loadRoutes = () => {
     setLoading(true)
@@ -74,10 +74,6 @@ export default function RutaListada() {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank')
   }
 
-  const handleStopUpdated = (updated: DriverRouteStopDTO) => {
-    setStops((prev) => prev.map((s) => (s.id_stop === updated.id_stop ? { ...s, ...updated } : s)))
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -120,7 +116,7 @@ export default function RutaListada() {
                 <Button variant="outline" size="sm" className="flex-1" onClick={() => openMaps(stop)}>
                   <Navigation size={14} className="mr-1.5" /> Ir a tienda
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1" onClick={() => setSelectedStop(stop)}>
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate(`/chofer/parada/${stop.id_stop}`)}>
                   <History size={14} className="mr-1.5" /> Historial
                 </Button>
               </div>
@@ -128,13 +124,6 @@ export default function RutaListada() {
           ))}
         </div>
       )}
-
-      <StopHistorialDialog
-        stop={selectedStop}
-        open={!!selectedStop}
-        onOpenChange={(open) => !open && setSelectedStop(null)}
-        onUpdated={handleStopUpdated}
-      />
     </div>
   )
 }

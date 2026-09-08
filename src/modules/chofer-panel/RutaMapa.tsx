@@ -1,20 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
+import { useNavigate } from 'react-router-dom'
 import { GoogleMap, OverlayView } from '@react-google-maps/api'
 import { Loader2 } from 'lucide-react'
 
 import { useJsApiLoader, GOOGLE_MAPS_CONFIG } from '@/lib'
 import { getMyRoutes, updateDriverLocation, DriverRouteStopDTO } from '@/Fetch/driverPanel'
-import { StopHistorialDialog } from './StopHistorialDialog'
 
 const MAP_CONTAINER_STYLE = { width: '100%', height: '100%' }
 const DEFAULT_CENTER = { lat: 25.7460, lng: -100.2792 }
 
 export default function RutaMapa() {
   const { isLoaded } = useJsApiLoader(GOOGLE_MAPS_CONFIG)
+  const navigate = useNavigate()
   const [stops, setStops] = useState<DriverRouteStopDTO[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedStop, setSelectedStop] = useState<DriverRouteStopDTO | null>(null)
 
   useEffect(() => {
     setLoading(true)
@@ -46,10 +46,6 @@ export default function RutaMapa() {
     return { lat, lng }
   }, [stopsWithCoords])
 
-  const handleStopUpdated = (updated: DriverRouteStopDTO) => {
-    setStops((prev) => prev.map((s) => (s.id_stop === updated.id_stop ? { ...s, ...updated } : s)))
-  }
-
   return (
     <div className="h-[calc(100vh-4rem)] relative">
       {(loading || !isLoaded) && (
@@ -72,7 +68,7 @@ export default function RutaMapa() {
             >
               <button
                 type="button"
-                onClick={() => setSelectedStop(stop)}
+                onClick={() => navigate(`/chofer/parada/${stop.id_stop}`)}
                 className="w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-white font-bold border-2 border-white"
                 style={{ backgroundColor: stop.i_status === 1 ? '#2F7654' : '#C18434' }}
                 title={stop.store.name}
@@ -88,13 +84,6 @@ export default function RutaMapa() {
           <p className="text-sm text-muted-foreground">No tienes tiendas asignadas para hoy.</p>
         </div>
       )}
-
-      <StopHistorialDialog
-        stop={selectedStop}
-        open={!!selectedStop}
-        onOpenChange={(open) => !open && setSelectedStop(null)}
-        onUpdated={handleStopUpdated}
-      />
     </div>
   )
 }

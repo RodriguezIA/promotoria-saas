@@ -67,8 +67,18 @@ export const updateStop = (id_stop: number, data: {
 export interface DriverProductDTO {
     id_product: number
     name: string
+    vc_image: string | null
     f_store_price: number | null
 }
 
 export const getDriverProducts = (id_client: number) =>
     driverApi.get<ApiResponse<DriverProductDTO[]>>(`/products/${id_client}`)
+
+export interface DriverStoreMinimumDTO {
+    id_product: number
+    i_minimum: number
+    product: { id_product: number; name: string; vc_image: string | null }
+}
+
+export const getDriverStoreMinimums = (id_store: number) =>
+    driverApi.get<ApiResponse<DriverStoreMinimumDTO[]>>(`/stock/minimums/${id_store}`)

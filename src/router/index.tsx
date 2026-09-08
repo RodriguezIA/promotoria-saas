@@ -26,6 +26,7 @@ import ChoferLayout from '@/modules/chofer-panel/ChoferLayout'
 import RutaMapa from '@/modules/chofer-panel/RutaMapa'
 import RutaListada from '@/modules/chofer-panel/RutaListada'
 import PerfilChofer from '@/modules/chofer-panel/Perfil'
+import StopDetailPage from '@/modules/chofer-panel/StopDetailPage'
 
 export default function AppRouter() {
   return (
@@ -42,6 +43,7 @@ export default function AppRouter() {
         <Route path="/chofer" element={<ChoferLayout />}>
           <Route path="mapa" element={<RutaMapa />} />
           <Route path="lista" element={<RutaListada />} />
+          <Route path="parada/:id_stop" element={<StopDetailPage />} />
           <Route path="perfil" element={<PerfilChofer />} />
         </Route>
 
