@@ -102,9 +102,15 @@ export default function Mapa() {
   }
 
   // Vuelve a cargar los pendientes cada vez que cambia el filtro de dia/turno,
-  // para que "con pedido" en Organizar ruta solo cuente los de ese dia.
+  // para que "con pedido" en Organizar ruta solo cuente los de ese dia. Y en
+  // cuanto se pone una fecha, cambia el filtro a "Con pedido" automatico,
+  // para que de verdad solo se vean esas tiendas sin tener que darle clic
+  // aparte al filtro.
   useEffect(() => {
     loadPendingPreorders()
+    if (preorderDateFilter) {
+      setRouteFilter('con_pedido')
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preorderDateFilter, preorderTimeFilter])
 
