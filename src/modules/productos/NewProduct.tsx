@@ -1,12 +1,12 @@
 import { toast } from "sonner"
 import { useState, useEffect } from "react"
 import { useNavigate, useParams, useLocation } from "react-router-dom"
-import { ArrowLeft, Package, FileText, Save, AlertCircle, ImagePlus, X, Loader2 } from "lucide-react"
+import { ArrowLeft, Package, FileText, Save, AlertCircle, ImagePlus, X, Loader2, Boxes, DollarSign } from "lucide-react"
 
 
 import { ProductDTO } from "@/dtos"
 import { useAuthStore } from '@/stores'
-import { MensajeConfirmacion } from '@/components'
+import { MensajeConfirmacion, Checkbox } from '@/components'
 import { api, ApiResponse, FormErrors } from '@/lib'
 
 
@@ -29,8 +29,18 @@ export default function ProductoForm() {
   const [loadingData, setLoadingData] = useState(isEditMode)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [formData, setFormData] = useState({ name: "", description: ""})
-  const [originalData, setOriginalData] = useState({ id_product: 0, name: "", description: "", vc_image: ""})
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    i_stock: "",
+    b_allow_backorder: false,
+    i_backorder_days: "",
+    f_store_price: "",
+  })
+  const [originalData, setOriginalData] = useState({
+    id_product: 0, name: "", description: "", vc_image: "",
+    i_stock: "", b_allow_backorder: false, i_backorder_days: "", f_store_price: "",
+  })
 
 
   const fetchProduct = async () => {
@@ -39,16 +49,20 @@ export default function ProductoForm() {
       const res = await api.get<ApiResponse<ProductDTO>>(`/products/product/${id_product}`)
       const product = res.data;
 
-      setFormData({
+      const loaded = {
         name: product.name || "",
         description: product.description || "",
-      });
+        i_stock: product.i_stock != null ? String(product.i_stock) : "",
+        b_allow_backorder: product.b_allow_backorder ?? false,
+        i_backorder_days: product.i_backorder_days != null ? String(product.i_backorder_days) : "",
+        f_store_price: product.f_store_price != null ? String(product.f_store_price) : "",
+      };
+      setFormData(loaded);
 
       setOriginalData({
         id_product: product.id_product,
-        name: product.name || "",
-        description: product.description || "",
         vc_image: product.vc_image || "",
+        ...loaded,
       });
 
       if (product.vc_image) {
@@ -67,6 +81,10 @@ export default function ProductoForm() {
     return (
       formData.name !== originalData.name ||
       formData.description !== originalData.description ||
+      formData.i_stock !== originalData.i_stock ||
+      formData.b_allow_backorder !== originalData.b_allow_backorder ||
+      formData.i_backorder_days !== originalData.i_backorder_days ||
+      formData.f_store_price !== originalData.f_store_price ||
       imageChanged
     );
   };
@@ -142,6 +160,10 @@ export default function ProductoForm() {
           id_client: resolvedClientId!,
           name: formData.name,
           description: formData.description || undefined,
+          i_stock: formData.i_stock !== "" ? Number(formData.i_stock) : null,
+          b_allow_backorder: formData.b_allow_backorder,
+          i_backorder_days: formData.b_allow_backorder && formData.i_backorder_days !== "" ? Number(formData.i_backorder_days) : null,
+          f_store_price: formData.f_store_price !== "" ? Number(formData.f_store_price) : null,
         })
 
         if (imageChanged && imageFile) {
@@ -166,6 +188,10 @@ export default function ProductoForm() {
         fd.append('id_client', String(resolvedClientId));
         fd.append('name', formData.name);
         if (formData.description) fd.append('description', formData.description);
+        if (formData.i_stock !== "") fd.append('i_stock', formData.i_stock);
+        fd.append('b_allow_backorder', String(formData.b_allow_backorder));
+        if (formData.b_allow_backorder && formData.i_backorder_days !== "") fd.append('i_backorder_days', formData.i_backorder_days);
+        if (formData.f_store_price !== "") fd.append('f_store_price', formData.f_store_price);
         if (imageFile) fd.append('file', imageFile);
 
         await api.upload<ApiResponse<ProductDTO>>('/products', fd);
@@ -381,6 +407,92 @@ export default function ProductoForm() {
                 placeholder="Describe las características del producto..."
                 className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors resize-none"
               />
+            </div>
+          </div>
+
+          {/* Inventario */}
+          <div className="bg-white rounded-lg border border-border p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <Boxes size={20} className="text-muted-foreground" />
+              <h2 className="text-lg font-medium text-foreground">
+                Inventario
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Piezas en stock
+                </label>
+                <input
+                  type="number"
+                  name="i_stock"
+                  min="0"
+                  value={formData.i_stock}
+                  onChange={handleChange}
+                  placeholder="Ej: 50"
+                  className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Déjalo vacío si no quieres controlar el stock de este producto (se surtirá sin límite, como antes).
+                </p>
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-2 mt-1 md:mt-8">
+                  <Checkbox
+                    checked={formData.b_allow_backorder}
+                    onCheckedChange={(checked) =>
+                      setFormData((prev) => ({ ...prev, b_allow_backorder: checked === true }))
+                    }
+                  />
+                  Permitir pedidos que excedan el stock (entrega después)
+                </label>
+                {formData.b_allow_backorder && (
+                  <div>
+                    <input
+                      type="number"
+                      name="i_backorder_days"
+                      min="1"
+                      value={formData.i_backorder_days}
+                      onChange={handleChange}
+                      placeholder="Días para entregar el faltante, ej: 20"
+                      className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Si un pedido pide más de lo que hay en stock, se surte lo disponible de inmediato y el resto en este número de días.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Precio a la tienda */}
+          <div className="bg-white rounded-lg border border-border p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <DollarSign size={20} className="text-muted-foreground" />
+              <h2 className="text-lg font-medium text-foreground">
+                Precio a la tienda
+              </h2>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Costo por pieza (opcional)
+              </label>
+              <input
+                type="number"
+                name="f_store_price"
+                min="0"
+                step="0.01"
+                value={formData.f_store_price}
+                onChange={handleChange}
+                placeholder="Ej: 25.00"
+                className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors max-w-xs"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Es lo que se le cobra al dueño de la tienda por cada pieza de este producto en un prepedido — sirve para saber cuánto va a pagar y cuánto se ha vendido en total.
+              </p>
             </div>
           </div>
         </form>

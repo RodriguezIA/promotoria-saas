@@ -96,8 +96,15 @@ export default function MisPrepedidos() {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
                 {p.items.map((item) => (
                   <div key={item.id_item} className="rounded-lg bg-muted/40 px-3 py-2 text-sm">
-                    <span className="font-bold text-foreground">{item.i_quantity}</span>{' '}
-                    <span className="text-muted-foreground">{item.product.name}</span>
+                    <div>
+                      <span className="font-bold text-foreground">{item.i_quantity}</span>{' '}
+                      <span className="text-muted-foreground">{item.product.name}</span>
+                    </div>
+                    {item.i_quantity_backorder != null && item.i_quantity_backorder > 0 && (
+                      <p className="text-xs text-warning-foreground dark:text-warning mt-0.5">
+                        {item.i_quantity_immediate ?? 0} de inmediato · {item.i_quantity_backorder} en {item.i_backorder_days ?? '?'} días
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>

@@ -4,6 +4,9 @@ export interface PreorderItemDTO {
     id_item: number
     id_product: number
     i_quantity: number
+    i_quantity_immediate: number | null
+    i_quantity_backorder: number | null
+    i_backorder_days: number | null
     product: { id_product: number; name: string }
 }
 
