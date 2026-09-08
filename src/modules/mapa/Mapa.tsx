@@ -51,8 +51,9 @@ const SEMAPHORE_DOT: Record<string, string> = {
 
 interface SelectedStop {
   id_store: number
-  id_preorder: number
+  id_preorder: number | null
   store_name: string
+  semaphore: 'red' | 'yellow' | 'green' | null
 }
 
 export default function Mapa() {
@@ -125,24 +126,34 @@ export default function Mapa() {
 
   const toggleStopFromMap = (store: MapStoreDTO) => {
     const pending = pendingByStore.get(store.id_store)
-    if (!pending || pending.length === 0) return
     setSelectedStops((prev) => {
       const already = prev.find((s) => s.id_store === store.id_store)
       if (already) return prev.filter((s) => s.id_store !== store.id_store)
-      return [...prev, { id_store: store.id_store, id_preorder: pending[0].id_preorder, store_name: store.name }]
+      return [...prev, {
+        id_store: store.id_store,
+        id_preorder: pending?.[0]?.id_preorder ?? null,
+        store_name: store.name,
+        semaphore: store.semaphore ?? null,
+      }]
     })
   }
 
-  const toggleStopFromList = (p: PendingPreorderDTO) => {
+  const toggleStopFromStoreList = (store: MapStoreDTO) => {
+    const pending = pendingByStore.get(store.id_store)
     setSelectedStops((prev) => {
-      const already = prev.find((s) => s.id_preorder === p.id_preorder)
-      if (already) return prev.filter((s) => s.id_preorder !== p.id_preorder)
-      return [...prev, { id_store: p.task.store.id_store, id_preorder: p.id_preorder, store_name: p.task.store.name }]
+      const already = prev.find((s) => s.id_store === store.id_store)
+      if (already) return prev.filter((s) => s.id_store !== store.id_store)
+      return [...prev, {
+        id_store: store.id_store,
+        id_preorder: pending?.[0]?.id_preorder ?? null,
+        store_name: store.name,
+        semaphore: store.semaphore ?? null,
+      }]
     })
   }
 
-  const removeStop = (id_preorder: number) => {
-    setSelectedStops((prev) => prev.filter((s) => s.id_preorder !== id_preorder))
+  const removeStop = (id_store: number) => {
+    setSelectedStops((prev) => prev.filter((s) => s.id_store !== id_store))
   }
 
   const cancelRouteBuilding = () => {
@@ -161,7 +172,7 @@ export default function Mapa() {
       await createRoute({
         id_driver: Number(routeDriverId),
         route_date: routeDate,
-        stops: selectedStops.map((s) => ({ id_store: s.id_store, id_preorder: s.id_preorder })),
+        stops: selectedStops.map((s) => ({ id_store: s.id_store, id_preorder: s.id_preorder ?? undefined })),
       })
       toast.success('Ruta creada y asignada al chofer')
       cancelRouteBuilding()
@@ -400,9 +411,10 @@ export default function Mapa() {
         {/* Panel lateral: detalle de tienda, o lista de seleccion de ruta */}
         {buildingRoute && routeMode === 'lista' && (
           <RouteListPicker
-            pendingPreorders={pendingPreorders}
+            stores={stores}
+            pendingByStore={pendingByStore}
             selectedStops={selectedStops}
-            onToggle={toggleStopFromList}
+            onToggle={toggleStopFromStoreList}
           />
         )}
         {buildingRoute && selectedStops.length > 0 && (
@@ -480,7 +492,13 @@ export default function Mapa() {
   )
 }
 
-function RouteSummaryPanel({ selectedStops, onRemove }: { selectedStops: SelectedStop[]; onRemove: (id_preorder: number) => void }) {
+const SEMAPHORE_DOT_MAP: Record<string, string> = {
+  red: 'bg-destructive',
+  yellow: 'bg-warning',
+  green: 'bg-success',
+}
+
+function RouteSummaryPanel({ selectedStops, onRemove }: { selectedStops: SelectedStop[]; onRemove: (id_store: number) => void }) {
   return (
     <div className="w-[300px] shrink-0 rounded-xl border border-border bg-white p-4 overflow-y-auto">
       <p className="text-xs font-semibold text-muted-foreground uppercase mb-3">
@@ -488,11 +506,13 @@ function RouteSummaryPanel({ selectedStops, onRemove }: { selectedStops: Selecte
       </p>
       <ul className="space-y-2">
         {selectedStops.map((s, i) => (
-          <li key={s.id_preorder} className="flex items-center gap-2 rounded-lg bg-muted/40 px-3 py-2">
+          <li key={s.id_store} className="flex items-center gap-2 rounded-lg bg-muted/40 px-3 py-2">
             <GripVertical size={14} className="text-muted-foreground/50" />
             <span className="w-5 h-5 rounded-full bg-success text-white text-xs font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+            {s.semaphore && <span className={`w-2 h-2 rounded-full shrink-0 ${SEMAPHORE_DOT_MAP[s.semaphore]}`} />}
             <span className="text-sm flex-1 truncate">{s.store_name}</span>
-            <button type="button" onClick={() => onRemove(s.id_preorder)} className="text-muted-foreground hover:text-destructive">
+            {s.id_preorder && <PackageSearchIcon />}
+            <button type="button" onClick={() => onRemove(s.id_store)} className="text-muted-foreground hover:text-destructive">
               <X size={14} />
             </button>
           </li>
@@ -502,52 +522,89 @@ function RouteSummaryPanel({ selectedStops, onRemove }: { selectedStops: Selecte
   )
 }
 
+function PackageSearchIcon() {
+  return <span title="Tiene pedido pendiente" className="w-1.5 h-1.5 rounded-full bg-warning shrink-0" />
+}
+
 function RouteListPicker({
-  pendingPreorders,
+  stores,
+  pendingByStore,
   selectedStops,
   onToggle,
 }: {
-  pendingPreorders: PendingPreorderDTO[]
+  stores: MapStoreDTO[]
+  pendingByStore: Map<number, PendingPreorderDTO[]>
   selectedStops: SelectedStop[]
-  onToggle: (p: PendingPreorderDTO) => void
+  onToggle: (store: MapStoreDTO) => void
 }) {
   const [search, setSearch] = useState('')
-  const filtered = pendingPreorders.filter((p) =>
-    p.task.store.name.toLowerCase().includes(search.toLowerCase())
-  )
-  const selectedIds = new Set(selectedStops.map((s) => s.id_preorder))
+  const [filter, setFilter] = useState<'todas' | 'con_pedido' | 'sin_pedido' | 'red' | 'yellow' | 'green'>('todas')
+
+  const filtered = stores.filter((s) => {
+    if (!s.name.toLowerCase().includes(search.toLowerCase())) return false
+    if (filter === 'con_pedido') return pendingByStore.has(s.id_store)
+    if (filter === 'sin_pedido') return !pendingByStore.has(s.id_store)
+    if (filter === 'red' || filter === 'yellow' || filter === 'green') return s.semaphore === filter
+    return true
+  })
+  const selectedIds = new Set(selectedStops.map((s) => s.id_store))
+
+  const FILTERS: { value: typeof filter; label: string }[] = [
+    { value: 'todas', label: 'Todas' },
+    { value: 'con_pedido', label: 'Con pedido' },
+    { value: 'sin_pedido', label: 'Sin pedido' },
+    { value: 'red', label: 'Bajo mínimo' },
+    { value: 'yellow', label: 'Cerca del mínimo' },
+    { value: 'green', label: 'Bien surtida' },
+  ]
 
   return (
-    <div className="w-[320px] shrink-0 rounded-xl border border-border bg-white p-4 overflow-y-auto">
+    <div className="w-[340px] shrink-0 rounded-xl border border-border bg-white p-4 overflow-y-auto">
       <Input
         placeholder="Buscar tienda..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="mb-3"
+        className="mb-2"
       />
+      <div className="flex flex-wrap gap-1 mb-3">
+        {FILTERS.map((f) => (
+          <button
+            key={f.value}
+            type="button"
+            onClick={() => setFilter(f.value)}
+            className={`text-xs px-2 py-1 rounded-md border transition-colors ${filter === f.value ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground'}`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
       <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">
-        Pedidos pendientes ({filtered.length})
+        Tiendas ({filtered.length})
       </p>
       {filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground/70">No hay pedidos pendientes que coincidan.</p>
+        <p className="text-sm text-muted-foreground/70">No hay tiendas que coincidan.</p>
       ) : (
         <ul className="space-y-2">
-          {filtered.map((p) => {
-            const isSelected = selectedIds.has(p.id_preorder)
+          {filtered.map((store) => {
+            const isSelected = selectedIds.has(store.id_store)
+            const hasPending = pendingByStore.has(store.id_store)
             return (
-              <li key={p.id_preorder}>
+              <li key={store.id_store}>
                 <button
                   type="button"
-                  onClick={() => onToggle(p)}
+                  onClick={() => onToggle(store)}
                   className={`w-full text-left rounded-lg border-2 px-3 py-2 transition-colors ${isSelected ? 'border-primary bg-primary/5' : 'border-border'}`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium truncate">{p.task.store.name}</span>
+                    <span className="flex items-center gap-1.5 min-w-0">
+                      {store.semaphore && <span className={`w-2 h-2 rounded-full shrink-0 ${SEMAPHORE_DOT_MAP[store.semaphore]}`} />}
+                      <span className="text-sm font-medium truncate">{store.name}</span>
+                    </span>
                     {isSelected && <Check size={14} className="text-primary shrink-0" />}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(p.preferred_date).toLocaleDateString('es-MX')} · {p.preferred_time === 'MAÑANA' ? 'Por la mañana' : 'Por la tarde'}
-                  </p>
+                  {hasPending && (
+                    <p className="text-xs text-warning-foreground dark:text-warning mt-0.5">Tiene pedido pendiente</p>
+                  )}
                 </button>
               </li>
             )

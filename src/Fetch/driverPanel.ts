@@ -21,7 +21,7 @@ export const updateDriverLocation = (latitude: number, longitude: number) =>
 export interface DriverRouteStopDTO {
     id_stop: number
     id_store: number
-    id_preorder: number
+    id_preorder: number | null
     i_order: number
     i_status: number
     b_delivered: boolean | null
@@ -38,7 +38,7 @@ export interface DriverRouteStopDTO {
         preferred_date: string
         preferred_time: 'MAÑANA' | 'TARDE'
         items: { i_quantity: number; product: { name: string } }[]
-    }
+    } | null
 }
 
 export interface DriverRouteDTO {

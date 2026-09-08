@@ -48,7 +48,7 @@ export const getPendingPreorders = (filters?: { date?: string; time?: 'MAÑANA' 
     return api.get<ApiResponse<PendingPreorderDTO[]>>(`/delivery-routes/pending-preorders${qs ? `?${qs}` : ''}`)
 }
 
-export const createRoute = (data: { id_driver: number; route_date: string; stops: { id_store: number; id_preorder: number }[] }) =>
+export const createRoute = (data: { id_driver: number; route_date: string; stops: { id_store: number; id_preorder?: number }[] }) =>
     api.post<ApiResponse<RouteDTO>>('/delivery-routes', data)
 
 export const getRoutes = () =>

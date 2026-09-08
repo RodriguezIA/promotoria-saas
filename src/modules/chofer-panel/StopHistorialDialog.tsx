@@ -72,13 +72,17 @@ export function StopHistorialDialog({
         <div className="space-y-4 py-2">
           <div>
             <Label>Pedido a surtir</Label>
-            <div className="rounded-lg bg-muted/40 p-3 mt-1 space-y-1">
-              {stop.preorder.items.map((item, i) => (
-                <p key={i} className="text-sm">
-                  <span className="font-bold">{item.i_quantity}</span> {item.product.name}
-                </p>
-              ))}
-            </div>
+            {stop.preorder ? (
+              <div className="rounded-lg bg-muted/40 p-3 mt-1 space-y-1">
+                {stop.preorder.items.map((item, i) => (
+                  <p key={i} className="text-sm">
+                    <span className="font-bold">{item.i_quantity}</span> {item.product.name}
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground mt-1">Esta visita no tiene un pedido asociado.</p>
+            )}
           </div>
 
           {stop.i_status === 1 ? (
