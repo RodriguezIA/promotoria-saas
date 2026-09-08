@@ -1,7 +1,7 @@
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Loader2, ScanBarcode, MapPinCheck, Route as RouteIcon } from "lucide-react"
+import { Loader2, ScanBarcode, PackageCheck, Route as RouteIcon, Truck } from "lucide-react"
 
 
 import { useAuthStore } from "@/stores"
@@ -12,10 +12,11 @@ import { getLoginVideo } from "@/Fetch/appConfig"
 import { Button, Input } from "@/components"
 import logoMark from "@/assets/isologo_promotoria_N.png"
 
-const STOPS = [
-  { icon: ScanBarcode, label: "Cuenta lo que hay en el anaquel, en el momento" },
-  { icon: MapPinCheck, label: "Confirma que el promotor llegó a la tienda correcta" },
-  { icon: RouteIcon, label: "Arma la ruta de entrega con datos reales, no con suposiciones" },
+const CAPABILITIES = [
+  { icon: ScanBarcode, title: "Conteo en anaquel", label: "El promotor cuenta lo que hay en la tienda, en el momento." },
+  { icon: PackageCheck, title: "Prepedidos y stock", label: "Levanta lo que falta y controla cuánto tienes de cada producto." },
+  { icon: RouteIcon, title: "Logística y rutas", label: "Arma la ruta de entrega con datos reales, no con suposiciones." },
+  { icon: Truck, title: "Choferes en campo", label: "Cada entrega, cobro y ticket, registrado desde el celular." },
 ];
 
 export function Login() {
@@ -62,12 +63,12 @@ export function Login() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Panel de marca — la ruta de entrega es el hilo visual de toda la pantalla */}
-      <div className="hidden lg:flex lg:w-[46%] min-h-screen relative flex-col justify-between p-12 bg-sidebar text-sidebar-accent-foreground overflow-hidden">
+      {/* Panel de marca — azul marino de siempre, con video de fondo en movimiento y tarjetas flotantes por cada parte del sistema */}
+      <div className="hidden lg:flex lg:w-[48%] min-h-screen relative flex-col justify-between p-12 overflow-hidden bg-sidebar">
         {videoUrl ? (
           <video
             src={videoUrl}
-            className="absolute inset-0 w-full h-full object-cover opacity-25"
+            className="absolute inset-0 w-full h-full object-cover opacity-40"
             autoPlay
             muted
             loop
@@ -77,7 +78,7 @@ export function Login() {
         ) : (
           <RouteBackdrop />
         )}
-        <div className="absolute inset-0 bg-sidebar/60" aria-hidden />
+        <div className="absolute inset-0 bg-gradient-to-t from-sidebar via-sidebar/70 to-sidebar/50" aria-hidden />
 
         <div className="relative z-10">
           <img
@@ -87,45 +88,34 @@ export function Login() {
           />
         </div>
 
-        <div className="relative z-10 space-y-11">
-          <div>
-            <h2 className="font-display text-4xl xl:text-5xl font-bold leading-[1.08] tracking-tight text-white max-w-md">
-              Sabes qué pasó en el punto de venta.
-            </h2>
-            <p className="mt-5 text-base xl:text-lg text-sidebar-foreground max-w-md">
-              Promotoria sigue cada visita de principio a fin: lo que el
-              promotor encontró, lo que entregó el chofer, y lo que falta por
-              surtir mañana.
-            </p>
-          </div>
+        <div className="relative z-10 space-y-7">
+          <h2 className="font-display text-4xl xl:text-[3.2rem] font-bold leading-[1.05] tracking-tight text-white max-w-md">
+            Todo tu punto de venta, en un solo lugar.
+          </h2>
 
-          <ul className="space-y-5">
-            {STOPS.map(({ icon: Icon, label }, i) => (
-              <li key={label} className="relative flex items-start gap-4 pl-1">
-                {i < STOPS.length - 1 && (
-                  <span
-                    className="absolute left-[19px] top-9 w-px h-[calc(100%+0.75rem)] bg-sidebar-border"
-                    aria-hidden
-                  />
-                )}
-                <span className="relative z-10 flex items-center justify-center w-10 h-10 rounded-full border border-sidebar-border bg-sidebar-accent shrink-0">
-                  <Icon className="w-4 h-4 text-sidebar-primary" strokeWidth={2} />
+          <div className="grid grid-cols-2 gap-3">
+            {CAPABILITIES.map(({ icon: Icon, title, label }) => (
+              <div
+                key={title}
+                className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-4"
+              >
+                <span className="flex items-center justify-center w-9 h-9 rounded-full bg-brand/20 mb-3">
+                  <Icon className="w-4 h-4 text-brand" strokeWidth={2.25} />
                 </span>
-                <span className="text-sm text-sidebar-foreground leading-snug pt-2.5">
-                  {label}
-                </span>
-              </li>
+                <p className="text-sm font-semibold text-white mb-1">{title}</p>
+                <p className="text-xs text-sidebar-foreground leading-snug">{label}</p>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
 
-        <p className="relative z-10 text-xs text-sidebar-foreground/40">
+        <p className="relative z-10 text-xs text-sidebar-foreground/50">
           © 2025 Promotoria — Plataforma de promotoría
         </p>
       </div>
 
       {/* Formulario */}
-      <div className="w-full lg:w-[54%] flex items-center justify-center bg-background p-6 md:p-12">
+      <div className="w-full lg:w-[52%] flex items-center justify-center bg-background p-6 md:p-12">
         <div className="w-full max-w-sm animate-fade-up">
           {/* Marca compacta (visible cuando no hay panel) */}
           <img
