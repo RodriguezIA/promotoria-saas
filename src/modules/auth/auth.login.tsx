@@ -1,13 +1,13 @@
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Loader2, ScanBarcode, PackageCheck, Route as RouteIcon, Truck } from "lucide-react"
+import { Loader2, ArrowLeft, ScanBarcode, PackageCheck, Route as RouteIcon, Truck } from "lucide-react"
 
 
 import { useAuthStore } from "@/stores"
 import { useDriverAuthStore } from "@/stores/driverAuthStore"
-import { loginUser } from "@/Fetch/login"
-import { driverLogin } from "@/Fetch/driverPanel"
+import { loginUser, checkAdminPhoneExists } from "@/Fetch/login"
+import { driverLogin, checkDriverPhoneExists } from "@/Fetch/driverPanel"
 import { getLoginVideo } from "@/Fetch/appConfig"
 import { Button, Input } from "@/components"
 import logoMark from "@/assets/isologo_promotoria_N.png"
@@ -19,12 +19,16 @@ const CAPABILITIES = [
   { icon: Truck, title: "Choferes en campo", label: "Cada entrega, cobro y ticket, registrado desde el celular." },
 ];
 
+const INFO_WHATSAPP = "5218117105018";
+
 export function Login() {
   const navigate = useNavigate();
   const authstore = useAuthStore();
   const driverLoginStore = useDriverAuthStore((s) => s.login);
-  const [username, setUsername] = useState("");
+  const [step, setStep] = useState<"phone" | "password">("phone");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [checkingPhone, setCheckingPhone] = useState(false);
   const [loading, setLoading] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
@@ -34,27 +38,56 @@ export function Login() {
       .catch(() => setVideoUrl(null));
   }, []);
 
+  const handleContinue = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const value = phone.trim();
+    if (!value || checkingPhone) return;
+    setCheckingPhone(true);
+    try {
+      // Igual que ya funciona para promotores en la app: primero se checa si
+      // el celular ya esta registrado (como cliente/master o como chofer)
+      // antes de pedir la contraseña.
+      const [isAdmin, isDriver] = await Promise.all([
+        checkAdminPhoneExists(value),
+        checkDriverPhoneExists(value),
+      ]);
+      if (isAdmin || isDriver) {
+        setStep("password");
+      } else {
+        const message = encodeURIComponent(
+          `Hola, soy dueño de una empresa y quiero información sobre Promotoria. Mi celular es ${value}.`
+        );
+        window.open(`https://wa.me/${INFO_WHATSAPP}?text=${message}`, "_blank");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("No se pudo verificar el celular, intenta de nuevo");
+    } finally {
+      setCheckingPhone(false);
+    }
+  };
+
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!username || !password || loading) return;
+    if (!phone || !password || loading) return;
     setLoading(true);
     try {
       // Se intenta primero como cliente/master. Si no coincide, se prueba
       // como chofer (usa telefono en vez de usuario/correo) — asi la
       // persona no tiene que saber de antemano cual es su tipo de cuenta.
-      const response = await loginUser(username, password);
+      const response = await loginUser(phone.trim(), password);
       authstore.login(response.data.token, response.data.user);
       navigate("/");
       return;
     } catch (adminError) {
       try {
-        const driverResponse = await driverLogin(username.trim(), password);
+        const driverResponse = await driverLogin(phone.trim(), password);
         driverLoginStore(driverResponse.data.token, driverResponse.data.driver);
         navigate("/chofer/mapa");
         return;
       } catch (driverError) {
         console.error(adminError, driverError);
-        toast.error("Usuario o contraseña incorrectos");
+        toast.error("Celular o contraseña incorrectos");
       }
     } finally {
       setLoading(false);
@@ -90,7 +123,7 @@ export function Login() {
 
         <div className="relative z-10 space-y-7">
           <h2 className="font-display text-4xl xl:text-[3.2rem] font-bold leading-[1.05] tracking-tight text-white max-w-md">
-            Todo tu punto de venta, en un solo lugar.
+            ¿Eres dueño de una empresa? Entra aquí.
           </h2>
 
           <div className="grid grid-cols-2 gap-3">
@@ -130,67 +163,94 @@ export function Login() {
               Bienvenido de nuevo
             </h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
-              Cliente, promotor o chofer — entra con tu usuario y contraseña.
+              {step === "phone"
+                ? "Empresa, promotor o chofer — entra con tu celular."
+                : "Ya casi — solo falta tu contraseña."}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="username"
-                className="block text-sm font-medium text-foreground mb-1.5"
-              >
-                Usuario
-              </label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="Correo o teléfono"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoComplete="username"
+          {step === "phone" ? (
+            <form onSubmit={handleContinue} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-medium text-foreground mb-1.5"
+                >
+                  Celular
+                </label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="Tu número a 10 dígitos"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  autoComplete="tel"
+                  autoFocus
+                  className="w-full"
+                />
+              </div>
+
+              <Button
+                type="submit"
                 className="w-full"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-foreground mb-1.5"
+                size="lg"
+                disabled={checkingPhone || !phone}
               >
-                Contraseña
-              </label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Ingresa tu contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                className="w-full"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full"
-              size="lg"
-              disabled={loading || !username || !password}
-            >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Iniciar sesión
-            </Button>
-
-            <div className="text-center text-xs text-muted-foreground pt-1">
+                {checkingPhone && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Continuar
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
               <button
                 type="button"
-                onClick={() => navigate("/restore-pwd")}
-                className="text-foreground font-medium hover:underline"
+                onClick={() => { setStep("phone"); setPassword(""); }}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground -mt-2 mb-1"
               >
-                ¿Olvidaste tu contraseña?
+                <ArrowLeft className="h-3.5 w-3.5" />
+                {phone}
               </button>
-            </div>
-          </form>
+
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-foreground mb-1.5"
+                >
+                  Contraseña
+                </label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Ingresa tu contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  autoFocus
+                  className="w-full"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full"
+                size="lg"
+                disabled={loading || !password}
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Iniciar sesión
+              </Button>
+
+              <div className="text-center text-xs text-muted-foreground pt-1">
+                <button
+                  type="button"
+                  onClick={() => navigate("/restore-pwd")}
+                  className="text-foreground font-medium hover:underline"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+            </form>
+          )}
 
           <div className="text-center text-xs text-muted-foreground mt-10">
             Al iniciar sesión, aceptas nuestros{" "}

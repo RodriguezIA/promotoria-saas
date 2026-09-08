@@ -9,6 +9,15 @@ export interface DriverLoginResponse {
 export const driverLogin = (phone: string, password: string) =>
     driverApi.post<ApiResponse<DriverLoginResponse>>('/drivers/login', { phone, password })
 
+export const checkDriverPhoneExists = async (phone: string): Promise<boolean> => {
+    try {
+        const res = await driverApi.get<ApiResponse<{ exists: boolean }>>(`/drivers/check-phone/${phone}`)
+        return res.data.exists === true
+    } catch {
+        return false
+    }
+}
+
 export const getDriverProfile = () =>
     driverApi.get<ApiResponse<DriverProfile>>('/drivers/me/profile')
 

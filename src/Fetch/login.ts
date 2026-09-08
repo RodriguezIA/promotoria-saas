@@ -10,6 +10,18 @@ export const loginUser = async (vc_username: string, vc_password: string) => {
   return res.json();
 };
 
+/**
+ * Antes de pedir la contraseña, se revisa si ese celular ya es el usuario
+ * de un cliente/master registrado (mismo patron que ya existia para
+ * promotores en la app).
+ */
+export const checkAdminPhoneExists = async (phone: string): Promise<boolean> => {
+  const res = await fetch(`${API_URL}/admin/check-phone/${phone}`);
+  if (!res.ok) return false;
+  const json = await res.json();
+  return json?.data?.exists === true;
+};
+
 export const registerUser = async (userData: {
   vc_username: string;
   vc_password: string;
