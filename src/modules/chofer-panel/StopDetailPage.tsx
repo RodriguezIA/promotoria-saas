@@ -111,6 +111,13 @@ export default function StopDetailPage() {
       toast.error('Indica cómo se cobró')
       return
     }
+    if (delivered && !isConsigna) {
+      const totalPaid = (Number(cashAmount) || 0) + (Number(transferAmount) || 0)
+      if (totalPaid < total - 0.01) {
+        toast.error(`Lo que pagaron (${money(totalPaid)}) es menor al total a cobrar (${money(total)}). Revisa las cantidades o el pago.`)
+        return
+      }
+    }
     setSaving(true)
     try {
       await updateStop(stop.id_stop, {
