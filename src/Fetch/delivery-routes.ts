@@ -53,3 +53,22 @@ export const createRoute = (data: { id_driver: number; route_date: string; stops
 
 export const getRoutes = () =>
     api.get<ApiResponse<RouteDTO[]>>('/delivery-routes')
+
+export interface StoreDeliveryHistoryDTO {
+    total_charged: number
+    totals_by_product: { name: string; quantity: number }[]
+    visits: {
+        id_stop: number
+        dt_visited: string | null
+        b_delivered: boolean | null
+        b_consigna: boolean
+        f_amount_cash: number | null
+        f_amount_transfer: number | null
+        f_total_charged: number | null
+        items: { id_item: number; i_quantity: number; product: { name: string } }[]
+        route: { driver: { name: string } }
+    }[]
+}
+
+export const getStoreDeliveryHistory = (id_store: number) =>
+    api.get<ApiResponse<StoreDeliveryHistoryDTO>>(`/delivery-routes/stores/${id_store}/history`)

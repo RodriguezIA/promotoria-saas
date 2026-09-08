@@ -32,6 +32,7 @@ import { getPendingPreorders, createRoute, PendingPreorderDTO } from '@/Fetch/de
 import { StoreMarker } from './components/StoreMarker'
 import { PromoterMarker } from './components/PromoterMarker'
 import { StoreOrderHistory } from './components/StoreOrderHistory'
+import { StoreDeliveryHistory } from './components/StoreDeliveryHistory'
 
 const FILTRO_TODOS = 'todos'
 const DEFAULT_COUNTRY_ID = 1
@@ -694,6 +695,13 @@ function StoreDetailPanel({
           Historial de pedidos
         </p>
         <StoreOrderHistory idStore={store.id_store} />
+      </div>
+
+      <div className="mt-4">
+        <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">
+          Historial de entregas
+        </p>
+        <StoreDeliveryHistory idStore={store.id_store} />
       </div>
 
       <div className="mt-4">

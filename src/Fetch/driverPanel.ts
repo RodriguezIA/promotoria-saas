@@ -26,8 +26,10 @@ export interface DriverRouteStopDTO {
     i_status: number
     b_delivered: boolean | null
     vc_no_delivery_reason: string | null
-    payment_method: string | null
-    f_amount_paid: number | null
+    b_consigna: boolean
+    f_amount_cash: number | null
+    f_amount_transfer: number | null
+    f_total_charged: number | null
     dt_visited: string | null
     store: {
         id_store: number
@@ -39,6 +41,7 @@ export interface DriverRouteStopDTO {
         preferred_time: 'MAÑANA' | 'TARDE'
         items: { i_quantity: number; product: { name: string } }[]
     } | null
+    items?: { id_item: number; i_quantity: number; product: { id_product: number; name: string } }[]
 }
 
 export interface DriverRouteDTO {
@@ -54,7 +57,18 @@ export const updateStop = (id_stop: number, data: {
     i_status?: number
     b_delivered?: boolean
     vc_no_delivery_reason?: string
-    payment_method?: 'EFECTIVO' | 'TRANSFERENCIA' | 'CONSIGNA'
-    f_amount_paid?: number
+    b_consigna?: boolean
+    f_amount_cash?: number
+    f_amount_transfer?: number
+    items?: { id_product: number; quantity: number }[]
 }) =>
     driverApi.patch<ApiResponse<DriverRouteStopDTO>>(`/delivery-routes/stops/${id_stop}`, data)
+
+export interface DriverProductDTO {
+    id_product: number
+    name: string
+    f_store_price: number | null
+}
+
+export const getDriverProducts = (id_client: number) =>
+    driverApi.get<ApiResponse<DriverProductDTO[]>>(`/products/${id_client}`)

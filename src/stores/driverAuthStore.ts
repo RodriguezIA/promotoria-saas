@@ -3,6 +3,7 @@ import { create } from "zustand";
 
 export interface DriverProfile {
   id_driver: number;
+  id_client: number;
   name: string;
   phone: string;
   email: string | null;
