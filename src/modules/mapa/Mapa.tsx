@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { GoogleMap } from '@react-google-maps/api'
-import { Loader2, MapPin, ChevronLeft, ListChecks, Route as RouteIcon, X, GripVertical, Check } from 'lucide-react'
+import { Loader2, MapPin, ChevronLeft, ListChecks, Route as RouteIcon } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { api, ApiResponse, useJsApiLoader, GOOGLE_MAPS_CONFIG } from '@/lib'
@@ -100,7 +100,6 @@ export default function Mapa() {
   const [drivers, setDrivers] = useState<DriverDTO[]>([])
   const [routeDriverId, setRouteDriverId] = useState('')
   const [routeDate, setRouteDate] = useState('')
-  const [routeMode, setRouteMode] = useState<'mapa' | 'lista' | null>(null)
   const [buildingRoute, setBuildingRoute] = useState(false)
   const [selectedStops, setSelectedStops] = useState<SelectedStop[]>([])
   const [savingRoute, setSavingRoute] = useState(false)
@@ -109,13 +108,12 @@ export default function Mapa() {
     getDrivers().then((res) => setDrivers(res.data)).catch(() => toast.error('Error al cargar los choferes'))
     setRouteDriverId('')
     setRouteDate(new Date().toISOString().slice(0, 10))
-    setRouteMode(null)
     setShowRouteSetup(true)
   }
 
   const startBuildingRoute = () => {
-    if (!routeDriverId || !routeDate || !routeMode) {
-      toast.error('Selecciona chofer, fecha y modo')
+    if (!routeDriverId || !routeDate) {
+      toast.error('Selecciona chofer y fecha')
       return
     }
     setShowRouteSetup(false)
@@ -124,7 +122,7 @@ export default function Mapa() {
     setBuildingRoute(true)
   }
 
-  const toggleStopFromMap = (store: MapStoreDTO) => {
+  const toggleStop = (store: MapStoreDTO) => {
     const pending = pendingByStore.get(store.id_store)
     setSelectedStops((prev) => {
       const already = prev.find((s) => s.id_store === store.id_store)
@@ -136,30 +134,11 @@ export default function Mapa() {
         semaphore: store.semaphore ?? null,
       }]
     })
-  }
-
-  const toggleStopFromStoreList = (store: MapStoreDTO) => {
-    const pending = pendingByStore.get(store.id_store)
-    setSelectedStops((prev) => {
-      const already = prev.find((s) => s.id_store === store.id_store)
-      if (already) return prev.filter((s) => s.id_store !== store.id_store)
-      return [...prev, {
-        id_store: store.id_store,
-        id_preorder: pending?.[0]?.id_preorder ?? null,
-        store_name: store.name,
-        semaphore: store.semaphore ?? null,
-      }]
-    })
-  }
-
-  const removeStop = (id_store: number) => {
-    setSelectedStops((prev) => prev.filter((s) => s.id_store !== id_store))
   }
 
   const cancelRouteBuilding = () => {
     setBuildingRoute(false)
     setSelectedStops([])
-    setRouteMode(null)
   }
 
   const confirmRoute = async () => {
@@ -277,7 +256,7 @@ export default function Mapa() {
         {buildingRoute && (
           <>
             <Badge variant="outline" className="mr-auto">
-              Modo {routeMode === 'mapa' ? 'mapa' : 'lista'}: dale clic a las tiendas con pedido pendiente para agregarlas a la ruta, en el orden que se van a visitar.
+              Selecciona las tiendas desde el mapa o la lista, en el orden en que se van a visitar.
             </Badge>
             <Button variant="ghost" size="sm" onClick={cancelRouteBuilding} disabled={savingRoute}>
               Cancelar
@@ -392,9 +371,9 @@ export default function Mapa() {
                     store={store}
                     selected={selectedStore?.id_store === store.id_store}
                     hasPendingOrder={pendingByStore.has(store.id_store)}
-                    routeOrder={buildingRoute && routeMode === 'mapa' && stopIndex >= 0 ? stopIndex + 1 : null}
+                    routeOrder={buildingRoute && stopIndex >= 0 ? stopIndex + 1 : null}
                     onClick={() =>
-                      buildingRoute && routeMode === 'mapa' ? toggleStopFromMap(store) : setSelectedStore(store)
+                      buildingRoute ? toggleStop(store) : setSelectedStore(store)
                     }
                   />
                 )
@@ -408,17 +387,14 @@ export default function Mapa() {
           )}
         </div>
 
-        {/* Panel lateral: detalle de tienda, o lista de seleccion de ruta */}
-        {buildingRoute && routeMode === 'lista' && (
+        {/* Panel lateral: detalle de tienda, o lista de seleccion de ruta (mapa y lista van conectados) */}
+        {buildingRoute && (
           <RouteListPicker
             stores={stores}
             pendingByStore={pendingByStore}
             selectedStops={selectedStops}
-            onToggle={toggleStopFromStoreList}
+            onToggle={toggleStop}
           />
-        )}
-        {buildingRoute && selectedStops.length > 0 && (
-          <RouteSummaryPanel selectedStops={selectedStops} onRemove={removeStop} />
         )}
         {!buildingRoute && selectedStore && (
           <StoreDetailPanel
@@ -431,7 +407,7 @@ export default function Mapa() {
         )}
       </div>
 
-      {/* Configurar ruta: chofer, fecha, modo */}
+      {/* Configurar ruta: chofer, fecha */}
       <Dialog open={showRouteSetup} onOpenChange={setShowRouteSetup}>
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
@@ -458,29 +434,6 @@ export default function Mapa() {
               <Label>Fecha de la ruta</Label>
               <Input type="date" value={routeDate} onChange={(e) => setRouteDate(e.target.value)} />
             </div>
-            <div>
-              <Label>¿Cómo quieres armar la ruta?</Label>
-              <div className="grid grid-cols-2 gap-2 mt-1">
-                <button
-                  type="button"
-                  onClick={() => setRouteMode('mapa')}
-                  className={`rounded-lg border-2 p-3 text-sm text-left transition-colors ${routeMode === 'mapa' ? 'border-primary bg-primary/5' : 'border-border'}`}
-                >
-                  <MapPin size={18} className="mb-1" />
-                  <p className="font-medium">Con mapa</p>
-                  <p className="text-xs text-muted-foreground">Dale clic a las tiendas en el orden que las vas a visitar</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRouteMode('lista')}
-                  className={`rounded-lg border-2 p-3 text-sm text-left transition-colors ${routeMode === 'lista' ? 'border-primary bg-primary/5' : 'border-border'}`}
-                >
-                  <ListChecks size={18} className="mb-1" />
-                  <p className="font-medium">Con listado</p>
-                  <p className="text-xs text-muted-foreground">Marca las tiendas de una lista buscable</p>
-                </button>
-              </div>
-            </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setShowRouteSetup(false)}>Cancelar</Button>
@@ -496,34 +449,6 @@ const SEMAPHORE_DOT_MAP: Record<string, string> = {
   red: 'bg-destructive',
   yellow: 'bg-warning',
   green: 'bg-success',
-}
-
-function RouteSummaryPanel({ selectedStops, onRemove }: { selectedStops: SelectedStop[]; onRemove: (id_store: number) => void }) {
-  return (
-    <div className="w-[300px] shrink-0 rounded-xl border border-border bg-white p-4 overflow-y-auto">
-      <p className="text-xs font-semibold text-muted-foreground uppercase mb-3">
-        Orden de la ruta ({selectedStops.length})
-      </p>
-      <ul className="space-y-2">
-        {selectedStops.map((s, i) => (
-          <li key={s.id_store} className="flex items-center gap-2 rounded-lg bg-muted/40 px-3 py-2">
-            <GripVertical size={14} className="text-muted-foreground/50" />
-            <span className="w-5 h-5 rounded-full bg-success text-white text-xs font-bold flex items-center justify-center shrink-0">{i + 1}</span>
-            {s.semaphore && <span className={`w-2 h-2 rounded-full shrink-0 ${SEMAPHORE_DOT_MAP[s.semaphore]}`} />}
-            <span className="text-sm flex-1 truncate">{s.store_name}</span>
-            {s.id_preorder && <PackageSearchIcon />}
-            <button type="button" onClick={() => onRemove(s.id_store)} className="text-muted-foreground hover:text-destructive">
-              <X size={14} />
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-function PackageSearchIcon() {
-  return <span title="Tiene pedido pendiente" className="w-1.5 h-1.5 rounded-full bg-warning shrink-0" />
 }
 
 function RouteListPicker({
@@ -547,7 +472,7 @@ function RouteListPicker({
     if (filter === 'red' || filter === 'yellow' || filter === 'green') return s.semaphore === filter
     return true
   })
-  const selectedIds = new Set(selectedStops.map((s) => s.id_store))
+  const orderByStore = new Map(selectedStops.map((s, i) => [s.id_store, i + 1]))
 
   const FILTERS: { value: typeof filter; label: string }[] = [
     { value: 'todas', label: 'Todas' },
@@ -560,6 +485,23 @@ function RouteListPicker({
 
   return (
     <div className="w-[340px] shrink-0 rounded-xl border border-border bg-white p-4 overflow-y-auto">
+      {selectedStops.length > 0 && (
+        <div className="mb-4 pb-4 border-b border-border">
+          <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">
+            Orden de la ruta ({selectedStops.length})
+          </p>
+          <ul className="space-y-1.5">
+            {selectedStops.map((s, i) => (
+              <li key={s.id_store} className="flex items-center gap-2 text-sm">
+                <span className="w-5 h-5 rounded-full bg-success text-white text-xs font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                {s.semaphore && <span className={`w-2 h-2 rounded-full shrink-0 ${SEMAPHORE_DOT_MAP[s.semaphore]}`} />}
+                <span className="flex-1 truncate">{s.store_name}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <Input
         placeholder="Buscar tienda..."
         value={search}
@@ -586,21 +528,23 @@ function RouteListPicker({
       ) : (
         <ul className="space-y-2">
           {filtered.map((store) => {
-            const isSelected = selectedIds.has(store.id_store)
+            const order = orderByStore.get(store.id_store)
             const hasPending = pendingByStore.has(store.id_store)
             return (
               <li key={store.id_store}>
                 <button
                   type="button"
                   onClick={() => onToggle(store)}
-                  className={`w-full text-left rounded-lg border-2 px-3 py-2 transition-colors ${isSelected ? 'border-primary bg-primary/5' : 'border-border'}`}
+                  className={`w-full text-left rounded-lg border-2 px-3 py-2 transition-colors ${order ? 'border-primary bg-primary/5' : 'border-border'}`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5 min-w-0">
                       {store.semaphore && <span className={`w-2 h-2 rounded-full shrink-0 ${SEMAPHORE_DOT_MAP[store.semaphore]}`} />}
                       <span className="text-sm font-medium truncate">{store.name}</span>
                     </span>
-                    {isSelected && <Check size={14} className="text-primary shrink-0" />}
+                    {order && (
+                      <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shrink-0">{order}</span>
+                    )}
                   </div>
                   {hasPending && (
                     <p className="text-xs text-warning-foreground dark:text-warning mt-0.5">Tiene pedido pendiente</p>
