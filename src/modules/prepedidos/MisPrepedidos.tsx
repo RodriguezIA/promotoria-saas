@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { Loader2, Store, Calendar, Sun, Moon, User, ExternalLink } from "lucide-react"
+import { Loader2, Store, Calendar, Sun, Moon, User, ExternalLink, PackageCheck, PackageX } from "lucide-react"
 
 import { useAuthStore } from "@/stores"
-import { PageWrapper, PageHeader, Badge } from "@/components"
-import { getPreordersByClient, PreorderDTO } from "@/Fetch/preorder"
+import { PageWrapper, PageHeader, Badge, Button } from "@/components"
+import { getPreordersByClient, updatePreorderStatus, PreorderDTO } from "@/Fetch/preorder"
 
 const TIME_LABEL: Record<string, string> = { MAÑANA: 'Por la mañana', TARDE: 'Por la tarde' }
 
@@ -12,6 +12,7 @@ export default function MisPrepedidos() {
   const { user } = useAuthStore()
   const [preorders, setPreorders] = useState<PreorderDTO[]>([])
   const [loading, setLoading] = useState(true)
+  const [updatingId, setUpdatingId] = useState<number | null>(null)
 
   useEffect(() => {
     if (!user?.id_client) return
@@ -21,6 +22,22 @@ export default function MisPrepedidos() {
       .catch(() => toast.error("Error al cargar tus prepedidos"))
       .finally(() => setLoading(false))
   }, [user?.id_client])
+
+  const handleToggleStatus = async (p: PreorderDTO) => {
+    const nuevoEstatus = p.id_status === 1 ? 0 : 1
+    setUpdatingId(p.id_task)
+    try {
+      await updatePreorderStatus(p.id_task, nuevoEstatus)
+      setPreorders((prev) =>
+        prev.map((item) => (item.id_task === p.id_task ? { ...item, id_status: nuevoEstatus } : item))
+      )
+      toast.success(nuevoEstatus === 1 ? "Marcado como surtido" : "Marcado como sin surtir")
+    } catch {
+      toast.error("Error al actualizar el estatus")
+    } finally {
+      setUpdatingId(null)
+    }
+  }
 
   return (
     <PageWrapper>
@@ -47,6 +64,15 @@ export default function MisPrepedidos() {
                   <span className="font-bold text-foreground">{p.task.store.name}</span>
                   {p.task.vc_folio && (
                     <Badge variant="outline" className="text-xs">{p.task.vc_folio}</Badge>
+                  )}
+                  {p.id_status === 1 ? (
+                    <Badge className="text-xs bg-success/10 text-success border-success/30 gap-1">
+                      <PackageCheck size={12} /> Surtido
+                    </Badge>
+                  ) : (
+                    <Badge className="text-xs bg-warning/15 text-warning-foreground dark:text-warning border-warning/30 gap-1">
+                      <PackageX size={12} /> Sin surtir
+                    </Badge>
                   )}
                 </div>
                 <div className="flex items-center gap-3 text-sm">
@@ -78,14 +104,25 @@ export default function MisPrepedidos() {
 
               <div className="flex items-center justify-between pt-3 border-t border-border/60 text-xs text-muted-foreground">
                 <span>WhatsApp del encargado: {p.manager_whatsapp}</span>
-                <a
-                  href={p.manager_signature}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-primary hover:underline"
-                >
-                  Ver firma <ExternalLink size={12} />
-                </a>
+                <div className="flex items-center gap-3">
+                  <a
+                    href={p.manager_signature}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-primary hover:underline"
+                  >
+                    Ver firma <ExternalLink size={12} />
+                  </a>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={updatingId === p.id_task}
+                    onClick={() => handleToggleStatus(p)}
+                  >
+                    {updatingId === p.id_task && <Loader2 size={12} className="mr-1.5 animate-spin" />}
+                    {p.id_status === 1 ? "Marcar como sin surtir" : "Marcar como surtido"}
+                  </Button>
+                </div>
               </div>
             </div>
           ))}

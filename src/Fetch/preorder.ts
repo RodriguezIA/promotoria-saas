@@ -14,6 +14,7 @@ export interface PreorderDTO {
     manager_signature: string
     preferred_date: string
     preferred_time: 'MAÑANA' | 'TARDE'
+    id_status: number // 0 = sin surtir, 1 = surtido
     dt_register: string
     items: PreorderItemDTO[]
     task: {
@@ -26,6 +27,9 @@ export interface PreorderDTO {
 
 export const getPreordersByClient = (id_client: number) =>
     api.get<ApiResponse<PreorderDTO[]>>(`/preorder/clients/${id_client}`)
+
+export const updatePreorderStatus = (id_task: number, id_status: 0 | 1) =>
+    api.patch<ApiResponse<{ id_status: number }>>(`/preorder/tasks/${id_task}/status`, { id_status })
 
 // El endpoint de una sola tarea no incluye la relacion `task` (ya se tiene
 // ese contexto en la pantalla que lo llama), asi que aqui es opcional.
