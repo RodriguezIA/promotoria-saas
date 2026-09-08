@@ -103,6 +103,8 @@ export default function Mapa() {
   const [buildingRoute, setBuildingRoute] = useState(false)
   const [selectedStops, setSelectedStops] = useState<SelectedStop[]>([])
   const [savingRoute, setSavingRoute] = useState(false)
+  const [routeSearch, setRouteSearch] = useState('')
+  const [routeFilter, setRouteFilter] = useState<'todas' | 'con_pedido' | 'sin_pedido' | 'red' | 'yellow' | 'green'>('todas')
 
   const openRouteSetup = () => {
     getDrivers().then((res) => setDrivers(res.data)).catch(() => toast.error('Error al cargar los choferes'))
@@ -119,6 +121,8 @@ export default function Mapa() {
     setShowRouteSetup(false)
     setSelectedStops([])
     setActiveFilter(null)
+    setRouteSearch('')
+    setRouteFilter('todas')
     setBuildingRoute(true)
   }
 
@@ -227,12 +231,24 @@ export default function Mapa() {
   }, [stores])
 
   // Solo filtra las tiendas que se muestran en el mapa; los promotores
-  // activos siempre se ven, sin importar el filtro elegido.
+  // activos siempre se ven, sin importar el filtro elegido. Mientras se
+  // arma una ruta, usa el buscador + filtro de la lista de ruta en vez del
+  // filtro normal de abajo, para que el mapa y la lista muestren siempre
+  // exactamente las mismas tiendas.
   const visibleStores = useMemo(() => {
+    if (buildingRoute) {
+      return stores.filter((s) => {
+        if (!s.name.toLowerCase().includes(routeSearch.toLowerCase())) return false
+        if (routeFilter === 'con_pedido') return pendingByStore.has(s.id_store)
+        if (routeFilter === 'sin_pedido') return !pendingByStore.has(s.id_store)
+        if (routeFilter === 'red' || routeFilter === 'yellow' || routeFilter === 'green') return s.semaphore === routeFilter
+        return true
+      })
+    }
     if (!activeFilter) return stores
     if (activeFilter === 'pending') return stores.filter((s) => pendingByStore.has(s.id_store))
     return stores.filter((s) => s.semaphore === activeFilter)
-  }, [stores, activeFilter, pendingByStore])
+  }, [stores, activeFilter, pendingByStore, buildingRoute, routeSearch, routeFilter])
 
   const toggleFilter = (filter: 'red' | 'yellow' | 'green' | 'pending') => {
     setActiveFilter((prev) => (prev === filter ? null : filter))
@@ -270,44 +286,44 @@ export default function Mapa() {
       </div>
 
       {/* Filtros */}
-      {!buildingRoute && (
-        <div className="flex flex-wrap gap-3 mb-4">
-          <Select value={canal} onValueChange={setCanal}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Canal de venta" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={FILTRO_TODOS}>Todos los canales</SelectItem>
-              {channels.map((c) => (
-                <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className="flex flex-wrap gap-3 mb-4">
+        <Select value={canal} onValueChange={setCanal}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Canal de venta" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={FILTRO_TODOS}>Todos los canales</SelectItem>
+            {channels.map((c) => (
+              <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          <Select value={estado} onValueChange={(v) => { setEstado(v); setMunicipio(FILTRO_TODOS) }}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={FILTRO_TODOS}>Todos los estados</SelectItem>
-              {states.map((s) => (
-                <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <Select value={estado} onValueChange={(v) => { setEstado(v); setMunicipio(FILTRO_TODOS) }}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={FILTRO_TODOS}>Todos los estados</SelectItem>
+            {states.map((s) => (
+              <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          <Select value={municipio} onValueChange={setMunicipio} disabled={estado === FILTRO_TODOS}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Municipio" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={FILTRO_TODOS}>Todos los municipios</SelectItem>
-              {cities.map((c) => (
-                <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <Select value={municipio} onValueChange={setMunicipio} disabled={estado === FILTRO_TODOS}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Municipio" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={FILTRO_TODOS}>Todos los municipios</SelectItem>
+            {cities.map((c) => (
+              <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
+        {!buildingRoute && (
           <div className="flex items-center gap-3 ml-auto text-sm text-muted-foreground">
             <button
               type="button"
@@ -346,8 +362,8 @@ export default function Mapa() {
               </button>
             )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="flex gap-4" style={{ height: 'calc(100vh - 260px)', minHeight: 480 }}>
         {/* Mapa */}
@@ -390,10 +406,14 @@ export default function Mapa() {
         {/* Panel lateral: detalle de tienda, o lista de seleccion de ruta (mapa y lista van conectados) */}
         {buildingRoute && (
           <RouteListPicker
-            stores={stores}
+            stores={visibleStores}
             pendingByStore={pendingByStore}
             selectedStops={selectedStops}
             onToggle={toggleStop}
+            search={routeSearch}
+            onSearchChange={setRouteSearch}
+            filter={routeFilter}
+            onFilterChange={setRouteFilter}
           />
         )}
         {!buildingRoute && selectedStore && (
@@ -456,22 +476,23 @@ function RouteListPicker({
   pendingByStore,
   selectedStops,
   onToggle,
+  search,
+  onSearchChange,
+  filter,
+  onFilterChange,
 }: {
   stores: MapStoreDTO[]
   pendingByStore: Map<number, PendingPreorderDTO[]>
   selectedStops: SelectedStop[]
   onToggle: (store: MapStoreDTO) => void
+  search: string
+  onSearchChange: (value: string) => void
+  filter: 'todas' | 'con_pedido' | 'sin_pedido' | 'red' | 'yellow' | 'green'
+  onFilterChange: (value: 'todas' | 'con_pedido' | 'sin_pedido' | 'red' | 'yellow' | 'green') => void
 }) {
-  const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<'todas' | 'con_pedido' | 'sin_pedido' | 'red' | 'yellow' | 'green'>('todas')
-
-  const filtered = stores.filter((s) => {
-    if (!s.name.toLowerCase().includes(search.toLowerCase())) return false
-    if (filter === 'con_pedido') return pendingByStore.has(s.id_store)
-    if (filter === 'sin_pedido') return !pendingByStore.has(s.id_store)
-    if (filter === 'red' || filter === 'yellow' || filter === 'green') return s.semaphore === filter
-    return true
-  })
+  // "stores" ya viene filtrada desde el componente padre (mismo buscador +
+  // filtro que se usa para decidir que marcadores se ven en el mapa), asi
+  // que el mapa y esta lista siempre muestran exactamente las mismas tiendas.
   const orderByStore = new Map(selectedStops.map((s, i) => [s.id_store, i + 1]))
 
   const FILTERS: { value: typeof filter; label: string }[] = [
@@ -505,7 +526,7 @@ function RouteListPicker({
       <Input
         placeholder="Buscar tienda..."
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => onSearchChange(e.target.value)}
         className="mb-2"
       />
       <div className="flex flex-wrap gap-1 mb-3">
@@ -513,7 +534,7 @@ function RouteListPicker({
           <button
             key={f.value}
             type="button"
-            onClick={() => setFilter(f.value)}
+            onClick={() => onFilterChange(f.value)}
             className={`text-xs px-2 py-1 rounded-md border transition-colors ${filter === f.value ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground'}`}
           >
             {f.label}
@@ -521,13 +542,13 @@ function RouteListPicker({
         ))}
       </div>
       <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">
-        Tiendas ({filtered.length})
+        Tiendas ({stores.length})
       </p>
-      {filtered.length === 0 ? (
+      {stores.length === 0 ? (
         <p className="text-sm text-muted-foreground/70">No hay tiendas que coincidan.</p>
       ) : (
         <ul className="space-y-2">
-          {filtered.map((store) => {
+          {stores.map((store) => {
             const order = orderByStore.get(store.id_store)
             const hasPending = pendingByStore.has(store.id_store)
             return (
