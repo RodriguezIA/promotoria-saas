@@ -1,5 +1,5 @@
 import { toast } from "sonner"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Loader2, ScanBarcode, MapPinCheck, Route as RouteIcon } from "lucide-react"
 
@@ -8,6 +8,7 @@ import { useAuthStore } from "@/stores"
 import { useDriverAuthStore } from "@/stores/driverAuthStore"
 import { loginUser } from "@/Fetch/login"
 import { driverLogin } from "@/Fetch/driverPanel"
+import { getLoginVideo } from "@/Fetch/appConfig"
 import { Button, Input } from "@/components"
 import logoMark from "@/assets/isologo_promotoria_N.png"
 
@@ -24,6 +25,13 @@ export function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    getLoginVideo()
+      .then((res) => setVideoUrl(res.data.url))
+      .catch(() => setVideoUrl(null));
+  }, []);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -56,7 +64,20 @@ export function Login() {
     <div className="min-h-screen flex">
       {/* Panel de marca — la ruta de entrega es el hilo visual de toda la pantalla */}
       <div className="hidden lg:flex lg:w-[46%] min-h-screen relative flex-col justify-between p-12 bg-sidebar text-sidebar-accent-foreground overflow-hidden">
-        <RouteBackdrop />
+        {videoUrl ? (
+          <video
+            src={videoUrl}
+            className="absolute inset-0 w-full h-full object-cover opacity-25"
+            autoPlay
+            muted
+            loop
+            playsInline
+            aria-hidden
+          />
+        ) : (
+          <RouteBackdrop />
+        )}
+        <div className="absolute inset-0 bg-sidebar/60" aria-hidden />
 
         <div className="relative z-10">
           <img
@@ -69,7 +90,7 @@ export function Login() {
         <div className="relative z-10 space-y-11">
           <div>
             <h2 className="font-display text-4xl xl:text-5xl font-bold leading-[1.08] tracking-tight text-white max-w-md">
-              Sabes qué pasó en el punto de venta antes de colgar el teléfono.
+              Sabes qué pasó en el punto de venta.
             </h2>
             <p className="mt-5 text-base xl:text-lg text-sidebar-foreground max-w-md">
               Promotoria sigue cada visita de principio a fin: lo que el
