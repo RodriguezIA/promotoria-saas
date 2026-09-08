@@ -137,6 +137,8 @@ export default function StopDetailPage() {
       if (delivered && stop.preorder?.manager_whatsapp) {
         const now = new Date()
         const lines = [
+          'TICKET DIGITAL DE VENTA',
+          '',
           `Entrega registrada en ${stop.store.name}`,
           `Fecha: ${now.toLocaleDateString('es-MX')} ${now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`,
           '',
