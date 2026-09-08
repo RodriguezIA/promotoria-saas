@@ -5,7 +5,9 @@ import { Loader2, MapPin, ScanBarcode, Route } from "lucide-react"
 
 
 import { useAuthStore } from "@/stores"
+import { useDriverAuthStore } from "@/stores/driverAuthStore"
 import { loginUser } from "@/Fetch/login"
+import { driverLogin } from "@/Fetch/driverPanel"
 import { Button, Input } from "@/components"
 import logoMark from "@/assets/isologo_promotoria_N.png"
 
@@ -18,6 +20,7 @@ const CAPABILITIES = [
 export function Login() {
   const navigate = useNavigate();
   const authstore = useAuthStore();
+  const driverLoginStore = useDriverAuthStore((s) => s.login);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,12 +30,23 @@ export function Login() {
     if (!username || !password || loading) return;
     setLoading(true);
     try {
+      // Se intenta primero como cliente/master. Si no coincide, se prueba
+      // como chofer (usa telefono en vez de usuario/correo) — asi la
+      // persona no tiene que saber de antemano cual es su tipo de cuenta.
       const response = await loginUser(username, password);
       authstore.login(response.data.token, response.data.user);
       navigate("/");
-    } catch (error) {
-      console.error(error);
-      toast.error("Usuario o contraseña incorrectos");
+      return;
+    } catch (adminError) {
+      try {
+        const driverResponse = await driverLogin(username.trim(), password);
+        driverLoginStore(driverResponse.data.token, driverResponse.data.driver);
+        navigate("/chofer/mapa");
+        return;
+      } catch (driverError) {
+        console.error(adminError, driverError);
+        toast.error("Usuario o contraseña incorrectos");
+      }
     } finally {
       setLoading(false);
     }
