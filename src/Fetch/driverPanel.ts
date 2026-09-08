@@ -39,6 +39,7 @@ export interface DriverRouteStopDTO {
     preorder: {
         preferred_date: string
         preferred_time: 'MAÑANA' | 'TARDE'
+        manager_whatsapp: string
         items: { i_quantity: number; product: { name: string } }[]
     } | null
     items?: { id_item: number; i_quantity: number; product: { id_product: number; name: string } }[]

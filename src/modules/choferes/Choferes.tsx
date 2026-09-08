@@ -1,9 +1,20 @@
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
-import { Truck, Plus, Phone, Mail, Trash2, Loader2 } from "lucide-react"
+import { Truck, Plus, Phone, Mail, Trash2, Loader2, Ban, RotateCcw, DollarSign, Route as RouteIcon } from "lucide-react"
 
-import { PageWrapper, PageHeader, Button, Card, CardContent, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input, Label, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components"
-import { getDrivers, createDriver, deactivateDriver, DriverDTO } from "@/Fetch/drivers"
+import { PageWrapper, PageHeader, Button, Card, CardContent, Badge, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input, Label, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components"
+import {
+  getDrivers, createDriver, deactivateDriver, suspendDriver, reactivateDriver,
+  getDriverSales, getDriverRoutesInRange, DriverDTO, DriverSalesDTO, DriverRouteHistoryDTO,
+} from "@/Fetch/drivers"
+
+const money = (n: number) => `$${n.toFixed(2)}`
+const todayStr = () => new Date().toISOString().slice(0, 10)
+const monthAgoStr = () => {
+  const d = new Date()
+  d.setDate(d.getDate() - 30)
+  return d.toISOString().slice(0, 10)
+}
 
 export default function Choferes() {
   const [drivers, setDrivers] = useState<DriverDTO[]>([])
@@ -13,6 +24,9 @@ export default function Choferes() {
   const [form, setForm] = useState({ name: "", phone: "", email: "", password: "" })
   const [driverToDelete, setDriverToDelete] = useState<DriverDTO | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [togglingId, setTogglingId] = useState<number | null>(null)
+  const [salesDriver, setSalesDriver] = useState<DriverDTO | null>(null)
+  const [routeDriver, setRouteDriver] = useState<DriverDTO | null>(null)
 
   const fetchDrivers = async () => {
     setLoading(true)
@@ -69,11 +83,29 @@ export default function Choferes() {
     }
   }
 
+  const handleToggleSuspend = async (driver: DriverDTO) => {
+    setTogglingId(driver.id_driver)
+    try {
+      if (driver.i_status === 2) {
+        await reactivateDriver(driver.id_driver)
+        toast.success("Chofer reactivado")
+      } else {
+        await suspendDriver(driver.id_driver)
+        toast.success("Chofer suspendido")
+      }
+      fetchDrivers()
+    } catch (e: any) {
+      toast.error(e?.message || "Error al actualizar el chofer")
+    } finally {
+      setTogglingId(null)
+    }
+  }
+
   return (
     <PageWrapper>
       <PageHeader
         title="Choferes"
-        subtitle="Alta y baja de los choferes que reparten tus pedidos"
+        subtitle="Alta, baja y seguimiento de los choferes que reparten tus pedidos"
         icon={Truck}
         actions={
           <Button onClick={() => setShowCreate(true)}>
@@ -96,7 +128,7 @@ export default function Choferes() {
           {drivers.map((driver) => (
             <Card key={driver.id_driver}>
               <CardContent className="p-4">
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 mb-3">
                   <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden">
                     {driver.vc_photo ? (
                       <img src={driver.vc_photo} alt={driver.name} className="w-full h-full object-cover" />
@@ -105,7 +137,14 @@ export default function Choferes() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-foreground truncate">{driver.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-foreground truncate">{driver.name}</p>
+                      {driver.i_status === 2 && (
+                        <Badge variant="outline" className="text-xs text-warning-foreground dark:text-warning border-warning/40">
+                          Suspendido
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground flex items-center gap-1">
                       <Phone size={12} /> {driver.phone}
                     </p>
@@ -115,13 +154,36 @@ export default function Choferes() {
                       </p>
                     )}
                   </div>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <Button variant="outline" size="sm" onClick={() => setRouteDriver(driver)}>
+                    <RouteIcon size={14} className="mr-1.5" /> Ruta
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setSalesDriver(driver)}>
+                    <DollarSign size={14} className="mr-1.5" /> Ventas
+                  </Button>
                   <Button
-                    variant="ghost"
+                    variant="outline"
+                    size="sm"
+                    disabled={togglingId === driver.id_driver}
+                    onClick={() => handleToggleSuspend(driver)}
+                  >
+                    {togglingId === driver.id_driver ? (
+                      <Loader2 size={14} className="mr-1.5 animate-spin" />
+                    ) : driver.i_status === 2 ? (
+                      <RotateCcw size={14} className="mr-1.5" />
+                    ) : (
+                      <Ban size={14} className="mr-1.5" />
+                    )}
+                    {driver.i_status === 2 ? "Reactivar" : "Suspender"}
+                  </Button>
+                  <Button
+                    variant="outline"
                     size="sm"
                     className="text-destructive hover:text-destructive"
                     onClick={() => setDriverToDelete(driver)}
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={14} className="mr-1.5" /> Eliminar
                   </Button>
                 </div>
               </CardContent>
@@ -171,20 +233,181 @@ export default function Choferes() {
       <AlertDialog open={!!driverToDelete} onOpenChange={(v) => !v && setDriverToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Dar de baja a {driverToDelete?.name}</AlertDialogTitle>
+            <AlertDialogTitle>Eliminar a {driverToDelete?.name}</AlertDialogTitle>
             <AlertDialogDescription>
-              Ya no podrá iniciar sesión ni se le podrán asignar más rutas. Esta acción no borra su historial de entregas.
+              Ya no podrá iniciar sesión ni se le podrán asignar más rutas, y desaparece de esta lista. Esta acción no borra su historial de entregas. Si solo quieres pausarlo temporalmente, usa "Suspender" en vez de esto.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90" disabled={deleting}>
               {deleting && <Loader2 size={14} className="mr-2 animate-spin" />}
-              Dar de baja
+              Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {salesDriver && (
+        <DriverSalesDialog driver={salesDriver} onClose={() => setSalesDriver(null)} />
+      )}
+      {routeDriver && (
+        <DriverRouteDialog driver={routeDriver} onClose={() => setRouteDriver(null)} />
+      )}
     </PageWrapper>
+  )
+}
+
+function DriverSalesDialog({ driver, onClose }: { driver: DriverDTO; onClose: () => void }) {
+  const [dateFrom, setDateFrom] = useState(monthAgoStr())
+  const [dateTo, setDateTo] = useState(todayStr())
+  const [data, setData] = useState<DriverSalesDTO | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const fetchSales = () => {
+    setLoading(true)
+    getDriverSales(driver.id_driver, dateFrom, dateTo)
+      .then((res) => setData(res.data))
+      .catch(() => toast.error("Error al cargar las ventas"))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchSales()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  return (
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="sm:max-w-[520px] max-h-[85vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Ventas de {driver.name}</DialogTitle>
+        </DialogHeader>
+
+        <div className="flex gap-2 items-end">
+          <div className="flex-1">
+            <Label className="text-xs">Desde</Label>
+            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          </div>
+          <div className="flex-1">
+            <Label className="text-xs">Hasta</Label>
+            <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          </div>
+          <Button onClick={fetchSales} disabled={loading}>Buscar</Button>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="animate-spin text-muted-foreground" size={24} />
+          </div>
+        ) : data ? (
+          <div className="flex-1 overflow-y-auto space-y-3">
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-lg bg-muted/40 p-3 text-center">
+                <p className="text-xs text-muted-foreground">Total vendido</p>
+                <p className="font-bold text-foreground">{money(data.total_charged)}</p>
+              </div>
+              <div className="rounded-lg bg-muted/40 p-3 text-center">
+                <p className="text-xs text-muted-foreground">Piezas totales</p>
+                <p className="font-bold text-foreground">{data.total_pieces}</p>
+              </div>
+              <div className="rounded-lg bg-muted/40 p-3 text-center">
+                <p className="text-xs text-muted-foreground">Visitas</p>
+                <p className="font-bold text-foreground">{data.total_visits}</p>
+              </div>
+            </div>
+
+            {data.visits.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">Sin ventas en este rango.</p>
+            ) : (
+              <ul className="space-y-2">
+                {data.visits.map((v) => (
+                  <li key={v.id_stop} className="rounded-lg border border-border p-3 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{v.store.name}</span>
+                      <span className="font-semibold">{money(Number(v.f_total_charged ?? 0))}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {v.dt_visited ? new Date(v.dt_visited).toLocaleDateString('es-MX') : '—'} ·{' '}
+                      {v.items.map((it) => `${it.i_quantity} ${it.product.name}`).join(', ')}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function DriverRouteDialog({ driver, onClose }: { driver: DriverDTO; onClose: () => void }) {
+  const [dateFrom, setDateFrom] = useState(monthAgoStr())
+  const [dateTo, setDateTo] = useState(todayStr())
+  const [routes, setRoutes] = useState<DriverRouteHistoryDTO[]>([])
+  const [loading, setLoading] = useState(false)
+
+  const fetchRoutes = () => {
+    setLoading(true)
+    getDriverRoutesInRange(driver.id_driver, dateFrom, dateTo)
+      .then((res) => setRoutes(res.data))
+      .catch(() => toast.error("Error al cargar las rutas"))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchRoutes()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  return (
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="sm:max-w-[520px] max-h-[85vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Rutas de {driver.name}</DialogTitle>
+        </DialogHeader>
+
+        <div className="flex gap-2 items-end">
+          <div className="flex-1">
+            <Label className="text-xs">Desde</Label>
+            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          </div>
+          <div className="flex-1">
+            <Label className="text-xs">Hasta</Label>
+            <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          </div>
+          <Button onClick={fetchRoutes} disabled={loading}>Buscar</Button>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="animate-spin text-muted-foreground" size={24} />
+          </div>
+        ) : routes.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">Sin rutas en este rango.</p>
+        ) : (
+          <div className="flex-1 overflow-y-auto space-y-3">
+            {routes.map((route) => (
+              <div key={route.id_route} className="rounded-lg border border-border p-3">
+                <p className="text-sm font-semibold mb-2">
+                  {new Date(route.route_date).toLocaleDateString('es-MX')} · {route.stops.length} tienda(s)
+                </p>
+                <ul className="space-y-1">
+                  {route.stops.map((stop) => (
+                    <li key={stop.id_stop} className="text-xs text-muted-foreground flex items-center justify-between">
+                      <span>{stop.store.name}</span>
+                      <Badge variant="outline" className="text-[10px]">
+                        {stop.i_status === 1 ? "Visitada" : "Por visitar"}
+                      </Badge>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   )
 }

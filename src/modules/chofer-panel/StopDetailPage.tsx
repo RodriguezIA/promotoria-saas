@@ -130,6 +130,35 @@ export default function StopDetailPage() {
         items: delivered ? items : undefined,
       })
       toast.success('Visita registrada')
+
+      // Si hay un numero de WhatsApp del encargado (viene del prepedido),
+      // se le abre un mensaje ya redactado con el resumen de la entrega,
+      // listo para que el chofer solo le de enviar.
+      if (delivered && stop.preorder?.manager_whatsapp) {
+        const now = new Date()
+        const lines = [
+          `Entrega registrada en ${stop.store.name}`,
+          `Fecha: ${now.toLocaleDateString('es-MX')} ${now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`,
+          '',
+          'Productos entregados:',
+          ...items.map((it) => {
+            const p = products.find((prod) => prod.id_product === it.id_product)
+            return `- ${it.quantity} ${p?.name ?? ''}`
+          }),
+          '',
+          `Total: ${money(total)}`,
+          isConsigna
+            ? 'A consignación (no se cobró)'
+            : [
+                cashAmount ? `Efectivo: ${money(Number(cashAmount))}` : null,
+                transferAmount ? `Transferencia: ${money(Number(transferAmount))}` : null,
+              ].filter(Boolean).join(' · '),
+        ]
+        const phone = stop.preorder.manager_whatsapp.replace(/\D/g, '')
+        const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(lines.join('\n'))}`
+        window.open(waUrl, '_blank')
+      }
+
       navigate(-1)
     } catch (e: any) {
       toast.error(e?.message || 'Error al registrar la visita')
