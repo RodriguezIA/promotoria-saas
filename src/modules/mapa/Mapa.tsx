@@ -80,6 +80,8 @@ export default function Mapa() {
 
   // --- Prepedidos pendientes de surtir (para el indicador y para armar rutas) ---
   const [pendingPreorders, setPendingPreorders] = useState<PendingPreorderDTO[]>([])
+  const [preorderDateFilter, setPreorderDateFilter] = useState('')
+  const [preorderTimeFilter, setPreorderTimeFilter] = useState<'todos' | 'MAÑANA' | 'TARDE'>('todos')
   const pendingByStore = useMemo(() => {
     const map = new Map<number, PendingPreorderDTO[]>()
     pendingPreorders.forEach((p) => {
@@ -91,10 +93,20 @@ export default function Mapa() {
   }, [pendingPreorders])
 
   const loadPendingPreorders = () => {
-    getPendingPreorders()
+    getPendingPreorders({
+      date: preorderDateFilter || undefined,
+      time: preorderTimeFilter !== 'todos' ? preorderTimeFilter : undefined,
+    })
       .then((res) => setPendingPreorders(res.data))
       .catch(() => toast.error('Error al cargar los prepedidos pendientes'))
   }
+
+  // Vuelve a cargar los pendientes cada vez que cambia el filtro de dia/turno,
+  // para que "con pedido" en Organizar ruta solo cuente los de ese dia.
+  useEffect(() => {
+    loadPendingPreorders()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preorderDateFilter, preorderTimeFilter])
 
   // --- Organizar ruta ---
   const [showRouteSetup, setShowRouteSetup] = useState(false)
@@ -207,7 +219,6 @@ export default function Mapa() {
 
   useEffect(() => {
     loadMapData()
-    loadPendingPreorders()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canal, estado, municipio, idClient])
 
@@ -415,6 +426,10 @@ export default function Mapa() {
             onSearchChange={setRouteSearch}
             filter={routeFilter}
             onFilterChange={setRouteFilter}
+            preorderDate={preorderDateFilter}
+            onPreorderDateChange={setPreorderDateFilter}
+            preorderTime={preorderTimeFilter}
+            onPreorderTimeChange={setPreorderTimeFilter}
           />
         )}
         {!buildingRoute && selectedStore && (
@@ -481,6 +496,10 @@ function RouteListPicker({
   onSearchChange,
   filter,
   onFilterChange,
+  preorderDate,
+  onPreorderDateChange,
+  preorderTime,
+  onPreorderTimeChange,
 }: {
   stores: MapStoreDTO[]
   pendingByStore: Map<number, PendingPreorderDTO[]>
@@ -490,6 +509,10 @@ function RouteListPicker({
   onSearchChange: (value: string) => void
   filter: 'todas' | 'con_pedido' | 'sin_pedido' | 'red' | 'yellow' | 'green'
   onFilterChange: (value: 'todas' | 'con_pedido' | 'sin_pedido' | 'red' | 'yellow' | 'green') => void
+  preorderDate: string
+  onPreorderDateChange: (value: string) => void
+  preorderTime: 'todos' | 'MAÑANA' | 'TARDE'
+  onPreorderTimeChange: (value: 'todos' | 'MAÑANA' | 'TARDE') => void
 }) {
   // "stores" ya viene filtrada desde el componente padre (mismo buscador +
   // filtro que se usa para decidir que marcadores se ven en el mapa), asi
@@ -523,6 +546,38 @@ function RouteListPicker({
           </ul>
         </div>
       )}
+
+      <div className="mb-3">
+        <p className="text-xs font-semibold text-muted-foreground uppercase mb-1.5">
+          Pedidos con entrega para...
+        </p>
+        <div className="flex gap-2">
+          <Input
+            type="date"
+            value={preorderDate}
+            onChange={(e) => onPreorderDateChange(e.target.value)}
+            className="flex-1"
+          />
+          <select
+            value={preorderTime}
+            onChange={(e) => onPreorderTimeChange(e.target.value as any)}
+            className="text-sm rounded-lg border border-border px-2 bg-white"
+          >
+            <option value="todos">Mañana y tarde</option>
+            <option value="MAÑANA">Solo mañana</option>
+            <option value="TARDE">Solo tarde</option>
+          </select>
+        </div>
+        {preorderDate && (
+          <button
+            type="button"
+            onClick={() => { onPreorderDateChange(''); onPreorderTimeChange('todos') }}
+            className="text-xs underline text-muted-foreground/70 mt-1"
+          >
+            Quitar filtro de fecha
+          </button>
+        )}
+      </div>
 
       <Input
         placeholder="Buscar tienda..."
