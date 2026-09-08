@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { GoogleMap } from '@react-google-maps/api'
-import { Loader2, MapPin, ChevronLeft, ListChecks, History, Route as RouteIcon, X, GripVertical, Check } from 'lucide-react'
+import { Loader2, MapPin, ChevronLeft, ListChecks, Route as RouteIcon, X, GripVertical, Check } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { api, ApiResponse, useJsApiLoader, GOOGLE_MAPS_CONFIG } from '@/lib'
@@ -73,6 +73,9 @@ export default function Mapa() {
   const [loading, setLoading] = useState(true)
   const [selectedStore, setSelectedStore] = useState<MapStoreDTO | null>(null)
 
+  // --- Filtro por indicador (semaforo o pendientes de surtir) ---
+  const [activeFilter, setActiveFilter] = useState<'red' | 'yellow' | 'green' | 'pending' | null>(null)
+
   // --- Prepedidos pendientes de surtir (para el indicador y para armar rutas) ---
   const [pendingPreorders, setPendingPreorders] = useState<PendingPreorderDTO[]>([])
   const pendingByStore = useMemo(() => {
@@ -116,6 +119,7 @@ export default function Mapa() {
     }
     setShowRouteSetup(false)
     setSelectedStops([])
+    setActiveFilter(null)
     setBuildingRoute(true)
   }
 
@@ -223,6 +227,18 @@ export default function Mapa() {
 
   const totalActivePromoters = stores.reduce((sum, s) => sum + s.active_promoters.length, 0)
 
+  // Solo filtra las tiendas que se muestran en el mapa; los promotores
+  // activos siempre se ven, sin importar el filtro elegido.
+  const visibleStores = useMemo(() => {
+    if (!activeFilter) return stores
+    if (activeFilter === 'pending') return stores.filter((s) => pendingByStore.has(s.id_store))
+    return stores.filter((s) => s.semaphore === activeFilter)
+  }, [stores, activeFilter, pendingByStore])
+
+  const toggleFilter = (filter: 'red' | 'yellow' | 'green' | 'pending') => {
+    setActiveFilter((prev) => (prev === filter ? null : filter))
+  }
+
   return (
     <PageWrapper>
       <PageHeader title="Logística" subtitle="Ubicación de tiendas, promotores activos, inventario y rutas de entrega en vivo" />
@@ -232,9 +248,6 @@ export default function Mapa() {
           <>
             <Button variant="outline" size="sm" onClick={() => navigate('/mapa/asignar-minimos')}>
               <ListChecks size={16} className="mr-1.5" /> Asignar mínimos por lote
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setSelectedStore(stores[0] ?? null)} disabled={stores.length === 0}>
-              <History size={16} className="mr-1.5" /> Ver historial de tiendas
             </Button>
             <Button size="sm" onClick={openRouteSetup}>
               <RouteIcon size={16} className="mr-1.5" /> Organizar ruta
@@ -296,22 +309,43 @@ export default function Mapa() {
             </SelectContent>
           </Select>
 
-          <div className="flex items-center gap-4 ml-auto text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5">
+          <div className="flex items-center gap-3 ml-auto text-sm text-muted-foreground">
+            <button
+              type="button"
+              onClick={() => toggleFilter('red')}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors ${activeFilter === 'red' ? 'bg-destructive/15 text-destructive' : 'hover:bg-muted'}`}
+            >
               <span className="w-2.5 h-2.5 rounded-full bg-destructive" /> Bajo mínimo
-            </span>
-            <span className="flex items-center gap-1.5">
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleFilter('yellow')}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors ${activeFilter === 'yellow' ? 'bg-warning/15 text-warning-foreground dark:text-warning' : 'hover:bg-muted'}`}
+            >
               <span className="w-2.5 h-2.5 rounded-full bg-warning" /> Cerca del mínimo
-            </span>
-            <span className="flex items-center gap-1.5">
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleFilter('green')}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors ${activeFilter === 'green' ? 'bg-success/15 text-success' : 'hover:bg-muted'}`}
+            >
               <span className="w-2.5 h-2.5 rounded-full bg-success" /> Bien surtida
-            </span>
-            <span className="flex items-center gap-1.5">
+            </button>
+            <span className="flex items-center gap-1.5 px-2 py-1">
               <span className="w-2.5 h-2.5 rounded-full bg-info" /> {totalActivePromoters} promotor(es) activo(s)
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-warning flex items-center justify-center" /> {pendingPreorders.length} pedido(s) pendiente(s)
-            </span>
+            <button
+              type="button"
+              onClick={() => toggleFilter('pending')}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors ${activeFilter === 'pending' ? 'bg-warning/15 text-warning-foreground dark:text-warning' : 'hover:bg-muted'}`}
+            >
+              <span className="w-2.5 h-2.5 rounded-full bg-warning" /> {pendingPreorders.length} pedido(s) pendiente(s)
+            </button>
+            {activeFilter && (
+              <button type="button" onClick={() => setActiveFilter(null)} className="text-xs underline text-muted-foreground/70">
+                Ver todos
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -330,7 +364,7 @@ export default function Mapa() {
               center={mapCenter}
               zoom={stores.length > 0 ? 11 : 6}
             >
-              {stores.map((store) => {
+              {visibleStores.map((store) => {
                 const stopIndex = selectedStops.findIndex((s) => s.id_store === store.id_store)
                 return (
                   <StoreMarker
