@@ -226,6 +226,15 @@ export default function Mapa() {
   }, [stores])
 
   const totalActivePromoters = stores.reduce((sum, s) => sum + s.active_promoters.length, 0)
+  const countBySemaphore = useMemo(() => {
+    const counts = { red: 0, yellow: 0, green: 0 }
+    stores.forEach((s) => {
+      if (s.semaphore === 'red') counts.red++
+      else if (s.semaphore === 'yellow') counts.yellow++
+      else if (s.semaphore === 'green') counts.green++
+    })
+    return counts
+  }, [stores])
 
   // Solo filtra las tiendas que se muestran en el mapa; los promotores
   // activos siempre se ven, sin importar el filtro elegido.
@@ -315,21 +324,21 @@ export default function Mapa() {
               onClick={() => toggleFilter('red')}
               className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors ${activeFilter === 'red' ? 'bg-destructive/15 text-destructive' : 'hover:bg-muted'}`}
             >
-              <span className="w-2.5 h-2.5 rounded-full bg-destructive" /> Bajo mínimo
+              <span className="w-2.5 h-2.5 rounded-full bg-destructive" /> {countBySemaphore.red} bajo mínimo
             </button>
             <button
               type="button"
               onClick={() => toggleFilter('yellow')}
               className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors ${activeFilter === 'yellow' ? 'bg-warning/15 text-warning-foreground dark:text-warning' : 'hover:bg-muted'}`}
             >
-              <span className="w-2.5 h-2.5 rounded-full bg-warning" /> Cerca del mínimo
+              <span className="w-2.5 h-2.5 rounded-full bg-warning" /> {countBySemaphore.yellow} cerca del mínimo
             </button>
             <button
               type="button"
               onClick={() => toggleFilter('green')}
               className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors ${activeFilter === 'green' ? 'bg-success/15 text-success' : 'hover:bg-muted'}`}
             >
-              <span className="w-2.5 h-2.5 rounded-full bg-success" /> Bien surtida
+              <span className="w-2.5 h-2.5 rounded-full bg-success" /> {countBySemaphore.green} bien surtida(s)
             </button>
             <span className="flex items-center gap-1.5 px-2 py-1">
               <span className="w-2.5 h-2.5 rounded-full bg-info" /> {totalActivePromoters} promotor(es) activo(s)
