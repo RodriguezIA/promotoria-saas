@@ -21,6 +21,11 @@ import { Mapa, AsignarMinimos } from '@/modules/mapa'
 import { MisPrepedidos } from '@/modules/prepedidos'
 import { Choferes } from '@/modules/choferes'
 import { CrearSolicitud, EditarSolicitud, SolicitudDetalle, SolicitudesList } from '@/modules/solicitudes'
+import ChoferLogin from '@/modules/chofer-panel/ChoferLogin'
+import ChoferLayout from '@/modules/chofer-panel/ChoferLayout'
+import RutaMapa from '@/modules/chofer-panel/RutaMapa'
+import RutaListada from '@/modules/chofer-panel/RutaListada'
+import PerfilChofer from '@/modules/chofer-panel/Perfil'
 
 export default function AppRouter() {
   return (
@@ -32,6 +37,13 @@ export default function AppRouter() {
         <Route path="/eliminar-cuenta" element={<EliminarCuenta />} />
         <Route path="/aviso-de-privacidad" element={<AvisoPrivacidad />} />
         <Route path="/terminos" element={<Terminos />} />
+
+        <Route path="/chofer/login" element={<ChoferLogin />} />
+        <Route path="/chofer" element={<ChoferLayout />}>
+          <Route path="mapa" element={<RutaMapa />} />
+          <Route path="lista" element={<RutaListada />} />
+          <Route path="perfil" element={<PerfilChofer />} />
+        </Route>
 
         <Route path="/" element={
             <PrivateRoute>
