@@ -9,7 +9,7 @@ import { StoreDTO, StoreLogDTO } from '@/dtos'
 import { api, ApiResponse } from '@/lib'
 import { deleteStore } from '@/Fetch/establecimientos'
 import { EstablecimientoModalRegistroMasivo } from './EstablecimientoModalRegistroMasivo'
-import { Button, DataTable, PageHeader, RowActions, BitacoraDialog } from '@/components'
+import { Button, DataTable, PageHeader, RowActions, BitacoraDialog, Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components'
 
 
 export function EstablecimientosSuperAdmin() {
@@ -17,6 +17,8 @@ export function EstablecimientosSuperAdmin() {
 
     const [loading, setLoading] = useState(true);
     const [establecimientos, setEstablecimientos] = useState<StoreDTO[]>([]);
+    const [canalFiltro, setCanalFiltro] = useState<string>("todos");
+    const [promotorFiltro, setPromotorFiltro] = useState<"todos" | "con" | "sin">("todos");
 
     const [bitacoraOpen, setBitacoraOpen] = useState(false);
     const [bitacoraLoading, setBitacoraLoading] = useState(false);
@@ -73,6 +75,15 @@ export function EstablecimientosSuperAdmin() {
             setBitacoraLoading(false);
         }
     }
+
+    const canales = Array.from(new Set(establecimientos.map((e) => e.sales_channel?.name).filter((n): n is string => !!n)))
+
+    const establecimientosFiltrados = establecimientos.filter((e) => {
+        if (canalFiltro !== "todos" && e.sales_channel?.name !== canalFiltro) return false
+        if (promotorFiltro === "con" && !((e.i_active_promoters ?? 0) > 0)) return false
+        if (promotorFiltro === "sin" && (e.i_active_promoters ?? 0) > 0) return false
+        return true
+    })
 
     const columns: ColumnDef<StoreDTO>[] = [
         {
@@ -175,10 +186,34 @@ export function EstablecimientosSuperAdmin() {
                 }
             />
 
+            <div className="flex items-center justify-end gap-3 flex-wrap">
+                <Select value={canalFiltro} onValueChange={setCanalFiltro}>
+                    <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Canal de venta" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="todos">Todos los canales</SelectItem>
+                        {canales.map((c) => (
+                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Select value={promotorFiltro} onValueChange={(v) => setPromotorFiltro(v as typeof promotorFiltro)}>
+                    <SelectTrigger className="w-[220px]">
+                        <SelectValue placeholder="Promotores activos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="todos">Con y sin promotores</SelectItem>
+                        <SelectItem value="con">Con promotores activos</SelectItem>
+                        <SelectItem value="sin">Sin promotores activos</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
             <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
                 <DataTable
                     columns={columns}
-                    data={establecimientos}
+                    data={establecimientosFiltrados}
                     isLoading={loading}
                     emptyMessage="Aún no hay establecimientos registrados para este cliente."
                     emptyIcon={<StoreIcon size={32} className="text-muted-foreground/70" />}
