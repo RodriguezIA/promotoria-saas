@@ -102,3 +102,30 @@ export interface DriverStockReadingDTO {
 
 export const getDriverStockReadings = (id_store: number) =>
     driverApi.get<ApiResponse<DriverStockReadingDTO[]>>(`/stock/readings/${id_store}`)
+
+export interface DriverStateDTO { id: number; name: string }
+export interface DriverCityDTO { id: number; name: string }
+export interface DriverChannelDTO { id: number; name: string }
+
+export const getDriverStates = (id_country: number) =>
+    driverApi.get<ApiResponse<DriverStateDTO[]>>(`/clients/states/${id_country}`)
+
+export const getDriverCities = (id_state: number) =>
+    driverApi.get<ApiResponse<DriverCityDTO[]>>(`/clients/cities/${id_state}`)
+
+export const getDriverChannels = () =>
+    driverApi.get<ApiResponse<DriverChannelDTO[]>>(`/channel-sales`)
+
+export const createDriverStore = (data: {
+    name: string
+    id_channel_sale?: number
+    store_code?: string
+    id_state: number
+    id_city: number
+    street?: string
+    ext_number?: string
+    postal_code?: string
+    latitude?: string
+    longitude?: string
+}) =>
+    driverApi.post<ApiResponse<{ id_store: number }>>(`/drivers/me/stores`, data)

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
-import { Loader2, Navigation, History, CheckCircle2, Circle } from 'lucide-react'
+import { Loader2, Navigation, History, CheckCircle2, Circle, Plus } from 'lucide-react'
 
 import { Button, Badge } from '@/components'
 import { getMyRoutes, updateDriverLocation, DriverRouteStopDTO } from '@/Fetch/driverPanel'
@@ -84,7 +84,12 @@ export default function RutaListada() {
 
   return (
     <div className="p-4">
-      <h1 className="text-lg font-bold text-foreground mb-1">Tu ruta de hoy</h1>
+      <div className="flex items-center justify-between mb-1">
+        <h1 className="text-lg font-bold text-foreground">Tu ruta de hoy</h1>
+        <Button variant="outline" size="sm" onClick={() => navigate('/chofer/nueva-tienda')}>
+          <Plus size={14} className="mr-1.5" /> Nueva tienda
+        </Button>
+      </div>
       <p className="text-sm text-muted-foreground mb-4">
         {sortedStops.length} tienda(s) {myLocation ? '· de la más cercana a la más lejana' : ''}
       </p>
