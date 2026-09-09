@@ -174,6 +174,7 @@ export function FinanzasAdmin() {
           data={facturas}
           isLoading={false}
           emptyMessage={filtro === "vencidas" ? "No tienes facturas vencidas." : "No tienes facturas registradas aún."}
+          pagination={{ pageSize: 100 }}
         />
       </div>
 

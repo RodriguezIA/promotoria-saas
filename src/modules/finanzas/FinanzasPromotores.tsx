@@ -114,7 +114,7 @@ export default function FinanzasPromotores() {
       </div>
 
       <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
-        <DataTable columns={columnas} data={pagosFiltrados} isLoading={loading} emptyMessage="No hay pagos a promotores registrados." />
+        <DataTable columns={columnas} data={pagosFiltrados} isLoading={loading} emptyMessage="No hay pagos a promotores registrados." pagination={{ pageSize: 100 }} />
       </div>
 
       <ModalGenerarPagoPromotor open={generarOpen} onClose={() => setGenerarOpen(false)} onSuccess={cargar} />

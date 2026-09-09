@@ -265,6 +265,7 @@ export default function ProductPage() {
           data={products}
           isLoading={loading}
           emptyMessage="No hay productos registrados."
+          pagination={{ pageSize: 100 }}
         />
       </div>
 

@@ -160,6 +160,7 @@ export function EstablecimientosAdministradoresClients() {
                     isLoading={loading}
                     emptyMessage="Aún no hay establecimientos registrados para este cliente."
                     emptyIcon={<StoreIcon size={32} className="text-muted-foreground/70" />}
+                    pagination={{ pageSize: 100 }}
                     responsive={{
                         enabled: true,
                     }}

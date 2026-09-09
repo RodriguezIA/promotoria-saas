@@ -114,7 +114,7 @@ export default function FinanzasActivadores() {
       </div>
 
       <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
-        <DataTable columns={columnas} data={pagosFiltrados} isLoading={loading} emptyMessage="No hay comisiones de activadores registradas." />
+        <DataTable columns={columnas} data={pagosFiltrados} isLoading={loading} emptyMessage="No hay comisiones de activadores registradas." pagination={{ pageSize: 100 }} />
       </div>
 
       <ModalGenerarComisionActivador open={generarOpen} onClose={() => setGenerarOpen(false)} onSuccess={cargar} />

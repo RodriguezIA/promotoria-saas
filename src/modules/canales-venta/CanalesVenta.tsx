@@ -143,6 +143,7 @@ export default function CanalesVenta() {
           data={channels}
           isLoading={loading}
           emptyMessage="Aún no hay canales de venta registrados."
+          pagination={{ pageSize: 100 }}
         />
       </div>
 

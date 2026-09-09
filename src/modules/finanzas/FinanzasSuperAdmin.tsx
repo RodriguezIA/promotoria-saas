@@ -191,7 +191,7 @@ export default function FinanzasSuperAdmin() {
       </div>
 
       <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
-        <DataTable columns={columnasFacturas} data={facturasFiltradas} isLoading={loading} emptyMessage="No hay facturas registradas." />
+        <DataTable columns={columnasFacturas} data={facturasFiltradas} isLoading={loading} emptyMessage="No hay facturas registradas." pagination={{ pageSize: 100 }} />
       </div>
 
       <ModalRevisarCobro cobro={cobroSel} open={cobroSel !== null} onClose={() => setCobroSel(null)} onSuccess={cargar} />
