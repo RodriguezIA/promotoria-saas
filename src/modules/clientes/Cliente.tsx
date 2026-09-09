@@ -70,7 +70,7 @@ export default function ClientesPage() {
     () => [
       // Columna: Cliente (nombre + RFC)
       {
-        accessorKey: "vc_nombre",
+        accessorKey: "name",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Cliente" />
         ),
@@ -205,7 +205,7 @@ export default function ClientesPage() {
   );
   const filtersConfig: FilterConfig[] = [
     {
-      id: "vc_nombre",
+      id: "name",
       label: "Nombre",
       type: "text",
       placeholder: "Buscar por nombre...",
@@ -278,7 +278,7 @@ export default function ClientesPage() {
               responsive={{
                 enabled: true,
                 minColumnWidth: 150,
-                priorityColumns: ["vc_nombre", "b_activo"],
+                priorityColumns: ["name", "b_activo"],
               }}
               rowSelection={{
                 enabled: true,
