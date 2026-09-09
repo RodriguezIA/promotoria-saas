@@ -1,7 +1,7 @@
 import { toast } from "sonner"
 import { Link, useParams } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
-import { ArrowLeft, Mail, MapPin, Package, Camera, Clock, AlertCircle, Loader2 } from "lucide-react"
+import { ArrowLeft, Mail, MapPin, Package, Camera, Clock, AlertCircle, Loader2, Truck, Phone } from "lucide-react"
 
 
 import { useAuthStore } from "@/stores"
@@ -9,6 +9,7 @@ import { tabs, ROL_LABELS } from "./utils.clients"
 import { ApiResponse, api, formatDate} from "@/lib"
 import { Alert, AlertDescription, Input, Label, ModalCustom } from "@/components"
 import { ClientDTO, CreateUserInCLientDetailDTO, UsuarioDTO, ProductDTO } from '@/dtos'
+import { getDriversByClient, DriverDTO } from '@/Fetch/drivers'
 
 
 export default function ClienteDetalle() {
@@ -140,6 +141,7 @@ export default function ClienteDetalle() {
                     {activeTab === "info" && <TabInfo cliente={cliente} />}
                     {activeTab === "users" && <TabUsers cliente={cliente} />}
                     {activeTab === "products" && <TabProducts cliente={cliente} />}
+                    {activeTab === "drivers" && <TabDrivers cliente={cliente} />}
                 </div>
             </div>
         </div>
@@ -516,6 +518,122 @@ function TabProducts({ cliente }: { cliente: any | null }) {
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">
                       {new Date(p.dt_created).toLocaleDateString("es-MX", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+function TabDrivers({ cliente }: { cliente: any | null }) {
+  const [drivers, setDrivers] = useState<DriverDTO[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!cliente?.id_client) return;
+    setLoading(true);
+    setError(null);
+    getDriversByClient(cliente.id_client)
+      .then((res) => setDrivers(res.data ?? []))
+      .catch((err: any) => setError(err?.message || "Error al cargar los choferes"))
+      .finally(() => setLoading(false));
+  }, [cliente?.id_client]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-foreground">
+          Choferes
+          {drivers.length > 0 && (
+            <span className="ml-2 px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded-full font-normal">
+              {drivers.length}
+            </span>
+          )}
+        </h3>
+      </div>
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      {loading ? (
+        <div className="flex items-center justify-center py-10">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground/70" />
+        </div>
+      ) : (
+        <div className="border border-border rounded-lg overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-muted/50">
+              <tr>
+                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Chofer</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Teléfono</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Correo</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Estado</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Alta</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {drivers.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    Este cliente todavía no tiene choferes registrados
+                  </td>
+                </tr>
+              ) : (
+                drivers.map((d) => (
+                  <tr key={d.id_driver} className="hover:bg-accent">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-muted rounded-full flex items-center justify-center overflow-hidden shrink-0">
+                          {d.vc_photo ? (
+                            <img src={d.vc_photo} alt={d.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <Truck size={16} className="text-muted-foreground" />
+                          )}
+                        </div>
+                        <p className="font-medium text-foreground">{d.name}</p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <Phone size={12} /> {d.phone}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                      {d.email ?? <span className="italic text-muted-foreground/70">Sin correo</span>}
+                    </td>
+                    <td className="px-4 py-3">
+                      {d.i_status === 1 ? (
+                        <span className="inline-flex items-center gap-1.5 text-sm text-success">
+                          <div className="w-2 h-2 bg-success rounded-full" />
+                          Activo
+                        </span>
+                      ) : d.i_status === 2 ? (
+                        <span className="inline-flex items-center gap-1.5 text-sm text-warning-foreground dark:text-warning">
+                          <div className="w-2 h-2 bg-warning rounded-full" />
+                          Suspendido
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-sm text-destructive">
+                          <div className="w-2 h-2 bg-destructive rounded-full" />
+                          Inactivo
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                      {new Date(d.dt_register).toLocaleDateString("es-MX", {
                         year: "numeric",
                         month: "short",
                         day: "numeric",

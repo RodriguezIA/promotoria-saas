@@ -14,6 +14,9 @@ export interface DriverDTO {
 export const getDrivers = () =>
     api.get<ApiResponse<DriverDTO[]>>('/drivers')
 
+export const getDriversByClient = (id_client: number) =>
+    api.get<ApiResponse<DriverDTO[]>>(`/drivers/by-client/${id_client}`)
+
 export const createDriver = (data: { name: string; phone: string; email?: string; password: string }) =>
     api.post<ApiResponse<DriverDTO>>('/drivers', data)
 
