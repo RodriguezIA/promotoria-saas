@@ -1,7 +1,7 @@
 import { toast } from "sonner"
 import { useEffect, useState, useCallback } from "react"
 import { ColumnDef } from "@tanstack/react-table"
-import { Clock, AlertCircle, Loader2, Banknote, Settings, Plus, Receipt, AlertTriangle } from "lucide-react"
+import { Clock, AlertCircle, Loader2, Banknote, Settings, Plus, Receipt, AlertTriangle, CheckCircle2 } from "lucide-react"
 
 import { ModalRevisarCobro, ModalConfigFinanzas, ModalGenerarCorte } from "./components"
 import { Button, DataTable, PageWrapper, PageHeader, StatCard, Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components"
@@ -92,6 +92,7 @@ export default function FinanzasSuperAdmin() {
     .reduce((a, f) => a + Number(f.f_amount), 0);
   const totalEnValidacion = facturasFiltradas.filter((f) => f.id_status === INVOICE_STATUS.EN_VALIDACION).reduce((a, f) => a + Number(f.f_amount), 0);
   const totalVencido = facturasFiltradas.filter(isInvoiceOverdue).reduce((a, f) => a + Number(f.f_amount), 0);
+  const totalPagado = facturasFiltradas.filter((f) => f.id_status === INVOICE_STATUS.PAGADO).reduce((a, f) => a + Number(f.f_amount), 0);
 
   const nombreCliente = (id_client: number) => clientes.find((c) => c.id_client === id_client)?.name ?? `Cliente #${id_client}`;
 
@@ -151,10 +152,11 @@ export default function FinanzasSuperAdmin() {
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 stagger-children">
-        <StatCard title="Por cobrar" value={fmt(totalPorCobrar)} icon={AlertCircle} accent="#dc2626" />
-        <StatCard title="En validación" value={fmt(totalEnValidacion)} icon={Clock} accent="#2563eb" />
-        <StatCard title="Vencido" value={fmt(totalVencido)} icon={AlertTriangle} accent="#b91c1c" />
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 stagger-children">
+        <StatCard title="Por validar" value={fmt(totalEnValidacion)} icon={Clock} accent="#2563eb" />
+        <StatCard title="Vencidas" value={fmt(totalVencido)} icon={AlertTriangle} accent="#b91c1c" />
+        <StatCard title="Nos deben" value={fmt(totalPorCobrar)} icon={AlertCircle} accent="#dc2626" />
+        <StatCard title="Pagadas" value={fmt(totalPagado)} icon={CheckCircle2} accent="#16a34a" />
       </div>
 
       <div className="flex items-center justify-end flex-wrap gap-3">
