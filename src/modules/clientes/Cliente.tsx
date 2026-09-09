@@ -149,9 +149,9 @@ export default function ClientesPage() {
         },
         // Función de filtro personalizada para booleanos
         filterFn: (row, _id, value) => {
-          if (value === "" || value === null) return true;
+          if (value === null || value === undefined) return true;
           const activo = row.original.i_status === 1;
-          return activo === (value === "true");
+          return activo === value;
         },
       },
       // Columna: Fecha de creación

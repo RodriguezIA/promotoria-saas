@@ -97,7 +97,7 @@ export default function FinanzasSuperAdmin() {
   const nombreCliente = (id_client: number) => clientes.find((c) => c.id_client === id_client)?.name ?? `Cliente #${id_client}`;
 
   const columnasFacturas: ColumnDef<ClientInvoice>[] = [
-    { accessorKey: "vc_folio", header: "Folio", cell: ({ row }) => <span className="font-bold text-muted-foreground">{row.original.vc_folio ?? `#${row.original.id}`}</span> },
+    { accessorKey: "id_status", header: "Estado", cell: ({ row }) => <BadgeInvoice invoice={row.original} /> },
     { id: "cliente", header: "Cliente", cell: ({ row }) => <span className="font-medium">{nombreCliente(row.original.charge.id_client)}</span> },
     { id: "pedido", header: "Pedido", cell: ({ row }) => <span className="text-sm text-muted-foreground">#{row.original.id_order}</span> },
     { accessorKey: "f_amount", header: "Total", cell: ({ row }) => <span className="font-semibold text-foreground">{fmt(Number(row.original.f_amount))}</span> },
@@ -109,7 +109,6 @@ export default function FinanzasSuperAdmin() {
         return <span className={vencida ? "text-destructive font-semibold" : ""}>{fmtDate(row.original.dt_due)}</span>;
       },
     },
-    { accessorKey: "id_status", header: "Estado", cell: ({ row }) => <BadgeInvoice invoice={row.original} /> },
     {
       id: "actions", header: "Operaciones",
       cell: ({ row }) => {
@@ -122,6 +121,7 @@ export default function FinanzasSuperAdmin() {
         );
       },
     },
+    { accessorKey: "vc_folio", header: "Folio", cell: ({ row }) => <span className="font-bold text-muted-foreground">{row.original.vc_folio ?? `#${row.original.id}`}</span> },
   ];
 
   if (loading && facturas.length === 0)
