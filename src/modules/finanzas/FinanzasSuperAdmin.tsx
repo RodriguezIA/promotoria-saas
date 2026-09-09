@@ -50,6 +50,7 @@ export default function FinanzasSuperAdmin() {
   const [loading, setLoading] = useState(true);
   const [clientes, setClientes] = useState<ClienteOpcion[]>([]);
   const [clienteFiltro, setClienteFiltro] = useState<string>("todos");
+  const [vencidaFiltro, setVencidaFiltro] = useState<"todas" | "vencidas" | "no_vencidas">("todas");
 
   const [cobroSel, setCobroSel] = useState<ClientInvoice | null>(null);
   const [configOpen, setConfigOpen] = useState(false);
@@ -76,11 +77,21 @@ export default function FinanzasSuperAdmin() {
 
   useEffect(() => { cargar(); }, [cargar]);
 
-  const totalPorCobrar = facturas
+  // El filtro de cliente ya viene aplicado desde el servidor (arriba); el de
+  // vencidas/no vencidas se aplica aqui, y de este arreglo final salen tanto
+  // la tabla como los 3 totales de arriba -- asi los totales siempre
+  // reflejan exactamente lo que se esta viendo con los filtros puestos.
+  const facturasFiltradas = facturas.filter((f) => {
+    if (vencidaFiltro === "vencidas") return isInvoiceOverdue(f);
+    if (vencidaFiltro === "no_vencidas") return !isInvoiceOverdue(f);
+    return true;
+  });
+
+  const totalPorCobrar = facturasFiltradas
     .filter((f) => f.id_status === INVOICE_STATUS.PENDIENTE_PAGO || f.id_status === INVOICE_STATUS.OBSERVADO)
     .reduce((a, f) => a + Number(f.f_amount), 0);
-  const totalEnValidacion = facturas.filter((f) => f.id_status === INVOICE_STATUS.EN_VALIDACION).reduce((a, f) => a + Number(f.f_amount), 0);
-  const totalVencido = facturas.filter(isInvoiceOverdue).reduce((a, f) => a + Number(f.f_amount), 0);
+  const totalEnValidacion = facturasFiltradas.filter((f) => f.id_status === INVOICE_STATUS.EN_VALIDACION).reduce((a, f) => a + Number(f.f_amount), 0);
+  const totalVencido = facturasFiltradas.filter(isInvoiceOverdue).reduce((a, f) => a + Number(f.f_amount), 0);
 
   const nombreCliente = (id_client: number) => clientes.find((c) => c.id_client === id_client)?.name ?? `Cliente #${id_client}`;
 
@@ -147,6 +158,16 @@ export default function FinanzasSuperAdmin() {
       </div>
 
       <div className="flex items-center justify-end flex-wrap gap-3">
+        <Select value={vencidaFiltro} onValueChange={(v) => setVencidaFiltro(v as typeof vencidaFiltro)}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Vencidas" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todas">Vencidas y no vencidas</SelectItem>
+            <SelectItem value="vencidas">Solo vencidas</SelectItem>
+            <SelectItem value="no_vencidas">Solo no vencidas</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={clienteFiltro} onValueChange={setClienteFiltro}>
           <SelectTrigger className="w-[220px]">
             <SelectValue placeholder="Filtrar por cliente" />
@@ -161,7 +182,7 @@ export default function FinanzasSuperAdmin() {
       </div>
 
       <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
-        <DataTable columns={columnasFacturas} data={facturas} isLoading={loading} emptyMessage="No hay facturas registradas." />
+        <DataTable columns={columnasFacturas} data={facturasFiltradas} isLoading={loading} emptyMessage="No hay facturas registradas." />
       </div>
 
       <ModalRevisarCobro cobro={cobroSel} open={cobroSel !== null} onClose={() => setCobroSel(null)} onSuccess={cargar} />

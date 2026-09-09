@@ -87,7 +87,6 @@ export default function AppRouter() {
           <Route path="finanzas/pago-promotores" element={<FinanzasPromotores />} />
           <Route path="finanzas/pago-activadores" element={<FinanzasActivadores />} />
           <Route path="finanzas/gestion-pagos" element={<Finanzas />} />
-          <Route path="finanzas/gestion-gastos" element={<Maintenance />} />
           <Route path="configurar-app" element={<ConfigurarApp />} />
           <Route path="reportes/pedidos" element={<PedidosList />} />
           <Route path="perfil" element={<Perfil />} />

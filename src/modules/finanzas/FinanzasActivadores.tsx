@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Loader2, UserPlus, Plus, Receipt, Clock, CheckCircle2 } from "lucide-react"
 
 import { ModalGenerarComisionActivador, ModalRegistrarPagoActivador } from "./components"
-import { Button, DataTable, PageWrapper, PageHeader, StatCard } from "@/components"
+import { Button, DataTable, PageWrapper, PageHeader, StatCard, Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components"
 import {
   getAllActivatorPayments,
   ActivatorPayment,
@@ -34,6 +34,7 @@ export default function FinanzasActivadores() {
   const [loading, setLoading] = useState(true);
   const [pagoSel, setPagoSel] = useState<ActivatorPayment | null>(null);
   const [generarOpen, setGenerarOpen] = useState(false);
+  const [estadoFiltro, setEstadoFiltro] = useState<string>("todos");
 
   const cargar = useCallback(async () => {
     setLoading(true);
@@ -49,8 +50,10 @@ export default function FinanzasActivadores() {
 
   useEffect(() => { cargar(); }, [cargar]);
 
-  const totalPorPagar = pagos.filter((p) => p.id_status === ACTIVATOR_PAYMENT_STATUS.POR_PAGAR).reduce((a, p) => a + Number(p.f_total), 0);
-  const totalPagado = pagos.filter((p) => p.id_status === ACTIVATOR_PAYMENT_STATUS.PAGADO).reduce((a, p) => a + Number(p.f_total), 0);
+  const pagosFiltrados = estadoFiltro === "todos" ? pagos : pagos.filter((p) => p.id_status === Number(estadoFiltro));
+
+  const totalPorPagar = pagosFiltrados.filter((p) => p.id_status === ACTIVATOR_PAYMENT_STATUS.POR_PAGAR).reduce((a, p) => a + Number(p.f_total), 0);
+  const totalPagado = pagosFiltrados.filter((p) => p.id_status === ACTIVATOR_PAYMENT_STATUS.PAGADO).reduce((a, p) => a + Number(p.f_total), 0);
 
   const columnas: ColumnDef<ActivatorPayment>[] = [
     { accessorKey: "vc_folio", header: "Folio", cell: ({ row }) => <span className="font-bold text-muted-foreground">{row.original.vc_folio ?? `#${row.original.id_payment}`}</span> },
@@ -97,8 +100,21 @@ export default function FinanzasActivadores() {
         <StatCard title="Pagado" value={fmt(totalPagado)} icon={CheckCircle2} accent="#16a34a" />
       </div>
 
+      <div className="flex items-center justify-end">
+        <Select value={estadoFiltro} onValueChange={setEstadoFiltro}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Por pagar y pagado</SelectItem>
+            <SelectItem value={String(ACTIVATOR_PAYMENT_STATUS.POR_PAGAR)}>Solo por pagar</SelectItem>
+            <SelectItem value={String(ACTIVATOR_PAYMENT_STATUS.PAGADO)}>Solo pagado</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
-        <DataTable columns={columnas} data={pagos} isLoading={loading} emptyMessage="No hay comisiones de activadores registradas." />
+        <DataTable columns={columnas} data={pagosFiltrados} isLoading={loading} emptyMessage="No hay comisiones de activadores registradas." />
       </div>
 
       <ModalGenerarComisionActivador open={generarOpen} onClose={() => setGenerarOpen(false)} onSuccess={cargar} />
