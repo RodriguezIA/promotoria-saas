@@ -92,3 +92,13 @@ export interface DriverStoreMinimumDTO {
 
 export const getDriverStoreMinimums = (id_store: number) =>
     driverApi.get<ApiResponse<DriverStoreMinimumDTO[]>>(`/stock/minimums/${id_store}`)
+
+export interface DriverStockReadingDTO {
+    id_product: number
+    i_quantity: number
+    dt_register: string
+    product: { id_product: number; name: string; vc_image: string | null }
+}
+
+export const getDriverStockReadings = (id_store: number) =>
+    driverApi.get<ApiResponse<DriverStockReadingDTO[]>>(`/stock/readings/${id_store}`)

@@ -9,9 +9,11 @@ import {
   updateStop,
   getDriverProducts,
   getDriverStoreMinimums,
+  getDriverStockReadings,
   DriverRouteStopDTO,
   DriverProductDTO,
   DriverStoreMinimumDTO,
+  DriverStockReadingDTO,
 } from '@/Fetch/driverPanel'
 import { useDriverAuthStore } from '@/stores/driverAuthStore'
 
@@ -26,6 +28,7 @@ export default function StopDetailPage() {
   const [loading, setLoading] = useState(true)
   const [products, setProducts] = useState<DriverProductDTO[]>([])
   const [minimums, setMinimums] = useState<DriverStoreMinimumDTO[]>([])
+  const [readings, setReadings] = useState<DriverStockReadingDTO[]>([])
 
   const [delivered, setDelivered] = useState<boolean | null>(null)
   const [reason, setReason] = useState('')
@@ -49,12 +52,14 @@ export default function StopDetailPage() {
         }
         setStop(found)
 
-        const [productsRes, minimumsRes] = await Promise.all([
+        const [productsRes, minimumsRes, readingsRes] = await Promise.all([
           getDriverProducts(driver.id_client),
           getDriverStoreMinimums(found.id_store),
+          getDriverStockReadings(found.id_store),
         ])
         setProducts(productsRes.data)
         setMinimums(minimumsRes.data)
+        setReadings(readingsRes.data)
 
         if (found.preorder) {
           const initial: Record<number, string> = {}
@@ -79,6 +84,10 @@ export default function StopDetailPage() {
     stop?.preorder?.items.forEach((item) => map.set(item.product.name, item.i_quantity))
     return map
   }, [stop])
+  const readingByProduct = useMemo(
+    () => new Map(readings.map((r) => [r.id_product, r])),
+    [readings]
+  )
 
   const total = useMemo(() => {
     return products.reduce((sum, p) => {
@@ -245,25 +254,33 @@ export default function StopDetailPage() {
             {delivered === true && (
               <>
                 <div className="space-y-2">
-                  {products.map((p) => {
-                    const debeTener = minimumByProduct.get(p.id_product)
-                    const prepedido = preorderByProductName.get(p.name)
-                    if (debeTener === undefined && prepedido === undefined) return null
+                  {readings.length === 0 && (
+                    <p className="text-xs text-muted-foreground/70 italic">
+                      El promotor todavía no ha registrado existencias en esta tienda.
+                    </p>
+                  )}
+                  {readings.map((r) => {
+                    const p = products.find((prod) => prod.id_product === r.id_product)
+                    const debeTener = minimumByProduct.get(r.id_product)
+                    const prepedido = p ? preorderByProductName.get(p.name) : undefined
                     return (
-                      <div key={p.id_product} className="rounded-lg border border-border p-3 flex items-center gap-3">
+                      <div key={r.id_product} className="rounded-lg border border-border p-3 flex items-center gap-3">
                         <div className="w-14 h-14 rounded-lg bg-muted overflow-hidden shrink-0 flex items-center justify-center">
-                          {p.vc_image ? (
-                            <img src={p.vc_image} alt={p.name} className="w-full h-full object-cover" />
+                          {r.product.vc_image ? (
+                            <img src={r.product.vc_image} alt={r.product.name} className="w-full h-full object-cover" />
                           ) : (
                             <StoreIcon size={20} className="text-muted-foreground/40" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{p.name}</p>
+                          <p className="text-sm font-medium truncate">{r.product.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {debeTener !== undefined && `Debe tener: ${debeTener}`}
-                            {debeTener !== undefined && prepedido !== undefined && ' · '}
-                            {prepedido !== undefined && `Prepedido: ${prepedido}`}
+                            Existencia: {r.i_quantity}
+                            {debeTener !== undefined && ` · Debe tener: ${debeTener}`}
+                            {prepedido !== undefined && ` · Prepedido: ${prepedido}`}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground/70">
+                            Actualizado {new Date(r.dt_register).toLocaleDateString('es-MX')}
                           </p>
                         </div>
                         <div className="shrink-0 text-center">
@@ -271,9 +288,9 @@ export default function StopDetailPage() {
                           <Input
                             type="number"
                             min={0}
-                            value={quantities[p.id_product] ?? ''}
+                            value={quantities[r.id_product] ?? ''}
                             onChange={(e) =>
-                              setQuantities((prev) => ({ ...prev, [p.id_product]: e.target.value }))
+                              setQuantities((prev) => ({ ...prev, [r.id_product]: e.target.value }))
                             }
                             className="w-16 h-9 text-center"
                           />
@@ -282,12 +299,18 @@ export default function StopDetailPage() {
                     )
                   })}
 
-                  {/* El resto del catalogo, por si deja algo que no estaba en el prepedido ni en los minimos */}
-                  <details className="text-sm">
-                    <summary className="text-muted-foreground cursor-pointer py-1">Ver todos los demás productos</summary>
-                    <div className="space-y-2 mt-2">
-                      {products
-                        .filter((p) => minimumByProduct.get(p.id_product) === undefined && preorderByProductName.get(p.name) === undefined)
+                  {/* Por si hay un prepedido de un producto que el promotor aun no ha contado en esta tienda */}
+                  {stop?.preorder?.items.some((item) => {
+                    const match = products.find((p) => p.name === item.product.name)
+                    return match && !readingByProduct.has(match.id_product)
+                  }) && (
+                    <div className="space-y-2 pt-1">
+                      <p className="text-xs font-medium text-warning-foreground dark:text-warning">
+                        Productos del prepedido sin existencia contada todavía:
+                      </p>
+                      {stop.preorder.items
+                        .map((item) => products.find((p) => p.name === item.product.name))
+                        .filter((p): p is DriverProductDTO => !!p && !readingByProduct.has(p.id_product))
                         .map((p) => (
                           <div key={p.id_product} className="rounded-lg border border-border p-3 flex items-center gap-3">
                             <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden shrink-0 flex items-center justify-center">
@@ -297,7 +320,9 @@ export default function StopDetailPage() {
                                 <StoreIcon size={18} className="text-muted-foreground/40" />
                               )}
                             </div>
-                            <span className="flex-1 text-sm truncate">{p.name}</span>
+                            <span className="flex-1 text-sm truncate">
+                              {p.name} <span className="text-xs text-muted-foreground">(Prepedido: {preorderByProductName.get(p.name)})</span>
+                            </span>
                             <Input
                               type="number"
                               min={0}
@@ -310,7 +335,7 @@ export default function StopDetailPage() {
                           </div>
                         ))}
                     </div>
-                  </details>
+                  )}
                 </div>
 
                 <div className="rounded-lg bg-primary/5 p-3 flex items-center justify-between">
