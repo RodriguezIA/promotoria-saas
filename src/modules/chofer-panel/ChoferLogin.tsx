@@ -24,7 +24,7 @@ export default function ChoferLogin() {
     try {
       const res = await driverLogin(phone.trim(), password)
       login(res.data.token, res.data.driver)
-      navigate('/chofer/mapa')
+      navigate(res.data.driver.must_change_password ? '/chofer/nueva-password' : '/chofer/mapa')
     } catch (e: any) {
       toast.error(e?.message || 'Teléfono o contraseña incorrectos')
     } finally {

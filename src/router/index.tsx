@@ -7,7 +7,7 @@ import { Maintenance } from '@/modules/maintenance'
 import { Finanzas, FinanzasActivadores, FinanzasPromotores } from '@/modules/finanzas'
 import { ConfigurarApp } from '@/modules/configuracion'
 import { Perfil, MiNegocio } from '@/modules/perfil'
-import { PrivateRoute, Login, RestorePassword } from '@/modules/auth'
+import { PrivateRoute, Login, RestorePassword, CambiarPasswordObligatorio } from '@/modules/auth'
 import { EliminarCuenta } from '@/modules/eliminar-cuenta'
 import { AvisoPrivacidad, Terminos } from '@/modules/legal'
 import { ListadoPreguntas, PreguntaDetalle } from '@/modules/preguntas'
@@ -28,6 +28,7 @@ import RutaListada from '@/modules/chofer-panel/RutaListada'
 import PerfilChofer from '@/modules/chofer-panel/Perfil'
 import StopDetailPage from '@/modules/chofer-panel/StopDetailPage'
 import NuevaTienda from '@/modules/chofer-panel/NuevaTienda'
+import CambiarPasswordChofer from '@/modules/chofer-panel/CambiarPasswordChofer'
 
 export default function AppRouter() {
   return (
@@ -35,6 +36,7 @@ export default function AppRouter() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/restore-pwd" element={<RestorePassword />} />
+        <Route path="/cambiar-password-obligatorio" element={<CambiarPasswordObligatorio />} />
         <Route path="/mantenimiento" element={<Maintenance />} />
         <Route path="/eliminar-cuenta" element={<EliminarCuenta />} />
         <Route path="/aviso-de-privacidad" element={<AvisoPrivacidad />} />
@@ -46,6 +48,7 @@ export default function AppRouter() {
           <Route path="lista" element={<RutaListada />} />
           <Route path="parada/:id_stop" element={<StopDetailPage />} />
           <Route path="nueva-tienda" element={<NuevaTienda />} />
+          <Route path="nueva-password" element={<CambiarPasswordChofer />} />
           <Route path="perfil" element={<PerfilChofer />} />
         </Route>
 

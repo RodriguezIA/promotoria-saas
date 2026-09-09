@@ -7,4 +7,5 @@ export interface User {
   id_client?: number;  // Agrega esto si lo necesitas
   dt_register: string;
   dt_updated: string;
+  must_change_password?: boolean;
 }

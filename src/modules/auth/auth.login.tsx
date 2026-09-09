@@ -77,13 +77,13 @@ export function Login() {
       // persona no tiene que saber de antemano cual es su tipo de cuenta.
       const response = await loginUser(phone.trim(), password);
       authstore.login(response.data.token, response.data.user);
-      navigate("/");
+      navigate(response.data.user.must_change_password ? "/cambiar-password-obligatorio" : "/");
       return;
     } catch (adminError) {
       try {
         const driverResponse = await driverLogin(phone.trim(), password);
         driverLoginStore(driverResponse.data.token, driverResponse.data.driver);
-        navigate("/chofer/mapa");
+        navigate(driverResponse.data.driver.must_change_password ? "/chofer/nueva-password" : "/chofer/mapa");
         return;
       } catch (driverError) {
         console.error(adminError, driverError);

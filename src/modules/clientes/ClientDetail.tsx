@@ -254,10 +254,12 @@ function TabInfo({ cliente }: { cliente: ClientDTO | null }) {
 
 function TabUsers({ cliente }: { cliente: ClientDTO | null }) {
   const { user } = useAuthStore();
+  const isMaster = user?.i_rol === 1;
   const [isLoadingModal, setIsLoadingModal] = useState(false);
   const [users, setUsers] = useState<UsuarioDTO[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [errorUsers, setErrorUsers] = useState<string | null>(null);
+  const [resettingId, setResettingId] = useState<number | null>(null);
 
   const nombreRef = useRef<HTMLInputElement>(null);
   const apellidosRef = useRef<HTMLInputElement>(null);
@@ -280,6 +282,18 @@ function TabUsers({ cliente }: { cliente: ClientDTO | null }) {
   useEffect(() => {
     fetchUsers();
   }, [cliente?.id_client]);
+
+  const handleResetPassword = async (id_user: number) => {
+    setResettingId(id_user);
+    try {
+      await api.patch<ApiResponse<null>>(`/admin/users/${id_user}/reset-password`, {});
+      toast.success("Contraseña restablecida a 1234");
+    } catch (err: any) {
+      toast.error(err?.message || "Error al restablecer la contraseña");
+    } finally {
+      setResettingId(null);
+    }
+  };
 
   const handleSaveUser = async (): Promise<boolean> => {
     setIsLoadingModal(true);
@@ -368,7 +382,7 @@ function TabUsers({ cliente }: { cliente: ClientDTO | null }) {
                 <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Rol</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Estado</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Registro</th>
-                {/* <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Acciones</th> */}
+                {isMaster && <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Operaciones</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -417,11 +431,17 @@ function TabUsers({ cliente }: { cliente: ClientDTO | null }) {
                         day: "numeric",
                       })}
                     </td>
-                    {/* <td className="px-4 py-3 text-right">
-                      <button className="p-2 hover:bg-accent rounded-lg">
-                        <MoreVertical size={16} className="text-muted-foreground" />
-                      </button>
-                    </td> */}
+                    {isMaster && (
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => handleResetPassword(u.id_user)}
+                          disabled={resettingId === u.id_user}
+                          className="text-sm text-primary hover:underline disabled:opacity-50"
+                        >
+                          {resettingId === u.id_user ? "Restableciendo..." : "Restablecer contraseña"}
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}
@@ -539,6 +559,7 @@ function TabDrivers({ cliente }: { cliente: any | null }) {
   const [drivers, setDrivers] = useState<DriverDTO[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resettingId, setResettingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!cliente?.id_client) return;
@@ -549,6 +570,18 @@ function TabDrivers({ cliente }: { cliente: any | null }) {
       .catch((err: any) => setError(err?.message || "Error al cargar los choferes"))
       .finally(() => setLoading(false));
   }, [cliente?.id_client]);
+
+  const handleResetPassword = async (id_driver: number) => {
+    setResettingId(id_driver);
+    try {
+      await api.patch<ApiResponse<null>>(`/drivers/${id_driver}/reset-password`, {});
+      toast.success("Contraseña restablecida a 1234");
+    } catch (err: any) {
+      toast.error(err?.message || "Error al restablecer la contraseña");
+    } finally {
+      setResettingId(null);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -582,12 +615,13 @@ function TabDrivers({ cliente }: { cliente: any | null }) {
                 <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Correo</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Estado</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Alta</th>
+                <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Operaciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {drivers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  <td colSpan={6} className="px-4 py-10 text-center text-sm text-muted-foreground">
                     Este cliente todavía no tiene choferes registrados
                   </td>
                 </tr>
@@ -638,6 +672,15 @@ function TabDrivers({ cliente }: { cliente: any | null }) {
                         month: "short",
                         day: "numeric",
                       })}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => handleResetPassword(d.id_driver)}
+                        disabled={resettingId === d.id_driver}
+                        className="text-sm text-primary hover:underline disabled:opacity-50"
+                      >
+                        {resettingId === d.id_driver ? "Restableciendo..." : "Restablecer contraseña"}
+                      </button>
                     </td>
                   </tr>
                 ))

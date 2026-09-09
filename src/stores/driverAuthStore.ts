@@ -8,6 +8,7 @@ export interface DriverProfile {
   phone: string;
   email: string | null;
   vc_photo: string | null;
+  must_change_password?: boolean;
 }
 
 interface DriverAuthState {
