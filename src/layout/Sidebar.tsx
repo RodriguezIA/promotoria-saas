@@ -59,6 +59,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         { route: "/promotores", icon: Users, label: "Promotores", show: isAdmin },
         { route: "/productos", icon: Package, label: "Productos", show: isAdmin || isNegocio },
         { route: "/establecimientos", icon: Store, label: "Establecimientos", show: isAdmin },
+        { route: "/canales-venta", icon: CreditCard, label: "Canales de venta", show: isAdmin },
         { route: "/preguntas", icon: MessageCircleQuestion, label: "Preguntas", show: isAdmin },
       ],
     },

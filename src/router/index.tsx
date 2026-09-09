@@ -17,6 +17,7 @@ import { TareasListado, TareaDetalle } from '@/modules/tareas'
 import { PromotoresList, PromoterDetalle } from '@/modules/promotores'
 import { ProductPage, ProductoDetalle, ProductoForm } from '@/modules/productos'
 import { Establecimientos, Establecimiento, EstablecimientoDetalle } from '@/modules/establecimientos'
+import CanalesVenta from '@/modules/canales-venta/CanalesVenta'
 import { Mapa, AsignarMinimos } from '@/modules/mapa'
 import { MisPrepedidos } from '@/modules/prepedidos'
 import { Choferes } from '@/modules/choferes'
@@ -67,6 +68,7 @@ export default function AppRouter() {
           <Route path="producto/:id_product" element={<ProductoForm />} />
           <Route path="producto/detalle/:id_product" element={<ProductoDetalle />} />
           <Route path="establecimientos" element={<Establecimientos />} />
+          <Route path="canales-venta" element={<CanalesVenta />} />
           <Route path="establecimiento" element={<Establecimiento />} />
           <Route path="establecimiento/:id_store" element={<Establecimiento />} />
           <Route path="establecimiento/detalle/:id_store_client" element={<EstablecimientoDetalle />} />
