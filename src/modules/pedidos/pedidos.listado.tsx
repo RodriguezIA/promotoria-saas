@@ -296,6 +296,7 @@ export function PedidosList() {
           isLoading={loading}
           emptyMessage="No hay pedidos registrados para este cliente."
           pagination={{ pageSize: 100 }}
+          responsive={{ enabled: false }}
         />
       </div>
     </PageWrapper>
