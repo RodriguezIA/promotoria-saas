@@ -104,7 +104,7 @@ export function PedidosList() {
       header: "# Pedido",
       cell: ({ row }) => (
         <span className="font-bold text-foreground">
-          #{String(row.getValue<number>("id_order")).padStart(4, "0")}
+          #{String(row.original.id_order).padStart(4, "0")}
         </span>
       ),
     },
@@ -148,7 +148,7 @@ export function PedidosList() {
       header: "Total",
       cell: ({ row }) => (
         <span className="font-semibold text-success">
-          {formatCurrency(Number(row.getValue("f_total")))}
+          {formatCurrency(Number(row.original.f_total))}
         </span>
       ),
     },
@@ -156,7 +156,7 @@ export function PedidosList() {
       accessorKey: "dt_register",
       header: "Fecha",
       cell: ({ row }) => (
-        <span className="text-muted-foreground">{formatDate(row.getValue("dt_register"))}</span>
+        <span className="text-muted-foreground">{formatDate(row.original.dt_register)}</span>
       ),
     },
     {
@@ -307,7 +307,6 @@ export function PedidosList() {
           isLoading={loading}
           emptyMessage="No hay pedidos registrados para este cliente."
           pagination={{ pageSize: 100 }}
-          responsive={{ enabled: false }}
         />
       </div>
     </PageWrapper>
