@@ -1,9 +1,9 @@
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
-import { Loader2, Settings, UploadCloud, Video, Trash2, Save } from "lucide-react"
+import { Loader2, Settings, UploadCloud, Video, Trash2, Save, MessageSquareText } from "lucide-react"
 
-import { getLoginVideo, uploadLoginVideo, removeLoginVideo } from "@/Fetch/appConfig"
-import { Button, PageWrapper, PageHeader } from "@/components"
+import { getLoginVideo, uploadLoginVideo, removeLoginVideo, getTaskInstructions, setTaskInstructions } from "@/Fetch/appConfig"
+import { Button, PageWrapper, PageHeader, Textarea } from "@/components"
 
 export default function ConfigurarApp() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -12,10 +12,16 @@ export default function ConfigurarApp() {
   const [subiendo, setSubiendo] = useState(false);
   const [quitando, setQuitando] = useState(false);
 
+  const [instrucciones, setInstrucciones] = useState("");
+  const [guardandoInstrucciones, setGuardandoInstrucciones] = useState(false);
+
   const cargar = () => {
     setLoading(true);
-    getLoginVideo()
-      .then((res) => { if (res.ok) setVideoUrl(res.data.url); })
+    Promise.all([getLoginVideo(), getTaskInstructions()])
+      .then(([videoRes, instruccionesRes]) => {
+        if (videoRes.ok) setVideoUrl(videoRes.data.url);
+        if (instruccionesRes.ok) setInstrucciones(instruccionesRes.data.value);
+      })
       .catch(() => toast.error("Error al cargar la configuración"))
       .finally(() => setLoading(false));
   };
@@ -63,6 +69,22 @@ export default function ConfigurarApp() {
       toast.error(e?.message || "Error al quitar el video");
     } finally {
       setQuitando(false);
+    }
+  };
+
+  const handleGuardarInstrucciones = async () => {
+    if (!instrucciones.trim()) {
+      toast.error("El texto no puede quedar vacío");
+      return;
+    }
+    setGuardandoInstrucciones(true);
+    try {
+      await setTaskInstructions(instrucciones.trim());
+      toast.success("Texto actualizado exitosamente");
+    } catch (e: any) {
+      toast.error(e?.message || "Error al guardar el texto");
+    } finally {
+      setGuardandoInstrucciones(false);
     }
   };
 
@@ -134,6 +156,25 @@ export default function ConfigurarApp() {
               Quitar video (usar fondo por defecto)
             </Button>
           )}
+        </div>
+
+        <div className="rounded-xl border p-5 space-y-4" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+          <div className="flex items-center gap-2">
+            <MessageSquareText className="w-5 h-5 text-info" />
+            <h3 className="font-semibold text-foreground">Instrucciones al aceptar una tarea</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            El promotor ve este texto justo después de aceptar una tarea. Usa <code className="px-1 py-0.5 rounded bg-muted text-foreground">{'{tienda}'}</code> donde quieras que aparezca el nombre de la tienda.
+          </p>
+          <Textarea
+            value={instrucciones}
+            onChange={(e) => setInstrucciones(e.target.value)}
+            rows={4}
+          />
+          <Button onClick={handleGuardarInstrucciones} disabled={guardandoInstrucciones}>
+            {guardandoInstrucciones ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+            Guardar texto
+          </Button>
         </div>
       </div>
     </PageWrapper>

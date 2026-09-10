@@ -15,3 +15,14 @@ export const uploadLoginVideo = (file: File) => {
 
 export const removeLoginVideo = () =>
   api.delete<ApiResponse<AppConfigVideo>>(`/app-config/login-video`);
+
+export interface TaskInstructionsSetting {
+  key: string;
+  value: string;
+}
+
+export const getTaskInstructions = () =>
+  api.get<ApiResponse<TaskInstructionsSetting>>(`/app-config/task-instructions`);
+
+export const setTaskInstructions = (value: string) =>
+  api.put<ApiResponse<TaskInstructionsSetting>>(`/app-config/task-instructions`, { value });
