@@ -22,6 +22,9 @@ export interface OrderDTO {
     /** Cuantas tareas de este pedido estan por autorizar (el promotor ya
      * las termino, esperando que el cliente las revise). */
     i_pending_authorization?: number
+    /** Estatus resumen derivado de las tareas del pedido: Pendientes,
+     * En progreso, Completadas, Finalizadas, Cancelado o Rechazado. */
+    vc_tasks_status?: string
 }
 
 export interface OrderLogDTO {
