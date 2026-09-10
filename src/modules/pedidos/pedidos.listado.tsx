@@ -2,12 +2,19 @@ import { toast } from "sonner"
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ColumnDef } from '@tanstack/react-table'
-import { Loader2, Receipt, Plus, Eye } from 'lucide-react'
+import { Loader2, Receipt, Plus, Eye, Clock, Truck, CheckCircle2, PartyPopper } from 'lucide-react'
 
 import { useAuthStore } from '@/stores'
 import { ClientDTO, OderListDTO, OrderDTO } from '@/dtos'
 import { api, ApiResponse, formatDate } from '@/lib'
 import { Button, DataTable, RowActions, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, PageHeader, PageWrapper } from '@/components'
+
+interface TaskStatusSummary {
+  pendientes: number;
+  en_progreso: number;
+  completadas: number;
+  finalizadas: number;
+}
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(value)
@@ -23,6 +30,8 @@ export function PedidosList() {
   const [clientes, setClientes] = useState<ClientDTO[]>([]);
   const [loadingClientes, setLoadingClientes] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+  const [statusSummary, setStatusSummary] = useState<TaskStatusSummary | null>(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
 
   useEffect(() => {
     if (isSuperAdmin) {
@@ -39,6 +48,7 @@ export function PedidosList() {
       return;
     }
     fetchPedidos(selectedClientId);
+    fetchStatusSummary(selectedClientId);
   }, [selectedClientId]);
 
   const fetchClientes = async () => {
@@ -64,6 +74,18 @@ export function PedidosList() {
       toast.error("Error al cargar los pedidos");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStatusSummary = async (clientId: number) => {
+    try {
+      setLoadingSummary(true);
+      const resp = await api.get<ApiResponse<TaskStatusSummary>>(`/tasks/status-summary?id_client=${clientId}`);
+      setStatusSummary(resp.data);
+    } catch {
+      // Silencioso: si falla, simplemente no se muestran las tarjetas de resumen.
+    } finally {
+      setLoadingSummary(false);
     }
   };
 
@@ -207,6 +229,47 @@ export function PedidosList() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+      )}
+
+      {statusSummary && !loadingSummary && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="p-4 rounded-xl border flex items-center gap-3" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+              <Clock size={18} className="text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{statusSummary.pendientes}</p>
+              <p className="text-xs text-muted-foreground">Pendientes</p>
+            </div>
+          </div>
+          <div className="p-4 rounded-xl border flex items-center gap-3" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+            <div className="w-10 h-10 rounded-full bg-info/10 flex items-center justify-center shrink-0">
+              <Truck size={18} className="text-info" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{statusSummary.en_progreso}</p>
+              <p className="text-xs text-muted-foreground">En progreso</p>
+            </div>
+          </div>
+          <div className="p-4 rounded-xl border flex items-center gap-3" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+            <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center shrink-0">
+              <CheckCircle2 size={18} className="text-warning-foreground dark:text-warning" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{statusSummary.completadas}</p>
+              <p className="text-xs text-muted-foreground">Completadas</p>
+            </div>
+          </div>
+          <div className="p-4 rounded-xl border flex items-center gap-3" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+            <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center shrink-0">
+              <PartyPopper size={18} className="text-success" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{statusSummary.finalizadas}</p>
+              <p className="text-xs text-muted-foreground">Finalizadas</p>
+            </div>
+          </div>
         </div>
       )}
 
