@@ -1,6 +1,6 @@
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
-import { Loader2, Settings, Clock, PackagePlus, Percent } from "lucide-react"
+import { Loader2, Settings, Clock, PackagePlus, Percent, ShoppingBag } from "lucide-react"
 
 import { getTaskSettings, updateTaskSettings, updatePreorderPricing } from "@/Fetch/taskSettings"
 import { getFinanceSettings, updateFinanceSettings } from "@/Fetch/financeSettings"
@@ -13,6 +13,7 @@ interface Props {
 
 export function ModalConfigFinanzas({ open, onClose }: Props) {
   const [horas, setHoras] = useState("24");
+  const [horasCierrePedido, setHorasCierrePedido] = useState("24");
   const [prepedidoTipo, setPrepedidoTipo] = useState<'FIXED' | 'PERCENTAGE'>('FIXED');
   const [prepedidoValor, setPrepedidoValor] = useState("0");
   const [comisionPromotor, setComisionPromotor] = useState("0");
@@ -27,6 +28,7 @@ export function ModalConfigFinanzas({ open, onClose }: Props) {
       .then(([taskRes, financeRes]) => {
         if (taskRes.ok) {
           setHoras(String(taskRes.data.i_review_timeout_hours));
+          setHorasCierrePedido(String(taskRes.data.i_order_auto_close_hours ?? 24));
           setPrepedidoTipo(taskRes.data.preorder_pricing_type ?? 'FIXED');
           setPrepedidoValor(String(taskRes.data.preorder_pricing_value ?? 0));
         }
@@ -43,6 +45,11 @@ export function ModalConfigFinanzas({ open, onClose }: Props) {
     const horasNum = Number(horas);
     if (!horas || isNaN(horasNum) || horasNum < 1 || horasNum > 720) {
       toast.error("Indica un número de horas entre 1 y 720");
+      return;
+    }
+    const horasCierreNum = Number(horasCierrePedido);
+    if (!horasCierrePedido || isNaN(horasCierreNum) || horasCierreNum < 1 || horasCierreNum > 720) {
+      toast.error("Indica un número de horas entre 1 y 720 para el cierre automático de pedidos");
       return;
     }
     const valorNum = Number(prepedidoValor);
@@ -62,7 +69,7 @@ export function ModalConfigFinanzas({ open, onClose }: Props) {
     }
     setGuardando(true);
     try {
-      await updateTaskSettings(horasNum);
+      await updateTaskSettings(horasNum, horasCierreNum);
       await updatePreorderPricing(prepedidoTipo, valorNum);
       await updateFinanceSettings({
         f_promoter_commission_percentage: comisionPromotorNum,
@@ -108,6 +115,24 @@ export function ModalConfigFinanzas({ open, onClose }: Props) {
               />
               <p className="text-xs text-muted-foreground">
                 Si el cliente no acepta ni rechaza una tarea en este tiempo, el sistema la aprueba automáticamente.
+              </p>
+            </div>
+
+            <div className="space-y-2 pt-3 border-t border-border">
+              <Label htmlFor="horas-cierre-pedido" className="text-sm font-medium flex items-center gap-1.5">
+                <ShoppingBag className="w-4 h-4" />
+                Horas para que un pedido se cierre solo
+              </Label>
+              <Input
+                id="horas-cierre-pedido"
+                type="number"
+                min="1"
+                max="720"
+                value={horasCierrePedido}
+                onChange={(e) => setHorasCierrePedido(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Si el cliente no cierra un pedido en este tiempo, el sistema lo cierra solo y cancela las tareas que nadie tomó (para que dejen de mandar notificación).
               </p>
             </div>
 
