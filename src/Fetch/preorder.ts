@@ -23,7 +23,7 @@ export interface PreorderDTO {
     task: {
         id_task: number
         vc_folio: string | null
-        store: { id_store: number; name: string }
+        store: { id_store: number; name: string; city?: string | null; state?: string | null }
         promoter: { id: number; name: string; lastname: string | null } | null
     }
 }

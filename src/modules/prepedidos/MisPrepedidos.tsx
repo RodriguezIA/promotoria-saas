@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
-import { Loader2, Store, Calendar, Sun, Moon, User, ExternalLink, PackageCheck, PackageX } from "lucide-react"
+import { Loader2, Store, Calendar, Sun, Moon, User, ExternalLink, PackageCheck, PackageX, Download, Filter, X } from "lucide-react"
 
 import { useAuthStore } from "@/stores"
-import { PageWrapper, PageHeader, Badge, Button } from "@/components"
+import { PageWrapper, PageHeader, Badge, Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components"
 import { getPreordersByClient, updatePreorderStatus, PreorderDTO } from "@/Fetch/preorder"
 
 const TIME_LABEL: Record<string, string> = { MAÑANA: 'Por la mañana', TARDE: 'Por la tarde' }
@@ -13,6 +13,13 @@ export default function MisPrepedidos() {
   const [preorders, setPreorders] = useState<PreorderDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState<number | null>(null)
+  const [exporting, setExporting] = useState(false)
+
+  const [fechaDesde, setFechaDesde] = useState("")
+  const [fechaHasta, setFechaHasta] = useState("")
+  const [surtidoFilter, setSurtidoFilter] = useState<"todos" | "surtido" | "sin_surtir">("todos")
+  const [estadoFilter, setEstadoFilter] = useState<string>("todos")
+  const [municipioFilter, setMunicipioFilter] = useState<string>("todos")
 
   useEffect(() => {
     if (!user?.id_client) return
@@ -22,6 +29,65 @@ export default function MisPrepedidos() {
       .catch(() => toast.error("Error al cargar tus prepedidos"))
       .finally(() => setLoading(false))
   }, [user?.id_client])
+
+  const estadosDisponibles = useMemo(
+    () => [...new Set(preorders.map((p) => p.task.store.state).filter((s): s is string => !!s))].sort(),
+    [preorders]
+  )
+  const municipiosDisponibles = useMemo(
+    () => [...new Set(preorders.map((p) => p.task.store.city).filter((c): c is string => !!c))].sort(),
+    [preorders]
+  )
+
+  const filteredPreorders = useMemo(() => {
+    return preorders.filter((p) => {
+      if (fechaDesde && p.preferred_date < fechaDesde) return false;
+      if (fechaHasta && p.preferred_date > fechaHasta) return false;
+      if (surtidoFilter === "surtido" && p.id_status !== 1) return false;
+      if (surtidoFilter === "sin_surtir" && p.id_status !== 0) return false;
+      if (estadoFilter !== "todos" && p.task.store.state !== estadoFilter) return false;
+      if (municipioFilter !== "todos" && p.task.store.city !== municipioFilter) return false;
+      return true;
+    });
+  }, [preorders, fechaDesde, fechaHasta, surtidoFilter, estadoFilter, municipioFilter]);
+
+  const hayFiltrosActivos = fechaDesde || fechaHasta || surtidoFilter !== "todos" || estadoFilter !== "todos" || municipioFilter !== "todos";
+
+  const limpiarFiltros = () => {
+    setFechaDesde("");
+    setFechaHasta("");
+    setSurtidoFilter("todos");
+    setEstadoFilter("todos");
+    setMunicipioFilter("todos");
+  };
+
+  const handleExportExcel = async () => {
+    setExporting(true);
+    try {
+      const XLSX = await import("xlsx");
+      const rows = filteredPreorders.map((p) => ({
+        Folio: p.task.vc_folio ?? "",
+        Tienda: p.task.store.name,
+        Estado: p.task.store.state ?? "",
+        Municipio: p.task.store.city ?? "",
+        "Fecha preferida": new Date(p.preferred_date).toLocaleDateString("es-MX"),
+        Turno: TIME_LABEL[p.preferred_time] ?? p.preferred_time,
+        Estatus: p.id_status === 1 ? "Surtido" : "Sin surtir",
+        Promotor: p.task.promoter ? `${p.task.promoter.name} ${p.task.promoter.lastname ?? ""}`.trim() : "",
+        "WhatsApp encargado": p.manager_whatsapp,
+        Productos: p.items.map((i) => `${i.i_quantity} ${i.product.name}`).join(", "),
+      }));
+      const sheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, sheet, "Prepedidos");
+      const fecha = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(workbook, `prepedidos_${fecha}.xlsx`);
+    } catch {
+      toast.error("Error al exportar a Excel");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleToggleStatus = async (p: PreorderDTO) => {
     const nuevoEstatus = p.id_status === 1 ? 0 : 1
@@ -44,24 +110,95 @@ export default function MisPrepedidos() {
       <PageHeader
         title="Mis Prepedidos"
         subtitle="Pedidos que tus promotores levantaron con los encargados de tienda por faltantes de inventario"
+        actions={
+          <Button onClick={handleExportExcel} disabled={exporting || filteredPreorders.length === 0} variant="outline">
+            {exporting ? <Loader2 size={16} className="mr-2 animate-spin" /> : <Download size={16} className="mr-2" />}
+            Exportar a Excel
+          </Button>
+        }
       />
+
+      <div className="rounded-xl border border-border bg-white p-4 mb-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Filter size={16} className="text-muted-foreground" />
+          <span className="text-sm font-medium text-foreground">Filtros</span>
+          {hayFiltrosActivos && (
+            <button
+              onClick={limpiarFiltros}
+              className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <X size={12} /> Limpiar filtros
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Desde</label>
+            <Input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Hasta</label>
+            <Input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Surtido</label>
+            <Select value={surtidoFilter} onValueChange={(v) => setSurtidoFilter(v as typeof surtidoFilter)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="surtido">Ya surtido</SelectItem>
+                <SelectItem value="sin_surtir">Sin surtir</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Estado</label>
+            <Select value={estadoFilter} onValueChange={setEstadoFilter}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {estadosDisponibles.map((e) => (
+                  <SelectItem key={e} value={e}>{e}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Municipio</label>
+            <Select value={municipioFilter} onValueChange={setMunicipioFilter}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {municipiosDisponibles.map((m) => (
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="animate-spin text-muted-foreground" size={28} />
         </div>
-      ) : preorders.length === 0 ? (
+      ) : filteredPreorders.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
-          Todavía no hay ningún prepedido levantado.
+          {preorders.length === 0 ? "Todavía no hay ningún prepedido levantado." : "Ningún prepedido coincide con estos filtros."}
         </div>
       ) : (
         <div className="space-y-4 max-w-4xl">
-          {preorders.map((p) => (
+          {filteredPreorders.map((p) => (
             <div key={p.id_preorder} className="rounded-xl border border-border bg-white p-5">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                 <div className="flex items-center gap-2">
                   <Store size={18} className="text-muted-foreground" />
                   <span className="font-bold text-foreground">{p.task.store.name}</span>
+                  {(p.task.store.city || p.task.store.state) && (
+                    <span className="text-xs text-muted-foreground">
+                      ({[p.task.store.city, p.task.store.state].filter(Boolean).join(", ")})
+                    </span>
+                  )}
                   {p.task.vc_folio && (
                     <Badge variant="outline" className="text-xs">{p.task.vc_folio}</Badge>
                   )}
