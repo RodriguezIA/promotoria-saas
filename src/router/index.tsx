@@ -10,6 +10,7 @@ import { Perfil, MiNegocio } from '@/modules/perfil'
 import { PrivateRoute, Login, RestorePassword, CambiarPasswordObligatorio } from '@/modules/auth'
 import { EliminarCuenta } from '@/modules/eliminar-cuenta'
 import { AvisoPrivacidad, Terminos } from '@/modules/legal'
+import { InvitacionPromotor } from '@/modules/invitacion/InvitacionPromotor'
 import { ListadoPreguntas, PreguntaDetalle } from '@/modules/preguntas'
 import { Clientes, ClienteDetalle, CrearCliente } from '@/modules/clientes'
 import { CrearPedido, PedidoDetalle, PedidosList } from '@/modules/pedidos'
@@ -42,6 +43,7 @@ export default function AppRouter() {
         <Route path="/eliminar-cuenta" element={<EliminarCuenta />} />
         <Route path="/aviso-de-privacidad" element={<AvisoPrivacidad />} />
         <Route path="/terminos" element={<Terminos />} />
+        <Route path="/registro" element={<InvitacionPromotor />} />
 
         <Route path="/chofer/login" element={<ChoferLogin />} />
         <Route path="/chofer" element={<ChoferLayout />}>
