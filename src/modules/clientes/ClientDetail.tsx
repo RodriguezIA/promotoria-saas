@@ -1,7 +1,7 @@
 import { toast } from "sonner"
 import { Link, useParams } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
-import { ArrowLeft, Mail, MapPin, Package, Camera, Clock, AlertCircle, Loader2, Truck, Phone, Image } from "lucide-react"
+import { ArrowLeft, Mail, MapPin, Package, Camera, Clock, AlertCircle, Loader2, Truck, Phone } from "lucide-react"
 
 
 import { useAuthStore } from "@/stores"
@@ -19,6 +19,8 @@ export default function ClienteDetalle() {
     const [imageHover, setImageHover] = useState(false);
     const [cliente, setCliente] = useState<ClientDTO | null>(null);
     const [initials, setInitials] = useState("");
+    const [logoUrl, setLogoUrl] = useState<string | null>(null);
+    const [uploadingLogo, setUploadingLogo] = useState(false);
 
     useEffect(() => {
         const fetchingData = async() => {
@@ -32,7 +34,28 @@ export default function ClienteDetalle() {
             }
         };
         fetchingData();
+        api.get<ApiResponse<{ url: string | null }>>(`/clients/${id}/logo`)
+            .then((res) => setLogoUrl(res.data?.url ?? null))
+            .catch(() => {});
     }, []);
+
+    const handleLogoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !id) return;
+        setUploadingLogo(true);
+        try {
+            const fd = new FormData();
+            fd.append("file", file);
+            const res = await api.upload<ApiResponse<{ url: string }>>(`/clients/${id}/logo`, fd);
+            setLogoUrl(res.data.url);
+            toast.success("Logo actualizado exitosamente");
+        } catch (err: any) {
+            toast.error(err?.message || "Error al subir el logo");
+        } finally {
+            setUploadingLogo(false);
+            e.target.value = "";
+        }
+    };
 
     return (
         <div className="min-h-screen bg-muted/50">
@@ -68,27 +91,38 @@ export default function ClienteDetalle() {
 
                 <div className="px-6 pb-6 pt-6">
                     <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-16">
-                        <div
-                            className="relative"
+                        <label
+                            className="relative cursor-pointer"
                             onMouseEnter={() => setImageHover(true)}
                             onMouseLeave={() => setImageHover(false)}
                         >
                             <div className="w-32 h-32 bg-white rounded-2xl border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
-                                <div className="w-full h-full bg-primary flex items-center justify-center">
-                                    <span className="text-4xl font-semibold text-white">
-                                        {initials}
-                                    </span>
-                                </div>
+                                {logoUrl ? (
+                                    <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full bg-primary flex items-center justify-center">
+                                        <span className="text-4xl font-semibold text-white">
+                                            {initials}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
-                            {imageHover && (
+                            {(imageHover || uploadingLogo) && (
                                 <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center cursor-pointer transition-opacity">
                                     <div className="text-center text-white">
-                                        <Camera size={24} className="mx-auto mb-1" />
-                                        <span className="text-xs">Cambiar foto</span>
+                                        {uploadingLogo ? (
+                                            <Loader2 size={24} className="mx-auto animate-spin" />
+                                        ) : (
+                                            <>
+                                                <Camera size={24} className="mx-auto mb-1" />
+                                                <span className="text-xs">{logoUrl ? "Cambiar logo" : "Subir logo"}</span>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             )}
-                        </div>
+                            <input type="file" accept="image/*" className="hidden" onChange={handleLogoFile} disabled={uploadingLogo} />
+                        </label>
                         {/* Name and Status */}
                         <div className="flex-1 md:mb-2 md:pt-4">
                             <div className="flex items-center gap-3 flex-wrap">
@@ -225,8 +259,6 @@ function TabInfo({ cliente }: { cliente: ClientDTO | null }) {
 
       {/* Columna Lateral */}
       <div className="space-y-6">
-        <ClientLogoCard idClient={cliente?.id_client} />
-
         {/* Fechas */}
         <div className="p-4 bg-muted/50 rounded-lg space-y-4">
           <h3 className="font-semibold text-foreground flex items-center gap-2">
@@ -691,66 +723,6 @@ function TabDrivers({ cliente }: { cliente: any | null }) {
           </table>
         </div>
       )}
-    </div>
-  );
-}
-
-function ClientLogoCard({ idClient }: { idClient?: number }) {
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-
-  useEffect(() => {
-    if (!idClient) return;
-    setLoading(true);
-    api.get<ApiResponse<{ url: string | null }>>(`/clients/${idClient}/logo`)
-      .then((res) => setLogoUrl(res.data?.url ?? null))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [idClient]);
-
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !idClient) return;
-    setUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await api.upload<ApiResponse<{ url: string }>>(`/clients/${idClient}/logo`, fd);
-      setLogoUrl(res.data.url);
-      toast.success("Logo actualizado exitosamente");
-    } catch (err: any) {
-      toast.error(err?.message || "Error al subir el logo");
-    } finally {
-      setUploading(false);
-      e.target.value = "";
-    }
-  };
-
-  return (
-    <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-      <h3 className="font-semibold text-foreground flex items-center gap-2">
-        <Image size={18} className="text-muted-foreground/70" />
-        Logo de marca
-      </h3>
-      <p className="text-xs text-muted-foreground">
-        Se muestra en la app del promotor al ofrecer una tarea de este cliente.
-      </p>
-      <div className="flex items-center gap-3">
-        <div className="w-16 h-16 rounded-full bg-white border border-border overflow-hidden flex items-center justify-center shrink-0">
-          {loading ? (
-            <Loader2 size={18} className="animate-spin text-muted-foreground/50" />
-          ) : logoUrl ? (
-            <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
-          ) : (
-            <Image size={20} className="text-muted-foreground/40" />
-          )}
-        </div>
-        <label className="text-sm text-primary hover:underline cursor-pointer">
-          {uploading ? "Subiendo..." : logoUrl ? "Cambiar logo" : "Subir logo"}
-          <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading || !idClient} />
-        </label>
-      </div>
     </div>
   );
 }

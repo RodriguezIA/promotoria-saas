@@ -39,6 +39,9 @@ export function MiNegocio() {
   const [activeTab, setActiveTab] = useState("info");
   const [cliente, setCliente] = useState<clientDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoHover, setLogoHover] = useState(false);
 
   useEffect(() => {
     if (!user?.id_client) return;
@@ -46,7 +49,28 @@ export function MiNegocio() {
       .then((res) => setCliente(res.data))
       .catch(() => toast.error("Error al cargar la información del negocio"))
       .finally(() => setLoading(false));
+    api.get<ApiResponse<{ url: string | null }>>(`/clients/${user.id_client}/logo`)
+      .then((res) => setLogoUrl(res.data?.url ?? null))
+      .catch(() => {});
   }, [user?.id_client]);
+
+  const handleLogoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.id_client) return;
+    setUploadingLogo(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await api.upload<ApiResponse<{ url: string }>>(`/clients/${user.id_client}/logo`, fd);
+      setLogoUrl(res.data.url);
+      toast.success("Logo actualizado exitosamente");
+    } catch (err: any) {
+      toast.error(err?.message || "Error al subir el logo");
+    } finally {
+      setUploadingLogo(false);
+      e.target.value = "";
+    }
+  };
 
   if (loading)
     return (
@@ -85,14 +109,35 @@ export function MiNegocio() {
           <div className="px-6 pb-6 pt-6">
             <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-16">
 
-              {/* Avatar */}
-              <div className="w-32 h-32 bg-white rounded-2xl border-4 border-white shadow-lg flex items-center justify-center overflow-hidden shrink-0">
-                <div className="w-full h-full bg-primary flex items-center justify-center">
-                  <span className="text-4xl font-semibold text-white">
-                    {getInitials(cliente.name)}
-                  </span>
-                </div>
-              </div>
+              {/* Avatar / Logo */}
+              <label
+                className="relative w-32 h-32 bg-white rounded-2xl border-4 border-white shadow-lg flex items-center justify-center overflow-hidden shrink-0 cursor-pointer"
+                onMouseEnter={() => setLogoHover(true)}
+                onMouseLeave={() => setLogoHover(false)}
+              >
+                {logoUrl ? (
+                  <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-primary flex items-center justify-center">
+                    <span className="text-4xl font-semibold text-white">
+                      {getInitials(cliente.name)}
+                    </span>
+                  </div>
+                )}
+                {(logoHover || uploadingLogo) && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-center">
+                    {uploadingLogo ? (
+                      <Loader2 size={22} className="animate-spin" />
+                    ) : (
+                      <div>
+                        <Image size={22} className="mx-auto mb-1" />
+                        <span className="text-xs">{logoUrl ? "Cambiar logo" : "Subir logo"}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                <input type="file" accept="image/*" className="hidden" onChange={handleLogoFile} disabled={uploadingLogo} />
+              </label>
 
               {/* Nombre + estado */}
               <div className="flex-1 md:mb-2 md:pt-4">
@@ -281,8 +326,6 @@ function TabInfo({ cliente }: { cliente: clientDetail }) {
             </button>
           </div>
         </div>
-
-        <ClientOwnLogoCard idClient={cliente.id_client} />
       </div>
     </div>
   );
@@ -512,66 +555,6 @@ function TabHistory() {
             </div>
           );
         })}
-      </div>
-    </div>
-  );
-}
-
-function ClientOwnLogoCard({ idClient }: { idClient: number }) {
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-
-  useEffect(() => {
-    if (!idClient) return;
-    setLoading(true);
-    api.get<ApiResponse<{ url: string | null }>>(`/clients/${idClient}/logo`)
-      .then((res) => setLogoUrl(res.data?.url ?? null))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [idClient]);
-
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !idClient) return;
-    setUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await api.upload<ApiResponse<{ url: string }>>(`/clients/${idClient}/logo`, fd);
-      setLogoUrl(res.data.url);
-      toast.success("Logo actualizado exitosamente");
-    } catch (err: any) {
-      toast.error(err?.message || "Error al subir el logo");
-    } finally {
-      setUploading(false);
-      e.target.value = "";
-    }
-  };
-
-  return (
-    <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-      <h3 className="font-semibold text-foreground flex items-center gap-2">
-        <Image size={16} className="text-muted-foreground/70" />
-        Logo de tu marca
-      </h3>
-      <p className="text-xs text-muted-foreground">
-        Se muestra en la app del promotor al ofrecer una tarea de tu negocio.
-      </p>
-      <div className="flex items-center gap-3">
-        <div className="w-16 h-16 rounded-full bg-white border border-border overflow-hidden flex items-center justify-center shrink-0">
-          {loading ? (
-            <Loader2 size={18} className="animate-spin text-muted-foreground/50" />
-          ) : logoUrl ? (
-            <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
-          ) : (
-            <Image size={20} className="text-muted-foreground/40" />
-          )}
-        </div>
-        <label className="text-sm text-primary hover:underline cursor-pointer">
-          {uploading ? "Subiendo..." : logoUrl ? "Cambiar logo" : "Subir logo"}
-          <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
-        </label>
       </div>
     </div>
   );
