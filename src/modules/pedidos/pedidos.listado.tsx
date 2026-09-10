@@ -307,6 +307,7 @@ export function PedidosList() {
           isLoading={loading}
           emptyMessage="No hay pedidos registrados para este cliente."
           pagination={{ pageSize: 100 }}
+          responsive={{ priorityColumns: ["vc_folio", "por_autorizar", "vc_tasks_status"] }}
         />
       </div>
     </PageWrapper>
