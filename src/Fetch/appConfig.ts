@@ -26,3 +26,15 @@ export const getTaskInstructions = () =>
 
 export const setTaskInstructions = (value: string) =>
   api.put<ApiResponse<TaskInstructionsSetting>>(`/app-config/task-instructions`, { value });
+
+export const getWhatsappSoporteClientes = () =>
+  api.get<ApiResponse<TaskInstructionsSetting>>(`/app-config/whatsapp-soporte-clientes`);
+
+export const setWhatsappSoporteClientes = (value: string) =>
+  api.put<ApiResponse<TaskInstructionsSetting>>(`/app-config/whatsapp-soporte-clientes`, { value });
+
+export const getWhatsappSoportePromotores = () =>
+  api.get<ApiResponse<TaskInstructionsSetting>>(`/app-config/whatsapp-soporte-promotores`);
+
+export const setWhatsappSoportePromotores = (value: string) =>
+  api.put<ApiResponse<TaskInstructionsSetting>>(`/app-config/whatsapp-soporte-promotores`, { value });

@@ -8,7 +8,7 @@ import { useAuthStore } from "@/stores"
 import { useDriverAuthStore } from "@/stores/driverAuthStore"
 import { loginUser, checkAdminPhoneExists } from "@/Fetch/login"
 import { driverLogin, checkDriverPhoneExists } from "@/Fetch/driverPanel"
-import { getLoginVideo } from "@/Fetch/appConfig"
+import { getLoginVideo, getWhatsappSoportePromotores } from "@/Fetch/appConfig"
 import { Button, Input } from "@/components"
 import logoMark from "@/assets/isologo_promotoria_N.png"
 
@@ -19,7 +19,7 @@ const CAPABILITIES = [
   { icon: Truck, title: "Choferes en campo", label: "Cada entrega, cobro y ticket, registrado desde el celular." },
 ];
 
-const INFO_WHATSAPP = "5218117105018";
+const INFO_WHATSAPP_FALLBACK = "5218117105018";
 
 export function Login() {
   const navigate = useNavigate();
@@ -31,11 +31,15 @@ export function Login() {
   const [checkingPhone, setCheckingPhone] = useState(false);
   const [loading, setLoading] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [supportWhatsapp, setSupportWhatsapp] = useState(INFO_WHATSAPP_FALLBACK);
 
   useEffect(() => {
     getLoginVideo()
       .then((res) => setVideoUrl(res.data.url))
       .catch(() => setVideoUrl(null));
+    getWhatsappSoportePromotores()
+      .then((res) => { if (res.data.value) setSupportWhatsapp(res.data.value); })
+      .catch(() => {});
   }, []);
 
   const handleContinue = async (e?: React.FormEvent) => {
@@ -57,7 +61,7 @@ export function Login() {
         const message = encodeURIComponent(
           `Hola, soy dueño de una empresa y quiero información sobre Promotoria. Mi celular es ${value}.`
         );
-        window.open(`https://wa.me/${INFO_WHATSAPP}?text=${message}`, "_blank");
+        window.open(`https://wa.me/${supportWhatsapp}?text=${message}`, "_blank");
       }
     } catch (error) {
       console.error(error);

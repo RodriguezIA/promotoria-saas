@@ -1,9 +1,9 @@
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
-import { Loader2, Settings, UploadCloud, Video, Trash2, Save, MessageSquareText } from "lucide-react"
+import { Loader2, Settings, UploadCloud, Video, Trash2, Save, MessageSquareText, Phone } from "lucide-react"
 
-import { getLoginVideo, uploadLoginVideo, removeLoginVideo, getTaskInstructions, setTaskInstructions } from "@/Fetch/appConfig"
-import { Button, PageWrapper, PageHeader, Textarea } from "@/components"
+import { getLoginVideo, uploadLoginVideo, removeLoginVideo, getTaskInstructions, setTaskInstructions, getWhatsappSoporteClientes, setWhatsappSoporteClientes, getWhatsappSoportePromotores, setWhatsappSoportePromotores } from "@/Fetch/appConfig"
+import { Button, PageWrapper, PageHeader, Textarea, Input } from "@/components"
 
 export default function ConfigurarApp() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -15,12 +15,19 @@ export default function ConfigurarApp() {
   const [instrucciones, setInstrucciones] = useState("");
   const [guardandoInstrucciones, setGuardandoInstrucciones] = useState(false);
 
+  const [whatsappClientes, setWhatsappClientes] = useState("");
+  const [guardandoWhatsappClientes, setGuardandoWhatsappClientes] = useState(false);
+  const [whatsappPromotores, setWhatsappPromotores] = useState("");
+  const [guardandoWhatsappPromotores, setGuardandoWhatsappPromotores] = useState(false);
+
   const cargar = () => {
     setLoading(true);
-    Promise.all([getLoginVideo(), getTaskInstructions()])
-      .then(([videoRes, instruccionesRes]) => {
+    Promise.all([getLoginVideo(), getTaskInstructions(), getWhatsappSoporteClientes(), getWhatsappSoportePromotores()])
+      .then(([videoRes, instruccionesRes, whatsappClientesRes, whatsappPromotoresRes]) => {
         if (videoRes.ok) setVideoUrl(videoRes.data.url);
         if (instruccionesRes.ok) setInstrucciones(instruccionesRes.data.value);
+        if (whatsappClientesRes.ok) setWhatsappClientes(whatsappClientesRes.data.value);
+        if (whatsappPromotoresRes.ok) setWhatsappPromotores(whatsappPromotoresRes.data.value);
       })
       .catch(() => toast.error("Error al cargar la configuración"))
       .finally(() => setLoading(false));
@@ -85,6 +92,30 @@ export default function ConfigurarApp() {
       toast.error(e?.message || "Error al guardar el texto");
     } finally {
       setGuardandoInstrucciones(false);
+    }
+  };
+
+  const handleGuardarWhatsappClientes = async () => {
+    setGuardandoWhatsappClientes(true);
+    try {
+      await setWhatsappSoporteClientes(whatsappClientes.trim());
+      toast.success("Número actualizado exitosamente");
+    } catch (e: any) {
+      toast.error(e?.message || "Error al guardar el número");
+    } finally {
+      setGuardandoWhatsappClientes(false);
+    }
+  };
+
+  const handleGuardarWhatsappPromotores = async () => {
+    setGuardandoWhatsappPromotores(true);
+    try {
+      await setWhatsappSoportePromotores(whatsappPromotores.trim());
+      toast.success("Número actualizado exitosamente");
+    } catch (e: any) {
+      toast.error(e?.message || "Error al guardar el número");
+    } finally {
+      setGuardandoWhatsappPromotores(false);
     }
   };
 
@@ -175,6 +206,48 @@ export default function ConfigurarApp() {
             {guardandoInstrucciones ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             Guardar texto
           </Button>
+        </div>
+
+        <div className="rounded-xl border p-5 space-y-4" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+          <div className="flex items-center gap-2">
+            <Phone className="w-5 h-5 text-info" />
+            <h3 className="font-semibold text-foreground">WhatsApp de soporte a clientes</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            A este número se manda el botón "Contactar Soporte" que ve el dueño de un negocio en su panel.
+          </p>
+          <div className="flex gap-2">
+            <Input
+              value={whatsappClientes}
+              onChange={(e) => setWhatsappClientes(e.target.value)}
+              placeholder="Ej. 5218117105018"
+              className="flex-1"
+            />
+            <Button onClick={handleGuardarWhatsappClientes} disabled={guardandoWhatsappClientes}>
+              {guardandoWhatsappClientes ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            </Button>
+          </div>
+        </div>
+
+        <div className="rounded-xl border p-5 space-y-4" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+          <div className="flex items-center gap-2">
+            <Phone className="w-5 h-5 text-info" />
+            <h3 className="font-semibold text-foreground">WhatsApp de soporte a promotores</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            A este número se manda el mensaje cuando alguien intenta entrar al login (como dueño de empresa) con un celular que no está registrado.
+          </p>
+          <div className="flex gap-2">
+            <Input
+              value={whatsappPromotores}
+              onChange={(e) => setWhatsappPromotores(e.target.value)}
+              placeholder="Ej. 5218117105018"
+              className="flex-1"
+            />
+            <Button onClick={handleGuardarWhatsappPromotores} disabled={guardandoWhatsappPromotores}>
+              {guardandoWhatsappPromotores ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            </Button>
+          </div>
         </div>
       </div>
     </PageWrapper>

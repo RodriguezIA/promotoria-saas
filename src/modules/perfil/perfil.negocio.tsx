@@ -1,12 +1,15 @@
 import { toast } from "sonner"
 import { useState, useEffect, useRef } from "react"
-import { Building2, Mail, MapPin, FileText, Users, Package, Store, Clock, TrendingUp, ChevronDown, CreditCard, Ticket, Loader2, Phone } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { Building2, Mail, MapPin, FileText, Users, Package, Store, Clock, TrendingUp, ChevronDown, CreditCard, Ticket, Loader2, Phone, Image } from "lucide-react"
 
 
 import { useAuthStore } from "@/stores"
 import { clientDetail } from "@/types/clients"
 import { getClientById } from "@/Fetch/clientes"
 import { registerUserInClient } from "@/Fetch/usuarios"
+import { getWhatsappSoporteClientes } from "@/Fetch/appConfig"
+import { api, ApiResponse } from "@/lib"
 import { PageWrapper, ModalCustom, Input, Label } from "@/components"
 
 
@@ -153,6 +156,25 @@ export function MiNegocio() {
 
 
 function TabInfo({ cliente }: { cliente: clientDetail }) {
+  const navigate = useNavigate();
+
+  const handleContactSupport = async () => {
+    try {
+      const res = await getWhatsappSoporteClientes();
+      const number = res.data.value;
+      if (!number) {
+        toast.error("Todavía no hay un número de soporte configurado");
+        return;
+      }
+      const message = encodeURIComponent(
+        `Hola, soy ${cliente.name} y necesito ayuda con mi cuenta en Promotoria.`
+      );
+      window.open(`https://wa.me/${number}?text=${message}`, "_blank");
+    } catch {
+      toast.error("Error al obtener el número de soporte");
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
@@ -236,20 +258,31 @@ function TabInfo({ cliente }: { cliente: clientDetail }) {
             Acciones Rápidas
           </h3>
           <div className="space-y-2">
-            <button className="w-full px-4 py-2.5 text-left text-foreground bg-white border border-border rounded-lg hover:bg-accent transition-colors flex items-center gap-3">
+            <button
+              onClick={() => navigate("/establecimientos")}
+              className="w-full px-4 py-2.5 text-left text-foreground bg-white border border-border rounded-lg hover:bg-accent transition-colors flex items-center gap-3"
+            >
               <Store size={16} className="text-muted-foreground/70" />
               <span className="text-sm">Ver Establecimientos</span>
             </button>
-            <button className="w-full px-4 py-2.5 text-left text-foreground bg-white border border-border rounded-lg hover:bg-accent transition-colors flex items-center gap-3">
+            <button
+              onClick={() => navigate("/productos")}
+              className="w-full px-4 py-2.5 text-left text-foreground bg-white border border-border rounded-lg hover:bg-accent transition-colors flex items-center gap-3"
+            >
               <Package size={16} className="text-muted-foreground/70" />
               <span className="text-sm">Ver Productos</span>
             </button>
-            <button className="w-full px-4 py-2.5 text-left text-foreground bg-white border border-border rounded-lg hover:bg-accent transition-colors flex items-center gap-3">
+            <button
+              onClick={handleContactSupport}
+              className="w-full px-4 py-2.5 text-left text-foreground bg-white border border-border rounded-lg hover:bg-accent transition-colors flex items-center gap-3"
+            >
               <Phone size={16} className="text-muted-foreground/70" />
               <span className="text-sm">Contactar Soporte</span>
             </button>
           </div>
         </div>
+
+        <ClientOwnLogoCard idClient={cliente.id_client} />
       </div>
     </div>
   );
@@ -479,6 +512,66 @@ function TabHistory() {
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function ClientOwnLogoCard({ idClient }: { idClient: number }) {
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    if (!idClient) return;
+    setLoading(true);
+    api.get<ApiResponse<{ url: string | null }>>(`/clients/${idClient}/logo`)
+      .then((res) => setLogoUrl(res.data?.url ?? null))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [idClient]);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !idClient) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await api.upload<ApiResponse<{ url: string }>>(`/clients/${idClient}/logo`, fd);
+      setLogoUrl(res.data.url);
+      toast.success("Logo actualizado exitosamente");
+    } catch (err: any) {
+      toast.error(err?.message || "Error al subir el logo");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  return (
+    <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+      <h3 className="font-semibold text-foreground flex items-center gap-2">
+        <Image size={16} className="text-muted-foreground/70" />
+        Logo de tu marca
+      </h3>
+      <p className="text-xs text-muted-foreground">
+        Se muestra en la app del promotor al ofrecer una tarea de tu negocio.
+      </p>
+      <div className="flex items-center gap-3">
+        <div className="w-16 h-16 rounded-full bg-white border border-border overflow-hidden flex items-center justify-center shrink-0">
+          {loading ? (
+            <Loader2 size={18} className="animate-spin text-muted-foreground/50" />
+          ) : logoUrl ? (
+            <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+          ) : (
+            <Image size={20} className="text-muted-foreground/40" />
+          )}
+        </div>
+        <label className="text-sm text-primary hover:underline cursor-pointer">
+          {uploading ? "Subiendo..." : logoUrl ? "Cambiar logo" : "Subir logo"}
+          <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
+        </label>
       </div>
     </div>
   );
