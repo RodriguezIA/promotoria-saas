@@ -178,6 +178,22 @@ export function PedidosList() {
       },
     },
     {
+      id: "por_autorizar",
+      header: "Por autorizar",
+      cell: ({ row }) => {
+        const count = row.original.i_pending_authorization ?? 0;
+        if (count === 0) {
+          return <span className="text-muted-foreground/50 text-sm">—</span>;
+        }
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-warning/15 text-warning-foreground dark:text-warning text-sm font-bold rounded-full">
+            <CheckCircle2 size={14} />
+            {count}
+          </span>
+        );
+      },
+    },
+    {
       id: "actions",
       header: "Operaciones",
       cell: ({ row }) => (

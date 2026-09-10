@@ -19,6 +19,9 @@ export interface OrderDTO {
     id_status: number
     order_items?: OrderItemSummaryDTO[]
     order_logs?: OrderLogDTO[]
+    /** Cuantas tareas de este pedido estan por autorizar (el promotor ya
+     * las termino, esperando que el cliente las revise). */
+    i_pending_authorization?: number
 }
 
 export interface OrderLogDTO {
