@@ -29,7 +29,7 @@ import { getStockMapData, getStockMinimumsByStore, setStockMinimum } from '@/Fet
 import { getProductsByClient } from '@/Fetch/products'
 import { getDrivers, DriverDTO } from '@/Fetch/drivers'
 import { getPendingPreorders, createRoute, PendingPreorderDTO } from '@/Fetch/delivery-routes'
-import { getRouteTemplates, RouteTemplateDTO } from '@/Fetch/routeTemplates'
+import { getRouteTemplates, RouteTemplateDTO, estimateRouteSales, RouteSalesEstimateDTO } from '@/Fetch/routeTemplates'
 import { StoreMarker } from './components/StoreMarker'
 import { PromoterMarker } from './components/PromoterMarker'
 import { StoreOrderHistory } from './components/StoreOrderHistory'
@@ -127,6 +127,23 @@ export default function Mapa() {
   const [routeFilter, setRouteFilter] = useState<'todas' | 'con_pedido' | 'sin_pedido' | 'red' | 'yellow' | 'green'>('todas')
   const [routeTemplates, setRouteTemplates] = useState<RouteTemplateDTO[]>([])
   const [attachTemplateId, setAttachTemplateId] = useState<string>('')
+  const [routeEstimate, setRouteEstimate] = useState<RouteSalesEstimateDTO | null>(null)
+  const [loadingRouteEstimate, setLoadingRouteEstimate] = useState(false)
+
+  useEffect(() => {
+    if (!buildingRoute || selectedStops.length === 0) {
+      setRouteEstimate(null)
+      return
+    }
+    setLoadingRouteEstimate(true)
+    const timeout = setTimeout(() => {
+      estimateRouteSales(selectedStops.map((s) => s.id_store))
+        .then((res) => setRouteEstimate(res.data))
+        .catch(() => {})
+        .finally(() => setLoadingRouteEstimate(false))
+    }, 400)
+    return () => clearTimeout(timeout)
+  }, [selectedStops, buildingRoute])
 
   const openRouteSetup = () => {
     getDrivers().then((res) => setDrivers(res.data)).catch(() => toast.error('Error al cargar los choferes'))
@@ -320,6 +337,15 @@ export default function Mapa() {
             <Badge variant="outline" className="mr-auto">
               Selecciona las tiendas desde el mapa o la lista, en el orden en que se van a visitar.
             </Badge>
+            {selectedStops.length > 0 && (
+              <Badge className="bg-success/10 text-success border-success/20 gap-1.5">
+                {loadingRouteEstimate ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : routeEstimate ? (
+                  <>Venta estimada: {new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(routeEstimate.total)}</>
+                ) : null}
+              </Badge>
+            )}
             <Button variant="ghost" size="sm" onClick={cancelRouteBuilding} disabled={savingRoute}>
               Cancelar
             </Button>
