@@ -55,4 +55,4 @@ export const getRequestPricingSettings = () =>
   api.get<ApiResponse<RequestPricingSettings>>(`/app-config/request-pricing`);
 
 export const setRequestPricingSettings = (data: RequestPricingSettings) =>
-  api.put<ApiResponse<null>>(`/app-config/request-pricing`, data);
+  api.put<ApiResponse<{ total: number; updated: number }>>(`/app-config/request-pricing`, data);

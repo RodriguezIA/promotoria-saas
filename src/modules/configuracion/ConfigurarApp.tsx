@@ -167,8 +167,12 @@ export default function ConfigurarApp() {
     }
     setGuardandoPricing(true);
     try {
-      await setRequestPricingSettings({ price_per_product: price, min_products: min, max_products: max });
-      toast.success("Configuración actualizada exitosamente");
+      const res = await setRequestPricingSettings({ price_per_product: price, min_products: min, max_products: max });
+      if (res.ok) {
+        toast.success(`Configuración actualizada. Se actualizó el precio de ${res.data.updated} de ${res.data.total} solicitud(es) guardada(s)`);
+      } else {
+        toast.success("Configuración actualizada exitosamente");
+      }
     } catch (e: any) {
       toast.error(e?.message || "Error al guardar la configuración");
     } finally {
@@ -333,6 +337,9 @@ export default function ConfigurarApp() {
           </div>
           <p className="text-sm text-muted-foreground">
             Al armar una solicitud nueva, el costo se calcula como el costo por producto multiplicado por la cantidad de productos, sin bajar del mínimo ni subir del máximo (después del máximo, agregar más productos ya no incrementa el costo).
+          </p>
+          <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-2.5">
+            Al guardar, se actualiza el precio de todas las solicitudes ya guardadas con esta nueva configuración. Los pedidos que ya están en curso no se ven afectados, su precio queda tal como se cobró.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
