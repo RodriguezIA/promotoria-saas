@@ -2,7 +2,7 @@ import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { Loader2, Settings, UploadCloud, Video, Trash2, Save, MessageSquareText, Phone } from "lucide-react"
 
-import { getLoginVideo, uploadLoginVideo, removeLoginVideo, getTaskInstructions, setTaskInstructions, getWhatsappSoporteClientes, setWhatsappSoporteClientes, getWhatsappSoportePromotores, setWhatsappSoportePromotores } from "@/Fetch/appConfig"
+import { getLoginVideo, uploadLoginVideo, removeLoginVideo, getTaskInstructions, setTaskInstructions, getWhatsappSoporteClientes, setWhatsappSoporteClientes, getWhatsappSoportePromotores, setWhatsappSoportePromotores, getReferralShareMessage, setReferralShareMessage } from "@/Fetch/appConfig"
 import { Button, PageWrapper, PageHeader, Textarea, Input } from "@/components"
 
 export default function ConfigurarApp() {
@@ -20,14 +20,18 @@ export default function ConfigurarApp() {
   const [whatsappPromotores, setWhatsappPromotores] = useState("");
   const [guardandoWhatsappPromotores, setGuardandoWhatsappPromotores] = useState(false);
 
+  const [mensajeInvitacion, setMensajeInvitacion] = useState("");
+  const [guardandoMensajeInvitacion, setGuardandoMensajeInvitacion] = useState(false);
+
   const cargar = () => {
     setLoading(true);
-    Promise.all([getLoginVideo(), getTaskInstructions(), getWhatsappSoporteClientes(), getWhatsappSoportePromotores()])
-      .then(([videoRes, instruccionesRes, whatsappClientesRes, whatsappPromotoresRes]) => {
+    Promise.all([getLoginVideo(), getTaskInstructions(), getWhatsappSoporteClientes(), getWhatsappSoportePromotores(), getReferralShareMessage()])
+      .then(([videoRes, instruccionesRes, whatsappClientesRes, whatsappPromotoresRes, mensajeInvitacionRes]) => {
         if (videoRes.ok) setVideoUrl(videoRes.data.url);
         if (instruccionesRes.ok) setInstrucciones(instruccionesRes.data.value);
         if (whatsappClientesRes.ok) setWhatsappClientes(whatsappClientesRes.data.value);
         if (whatsappPromotoresRes.ok) setWhatsappPromotores(whatsappPromotoresRes.data.value);
+        if (mensajeInvitacionRes.ok) setMensajeInvitacion(mensajeInvitacionRes.data.value);
       })
       .catch(() => toast.error("Error al cargar la configuración"))
       .finally(() => setLoading(false));
@@ -116,6 +120,22 @@ export default function ConfigurarApp() {
       toast.error(e?.message || "Error al guardar el número");
     } finally {
       setGuardandoWhatsappPromotores(false);
+    }
+  };
+
+  const handleGuardarMensajeInvitacion = async () => {
+    if (!mensajeInvitacion.trim()) {
+      toast.error("El texto no puede quedar vacío");
+      return;
+    }
+    setGuardandoMensajeInvitacion(true);
+    try {
+      await setReferralShareMessage(mensajeInvitacion.trim());
+      toast.success("Texto actualizado exitosamente");
+    } catch (e: any) {
+      toast.error(e?.message || "Error al guardar el texto");
+    } finally {
+      setGuardandoMensajeInvitacion(false);
     }
   };
 
@@ -248,6 +268,25 @@ export default function ConfigurarApp() {
               {guardandoWhatsappPromotores ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             </Button>
           </div>
+        </div>
+
+        <div className="rounded-xl border p-5 space-y-4" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+          <div className="flex items-center gap-2">
+            <MessageSquareText className="w-5 h-5 text-info" />
+            <h3 className="font-semibold text-foreground">Mensaje al compartir invitación</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            El promotor manda este texto (por WhatsApp, etc.) cuando invita a un amigo. Usa <code className="px-1 py-0.5 rounded bg-muted text-foreground">{'{link}'}</code> donde quieras que aparezca el link de registro con el código incluido.
+          </p>
+          <Textarea
+            value={mensajeInvitacion}
+            onChange={(e) => setMensajeInvitacion(e.target.value)}
+            rows={5}
+          />
+          <Button onClick={handleGuardarMensajeInvitacion} disabled={guardandoMensajeInvitacion}>
+            {guardandoMensajeInvitacion ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+            Guardar texto
+          </Button>
         </div>
       </div>
     </PageWrapper>

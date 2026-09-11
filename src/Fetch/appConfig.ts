@@ -38,3 +38,9 @@ export const getWhatsappSoportePromotores = () =>
 
 export const setWhatsappSoportePromotores = (value: string) =>
   api.put<ApiResponse<TaskInstructionsSetting>>(`/app-config/whatsapp-soporte-promotores`, { value });
+
+export const getReferralShareMessage = () =>
+  api.get<ApiResponse<TaskInstructionsSetting>>(`/app-config/referral-share-message`);
+
+export const setReferralShareMessage = (value: string) =>
+  api.put<ApiResponse<TaskInstructionsSetting>>(`/app-config/referral-share-message`, { value });
