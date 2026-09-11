@@ -1,7 +1,7 @@
 import { toast } from "sonner"
 import { useEffect, useMemo, useState } from "react"
 import { GoogleMap } from '@react-google-maps/api'
-import { Route as RouteIcon, Plus, Pencil, Trash2, Loader2, Store, Search, ArrowLeft, TrendingUp, AlertTriangle } from "lucide-react"
+import { Route as RouteIcon, Plus, Pencil, Trash2, Loader2, Store, Search, ArrowLeft, TrendingUp, AlertTriangle, X } from "lucide-react"
 
 import { useAuthStore } from "@/stores"
 import { useJsApiLoader, GOOGLE_MAPS_CONFIG } from "@/lib"
@@ -15,6 +15,7 @@ import {
   getRouteTemplates, createRouteTemplate, updateRouteTemplate, deleteRouteTemplate, estimateRouteSales,
   RouteTemplateDTO, RouteSalesEstimateDTO,
 } from "@/Fetch/routeTemplates"
+import { getRouteSchedules, deleteRouteSchedule, RouteScheduleDTO, describeSchedule } from "@/Fetch/routeSchedules"
 import { StoreMarker } from "@/modules/mapa/components/StoreMarker"
 
 const MAP_CONTAINER_STYLE = { width: '100%', height: '100%' }
@@ -28,6 +29,7 @@ export default function CrearRuta() {
   const { isLoaded } = useJsApiLoader(GOOGLE_MAPS_CONFIG)
 
   const [templates, setTemplates] = useState<RouteTemplateDTO[]>([])
+  const [schedules, setSchedules] = useState<RouteScheduleDTO[]>([])
   const [stores, setStores] = useState<MapStoreDTO[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -48,12 +50,14 @@ export default function CrearRuta() {
     if (!user?.id_client) return
     setLoading(true)
     try {
-      const [templatesRes, storesRes] = await Promise.all([
+      const [templatesRes, storesRes, schedulesRes] = await Promise.all([
         getRouteTemplates(user.id_client),
         getStockMapData({ id_client: user.id_client }),
+        getRouteSchedules(user.id_client),
       ])
       setTemplates(templatesRes.data ?? [])
       setStores(storesRes.data ?? [])
+      setSchedules(schedulesRes.data ?? [])
     } catch {
       toast.error("Error al cargar las rutas")
     } finally {
@@ -154,6 +158,16 @@ export default function CrearRuta() {
       toast.error(e?.message || "Error al eliminar la ruta")
     } finally {
       setDeleting(false)
+    }
+  }
+
+  const handleRemoveSchedule = async (id_schedule: number) => {
+    try {
+      await deleteRouteSchedule(id_schedule)
+      toast.success("Asignación automática eliminada")
+      fetchData()
+    } catch (e: any) {
+      toast.error(e?.message || "Error al eliminar la asignación")
     }
   }
 
@@ -309,6 +323,20 @@ export default function CrearRuta() {
               <p className="text-sm text-muted-foreground flex items-center gap-1.5">
                 <Store size={14} /> {t.stores.length} tienda{t.stores.length !== 1 ? "s" : ""}
               </p>
+              {schedules.filter((s) => s.id_route_template === t.id_route_template).length > 0 && (
+                <div className="pt-2 border-t border-border space-y-1.5">
+                  {schedules.filter((s) => s.id_route_template === t.id_route_template).map((s) => (
+                    <div key={s.id_schedule} className="flex items-center justify-between gap-2 bg-info/5 rounded-lg px-2 py-1.5">
+                      <p className="text-xs text-info truncate">
+                        <span className="font-semibold">{s.driver.name}</span> · {describeSchedule(s)}
+                      </p>
+                      <button onClick={() => handleRemoveSchedule(s.id_schedule)} className="shrink-0 text-muted-foreground hover:text-destructive">
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>

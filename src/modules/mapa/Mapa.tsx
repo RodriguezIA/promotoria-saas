@@ -23,6 +23,7 @@ import {
   DialogTitle,
   DialogFooter,
   Label,
+  Checkbox,
 } from '@/components'
 import { channelSalesDTO, MapStoreDTO, StateDTO, CityDTO, ProductDTO } from '@/dtos'
 import { getStockMapData, getStockMinimumsByStore, setStockMinimum } from '@/Fetch/stock'
@@ -30,6 +31,7 @@ import { getProductsByClient } from '@/Fetch/products'
 import { getDrivers, DriverDTO } from '@/Fetch/drivers'
 import { getPendingPreorders, createRoute, PendingPreorderDTO } from '@/Fetch/delivery-routes'
 import { getRouteTemplates, RouteTemplateDTO, estimateRouteSales, RouteSalesEstimateDTO } from '@/Fetch/routeTemplates'
+import { createRouteSchedule, INTERVALOS_SEMANAS } from '@/Fetch/routeSchedules'
 import { StoreMarker } from './components/StoreMarker'
 import { PromoterMarker } from './components/PromoterMarker'
 import { StoreOrderHistory } from './components/StoreOrderHistory'
@@ -127,6 +129,8 @@ export default function Mapa() {
   const [routeFilter, setRouteFilter] = useState<'todas' | 'con_pedido' | 'sin_pedido' | 'red' | 'yellow' | 'green'>('todas')
   const [routeTemplates, setRouteTemplates] = useState<RouteTemplateDTO[]>([])
   const [attachTemplateId, setAttachTemplateId] = useState<string>('')
+  const [repeatAutomatically, setRepeatAutomatically] = useState(false)
+  const [repeatIntervalWeeks, setRepeatIntervalWeeks] = useState('1')
   const [routeEstimate, setRouteEstimate] = useState<RouteSalesEstimateDTO | null>(null)
   const [loadingRouteEstimate, setLoadingRouteEstimate] = useState(false)
 
@@ -153,6 +157,8 @@ export default function Mapa() {
     setRouteDriverId('')
     setRouteDate(new Date().toISOString().slice(0, 10))
     setAttachTemplateId('')
+    setRepeatAutomatically(false)
+    setRepeatIntervalWeeks('1')
     setShowRouteSetup(true)
   }
 
@@ -221,7 +227,25 @@ export default function Mapa() {
         route_date: routeDate,
         stops: selectedStops.map((s) => ({ id_store: s.id_store, id_preorder: s.id_preorder ?? undefined })),
       })
-      toast.success('Ruta creada y asignada al chofer')
+      if (repeatAutomatically && attachTemplateId && user?.id_client) {
+        try {
+          const dayOfWeekJs = new Date(routeDate + 'T00:00:00').getDay()
+          const dayOfWeek = dayOfWeekJs === 0 ? 7 : dayOfWeekJs
+          await createRouteSchedule({
+            id_client: user.id_client,
+            id_route_template: Number(attachTemplateId),
+            id_driver: Number(routeDriverId),
+            day_of_week: dayOfWeek,
+            interval_weeks: Number(repeatIntervalWeeks),
+            anchor_date: routeDate,
+          })
+          toast.success('Ruta creada y programada para repetirse automáticamente')
+        } catch {
+          toast.error('La ruta se creó, pero no se pudo programar la repetición automática')
+        }
+      } else {
+        toast.success('Ruta creada y asignada al chofer')
+      }
       cancelRouteBuilding()
       loadPendingPreorders()
     } catch (e: any) {
@@ -555,6 +579,33 @@ export default function Mapa() {
                 </p>
               )}
             </div>
+
+            {attachTemplateId && (
+              <div className="border border-border rounded-lg p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={repeatAutomatically} onCheckedChange={(v) => setRepeatAutomatically(!!v)} />
+                  <Label className="cursor-pointer" onClick={() => setRepeatAutomatically((v) => !v)}>
+                    Repetir esto automático a este chofer
+                  </Label>
+                </div>
+                {repeatAutomatically && (
+                  <div>
+                    <Label className="text-xs">¿Cada cuántas semanas?</Label>
+                    <Select value={repeatIntervalWeeks} onValueChange={setRepeatIntervalWeeks}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {INTERVALOS_SEMANAS.map((i) => (
+                          <SelectItem key={i.value} value={String(i.value)}>{i.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Se le va a generar sola esta ruta a este chofer cada {repeatIntervalWeeks === '1' ? 'semana' : `${repeatIntervalWeeks} semanas`}, el mismo día de la semana que elijas abajo.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setShowRouteSetup(false)}>Cancelar</Button>
