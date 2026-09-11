@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Store, ChevronLeft, ChevronRight, HomeIcon, ClipboardList, ClipboardCheck, UsersRound, Users, Package, MessageCircleQuestion, Receipt, Banknote, UserCircle, Building2, CheckSquare2, BarChart3, HandCoins, CreditCard, UserPlus, Settings, Map, Truck, Route as RouteIcon, LucideIcon } from "lucide-react"
+import { Store, ChevronLeft, ChevronRight, HomeIcon, ClipboardList, ClipboardCheck, UsersRound, Users, Package, MessageCircleQuestion, Receipt, Banknote, UserCircle, Building2, CheckSquare2, BarChart3, HandCoins, CreditCard, UserPlus, Settings, Map, Truck, LucideIcon } from "lucide-react"
 
 
 import { cn } from "@/lib"
@@ -47,8 +47,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         { route: "/solicitudes", icon: ClipboardList, label: "Solicitudes", show: isAdmin || isNegocio },
         { route: "/pedidos", icon: Receipt, label: "Pedidos", show: isAdmin || isNegocio },
         { route: "/tareas", icon: CheckSquare2, label: "Tareas", show: isAdmin || isNegocio },
-        { route: "/crear-ruta", icon: RouteIcon, label: "Crear Ruta", show: isAdmin || isNegocio },
-        { route: "/mapa", icon: Map, label: "Organizar Ruta", show: isAdmin || isNegocio },
+        { route: "/logistica", icon: Map, label: "Logística", show: isAdmin || isNegocio },
         { route: "/mis-prepedidos", icon: ClipboardCheck, label: "Mis Prepedidos", show: isNegocio },
         { route: "/choferes", icon: Truck, label: "Choferes", show: isNegocio },
       ],

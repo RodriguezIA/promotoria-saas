@@ -36,6 +36,8 @@ export interface RouteDTO {
     id_route: number
     id_driver: number
     route_date: string
+    is_active: boolean
+    dt_register: string
     driver: { id_driver: number; name: string; phone: string }
     stops: RouteStopDTO[]
 }
@@ -50,6 +52,12 @@ export const getPendingPreorders = (filters?: { date?: string; time?: 'MAÑANA' 
 
 export const createRoute = (data: { id_driver: number; route_date: string; stops: { id_store: number; id_preorder?: number }[] }) =>
     api.post<ApiResponse<RouteDTO>>('/delivery-routes', data)
+
+export const getRoutesByClient = () =>
+    api.get<ApiResponse<RouteDTO[]>>('/delivery-routes')
+
+export const setRouteActive = (id_route: number, is_active: boolean) =>
+    api.patch<ApiResponse<RouteDTO>>(`/delivery-routes/${id_route}/active`, { is_active })
 
 export const getRoutes = () =>
     api.get<ApiResponse<RouteDTO[]>>('/delivery-routes')
