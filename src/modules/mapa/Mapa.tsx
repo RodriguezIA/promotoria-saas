@@ -132,6 +132,12 @@ export default function Mapa() {
   const [repeatAutomatically, setRepeatAutomatically] = useState(false)
   const [repeatIntervalWeeks, setRepeatIntervalWeeks] = useState('1')
   const [routeName, setRouteName] = useState('')
+
+  const routeDayName = useMemo(() => {
+    if (!routeDate) return ''
+    const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
+    return dias[new Date(routeDate + 'T00:00:00').getDay()]
+  }, [routeDate])
   const [routeEstimate, setRouteEstimate] = useState<RouteSalesEstimateDTO | null>(null)
   const [loadingRouteEstimate, setLoadingRouteEstimate] = useState(false)
 
@@ -555,6 +561,10 @@ export default function Mapa() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
+              <Label>Nombre de la ruta</Label>
+              <Input value={routeName} onChange={(e) => setRouteName(e.target.value)} placeholder="Ej. Ruta Centro" />
+            </div>
+            <div>
               <Label>¿A qué chofer le asignamos esta ruta?</Label>
               <Select value={routeDriverId} onValueChange={setRouteDriverId}>
                 <SelectTrigger><SelectValue placeholder="Selecciona un chofer" /></SelectTrigger>
@@ -597,17 +607,15 @@ export default function Mapa() {
               <div className="flex items-center gap-2">
                 <Checkbox checked={repeatAutomatically} onCheckedChange={(v) => setRepeatAutomatically(!!v)} />
                 <Label className="cursor-pointer" onClick={() => setRepeatAutomatically((v) => !v)}>
-                  Repetir esto automático a este chofer
+                  {routeDate
+                    ? `Asignaste esta ruta en ${routeDayName}, ¿repetir automático todos los ${routeDayName}?`
+                    : '¿Repetir esto automático a este chofer?'}
                 </Label>
               </div>
               {repeatAutomatically && (
                 <div className="space-y-2">
                   <div>
-                    <Label className="text-xs">Nombre de la ruta</Label>
-                    <Input value={routeName} onChange={(e) => setRouteName(e.target.value)} placeholder="Ej. Ruta Centro" />
-                  </div>
-                  <div>
-                    <Label className="text-xs">¿Cada cuántas semanas?</Label>
+                    <Label className="text-xs">¿Cada cuánto?</Label>
                     <Select value={repeatIntervalWeeks} onValueChange={setRepeatIntervalWeeks}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -618,7 +626,7 @@ export default function Mapa() {
                     </Select>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Se le va a generar sola esta ruta a este chofer cada {repeatIntervalWeeks === '1' ? 'semana' : `${repeatIntervalWeeks} semanas`}, el mismo día de la semana de la fecha que elegiste arriba. Al día siguiente de cada entrega se desactiva sola en "Rutas Creadas" hasta la próxima vez, a menos que la reactives a mano.
+                    Se le va a generar sola esta ruta a este chofer {INTERVALOS_SEMANAS.find((i) => String(i.value) === repeatIntervalWeeks)?.label.toLowerCase()}, todos los {routeDayName || 'días que elijas'}. Al día siguiente de cada entrega se desactiva sola en "Rutas Creadas" hasta la próxima vez, a menos que la reactives a mano.
                   </p>
                 </div>
               )}

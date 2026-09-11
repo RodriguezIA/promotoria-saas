@@ -43,10 +43,10 @@ export const DIAS_SEMANA = [
 ];
 
 export const INTERVALOS_SEMANAS = [
-  { value: 1, label: "Cada semana" },
-  { value: 2, label: "Cada 2 semanas" },
-  { value: 3, label: "Cada 3 semanas" },
-  { value: 4, label: "Cada 4 semanas" },
+  { value: 1, label: "1 vez por semana" },
+  { value: 2, label: "1 vez cada 2 semanas" },
+  { value: 3, label: "1 vez cada 3 semanas" },
+  { value: 4, label: "1 vez cada 4 semanas" },
 ];
 
 export const describeSchedule = (s: Pick<RouteScheduleDTO, "day_of_week" | "interval_weeks">) => {
