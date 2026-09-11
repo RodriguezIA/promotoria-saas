@@ -1,8 +1,8 @@
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
-import { Loader2, Settings, UploadCloud, Video, Trash2, Save, MessageSquareText, Phone } from "lucide-react"
+import { Loader2, Settings, UploadCloud, Video, Trash2, Save, MessageSquareText, Phone, HandCoins } from "lucide-react"
 
-import { getLoginVideo, uploadLoginVideo, removeLoginVideo, getTaskInstructions, setTaskInstructions, getWhatsappSoporteClientes, setWhatsappSoporteClientes, getWhatsappSoportePromotores, setWhatsappSoportePromotores, getReferralShareMessage, setReferralShareMessage } from "@/Fetch/appConfig"
+import { getLoginVideo, uploadLoginVideo, removeLoginVideo, getTaskInstructions, setTaskInstructions, getWhatsappSoporteClientes, setWhatsappSoporteClientes, getWhatsappSoportePromotores, setWhatsappSoportePromotores, getReferralShareMessage, setReferralShareMessage, getRequestPricingSettings, setRequestPricingSettings } from "@/Fetch/appConfig"
 import { Button, PageWrapper, PageHeader, Textarea, Input } from "@/components"
 
 export default function ConfigurarApp() {
@@ -23,15 +23,25 @@ export default function ConfigurarApp() {
   const [mensajeInvitacion, setMensajeInvitacion] = useState("");
   const [guardandoMensajeInvitacion, setGuardandoMensajeInvitacion] = useState(false);
 
+  const [pricePerProduct, setPricePerProduct] = useState("15");
+  const [minProducts, setMinProducts] = useState("3");
+  const [maxProducts, setMaxProducts] = useState("6");
+  const [guardandoPricing, setGuardandoPricing] = useState(false);
+
   const cargar = () => {
     setLoading(true);
-    Promise.all([getLoginVideo(), getTaskInstructions(), getWhatsappSoporteClientes(), getWhatsappSoportePromotores(), getReferralShareMessage()])
-      .then(([videoRes, instruccionesRes, whatsappClientesRes, whatsappPromotoresRes, mensajeInvitacionRes]) => {
+    Promise.all([getLoginVideo(), getTaskInstructions(), getWhatsappSoporteClientes(), getWhatsappSoportePromotores(), getReferralShareMessage(), getRequestPricingSettings()])
+      .then(([videoRes, instruccionesRes, whatsappClientesRes, whatsappPromotoresRes, mensajeInvitacionRes, pricingRes]) => {
         if (videoRes.ok) setVideoUrl(videoRes.data.url);
         if (instruccionesRes.ok) setInstrucciones(instruccionesRes.data.value);
         if (whatsappClientesRes.ok) setWhatsappClientes(whatsappClientesRes.data.value);
         if (whatsappPromotoresRes.ok) setWhatsappPromotores(whatsappPromotoresRes.data.value);
         if (mensajeInvitacionRes.ok) setMensajeInvitacion(mensajeInvitacionRes.data.value);
+        if (pricingRes.ok) {
+          setPricePerProduct(String(pricingRes.data.price_per_product));
+          setMinProducts(String(pricingRes.data.min_products));
+          setMaxProducts(String(pricingRes.data.max_products));
+        }
       })
       .catch(() => toast.error("Error al cargar la configuración"))
       .finally(() => setLoading(false));
@@ -136,6 +146,33 @@ export default function ConfigurarApp() {
       toast.error(e?.message || "Error al guardar el texto");
     } finally {
       setGuardandoMensajeInvitacion(false);
+    }
+  };
+
+  const handleGuardarPricing = async () => {
+    const price = Number(pricePerProduct);
+    const min = Number(minProducts);
+    const max = Number(maxProducts);
+    if (!price || price <= 0) {
+      toast.error("El costo por producto debe ser mayor a 0");
+      return;
+    }
+    if (!min || min < 1) {
+      toast.error("El mínimo debe ser al menos 1 producto");
+      return;
+    }
+    if (max < min) {
+      toast.error("El máximo no puede ser menor al mínimo");
+      return;
+    }
+    setGuardandoPricing(true);
+    try {
+      await setRequestPricingSettings({ price_per_product: price, min_products: min, max_products: max });
+      toast.success("Configuración actualizada exitosamente");
+    } catch (e: any) {
+      toast.error(e?.message || "Error al guardar la configuración");
+    } finally {
+      setGuardandoPricing(false);
     }
   };
 
@@ -286,6 +323,37 @@ export default function ConfigurarApp() {
           <Button onClick={handleGuardarMensajeInvitacion} disabled={guardandoMensajeInvitacion}>
             {guardandoMensajeInvitacion ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             Guardar texto
+          </Button>
+        </div>
+
+        <div className="rounded-xl border p-5 space-y-4" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--border)" }}>
+          <div className="flex items-center gap-2">
+            <HandCoins className="w-5 h-5 text-success" />
+            <h3 className="font-semibold text-foreground">Costo de una solicitud nueva</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Al armar una solicitud nueva, el costo se calcula como el costo por producto multiplicado por la cantidad de productos, sin bajar del mínimo ni subir del máximo (después del máximo, agregar más productos ya no incrementa el costo).
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="text-sm text-muted-foreground mb-1 block">Costo por producto ($)</label>
+              <Input type="number" min={1} value={pricePerProduct} onChange={(e) => setPricePerProduct(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground mb-1 block">Mínimo de productos</label>
+              <Input type="number" min={1} value={minProducts} onChange={(e) => setMinProducts(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground mb-1 block">Máximo de productos</label>
+              <Input type="number" min={1} value={maxProducts} onChange={(e) => setMaxProducts(e.target.value)} />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Con estos valores: costo mínimo ${(Number(pricePerProduct) * Number(minProducts)) || 0} (hasta {minProducts || 0} productos), costo máximo ${(Number(pricePerProduct) * Number(maxProducts)) || 0} (a partir de {maxProducts || 0} productos).
+          </p>
+          <Button onClick={handleGuardarPricing} disabled={guardandoPricing}>
+            {guardandoPricing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+            Guardar configuración
           </Button>
         </div>
       </div>

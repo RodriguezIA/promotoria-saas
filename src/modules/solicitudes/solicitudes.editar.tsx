@@ -9,6 +9,7 @@ import { api, ApiResponse } from '@/lib'
 import { updateFullRequest } from '@/Fetch/solicitudes'
 import { ProductDTO, QuestionDTO, RequestDTO } from '@/dtos'
 import { ProductoPickerModal } from './components/ProductoPickerModal'
+import { getRequestPricingSettings } from '@/Fetch/appConfig'
 
 interface ProductoSeleccionado extends ProductDTO {
   preguntas: {
@@ -30,6 +31,16 @@ export const EditarSolicitud = () => {
   const [guardando, setGuardando] = useState(false);
   const [errorTexto, setErrorTexto] = useState<string | null>(null);
   const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoSeleccionado[]>([]);
+
+  // Configuracion de precios por producto (editable por el master en
+  // Configurar App). Se usan estos valores por defecto mientras carga.
+  const [pricing, setPricing] = useState({ price_per_product: 15, min_products: 3, max_products: 6 });
+
+  useEffect(() => {
+    getRequestPricingSettings().then((res) => {
+      if (res.ok) setPricing(res.data);
+    }).catch(() => {});
+  }, []);
   const [busquedaPreguntas, setBusquedaPreguntas] = useState<Record<number, string>>({});
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -162,8 +173,9 @@ export const EditarSolicitud = () => {
   const totalPreguntas = productosSeleccionados.reduce((sum, prod) => sum + prod.preguntas.length, 0);
 
   const numProductos = productosSeleccionados.length;
-  const productosExtra = Math.max(numProductos - 3, 0);
-  const costoBase = numProductos <= 3 ? 45 : Math.min(45 + Math.min(productosExtra, 3) * 15, 90);
+  const productosFacturables = Math.min(Math.max(numProductos, pricing.min_products), pricing.max_products);
+  const costoBase = productosFacturables * pricing.price_per_product;
+  const productosExtra = Math.max(numProductos - pricing.min_products, 0);
 
   const costoPreguntas = productosSeleccionados.reduce(
     (sum, prod) => sum + prod.preguntas.reduce((s, q) => s + (q.dc_precio || 0), 0),
@@ -255,18 +267,18 @@ export const EditarSolicitud = () => {
 
             <div className="space-y-2 text-sm">
               <div className="flex justify-between gap-4">
-                <span className="text-primary-foreground/70">Costo base (hasta 3 productos):</span>
-                <span className="font-medium tabular-nums">$45.00</span>
+                <span className="text-primary-foreground/70">Costo base (hasta {pricing.min_products} productos):</span>
+                <span className="font-medium tabular-nums">${(pricing.price_per_product * pricing.min_products).toFixed(2)}</span>
               </div>
-              {costoBase > 45 && (
+              {costoBase > pricing.price_per_product * pricing.min_products && (
                 <div className="flex justify-between gap-4 text-primary-foreground/90">
                   <span>Productos extra ({productosExtra}):</span>
-                  <span className="tabular-nums">+ ${(costoBase - 45).toFixed(2)}</span>
+                  <span className="tabular-nums">+ ${(costoBase - pricing.price_per_product * pricing.min_products).toFixed(2)}</span>
                 </div>
               )}
-              {productosExtra > 0 && costoBase >= 90 && (
+              {productosExtra > 0 && costoBase >= pricing.price_per_product * pricing.max_products && (
                 <div className="text-xs text-primary-foreground/70 italic">
-                  Precio base máximo alcanzado ($90). Puedes seguir agregando productos sin costo base adicional.
+                  Precio base máximo alcanzado (${(pricing.price_per_product * pricing.max_products).toFixed(2)}). Puedes seguir agregando productos sin costo base adicional.
                 </div>
               )}
               {costoPreguntas > 0 && (

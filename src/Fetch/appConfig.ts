@@ -44,3 +44,15 @@ export const getReferralShareMessage = () =>
 
 export const setReferralShareMessage = (value: string) =>
   api.put<ApiResponse<TaskInstructionsSetting>>(`/app-config/referral-share-message`, { value });
+
+export interface RequestPricingSettings {
+  price_per_product: number;
+  min_products: number;
+  max_products: number;
+}
+
+export const getRequestPricingSettings = () =>
+  api.get<ApiResponse<RequestPricingSettings>>(`/app-config/request-pricing`);
+
+export const setRequestPricingSettings = (data: RequestPricingSettings) =>
+  api.put<ApiResponse<null>>(`/app-config/request-pricing`, data);

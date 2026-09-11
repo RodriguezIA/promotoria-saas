@@ -8,6 +8,7 @@ import { ClientListDTO, ProductDTO, QuestionDTO } from '@/dtos'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button, Input, Checkbox } from '@/components'
 import { ProductoPickerModal } from './components/ProductoPickerModal'
 import { getTaskSettings } from '@/Fetch/taskSettings'
+import { getRequestPricingSettings } from '@/Fetch/appConfig'
 
 interface ProductoSeleccionado extends ProductDTO {
   preguntas: {
@@ -50,6 +51,16 @@ export const CrearSolicitud = () => {
   const [previewAnaquel, setPreviewAnaquel] = useState<string | null>(null);
   const [prepedido, setPrepedido] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Configuracion de precios por producto (editable por el master en
+  // Configurar App). Se usan estos valores por defecto mientras carga.
+  const [pricing, setPricing] = useState({ price_per_product: 15, min_products: 3, max_products: 6 });
+
+  useEffect(() => {
+    getRequestPricingSettings().then((res) => {
+      if (res.ok) setPricing(res.data);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (isSuperAdmin) {
@@ -179,14 +190,15 @@ export const CrearSolicitud = () => {
   };
 
   // --- CÁLCULOS DINÁMICOS (LÓGICA DE PRECIOS REAL) ---
-  // Costo base según cantidad de PRODUCTOS: hasta 3 productos = $45.
-  // Cada producto extra (4to, 5to, 6to) suma $15, con tope de $90 total.
+  // Costo base según cantidad de PRODUCTOS: el costo por producto, el
+  // mínimo y el máximo son configurables por el master en Configurar App.
   // Cada pregunta seleccionada suma su propio costo (lo pone el Master, puede ser $0 = gratis).
   const totalPreguntas = productosSeleccionados.reduce((sum, prod) => sum + prod.preguntas.length, 0);
 
   const numProductos = productosSeleccionados.length;
-  const productosExtra = Math.max(numProductos - 3, 0);
-  const costoBase = numProductos <= 3 ? 45 : Math.min(45 + Math.min(productosExtra, 3) * 15, 90);
+  const productosFacturables = Math.min(Math.max(numProductos, pricing.min_products), pricing.max_products);
+  const costoBase = productosFacturables * pricing.price_per_product;
+  const productosExtra = Math.max(numProductos - pricing.min_products, 0);
 
   const costoPreguntas = productosSeleccionados.reduce(
     (sum, prod) => sum + prod.preguntas.reduce((s, q) => s + (q.dc_precio || 0), 0),
@@ -342,18 +354,18 @@ export const CrearSolicitud = () => {
 
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between gap-4">
-                  <span className="text-primary-foreground/70">Costo base (hasta 3 productos):</span>
-                  <span className="font-medium tabular-nums">$45.00</span>
+                  <span className="text-primary-foreground/70">Costo base (hasta {pricing.min_products} productos):</span>
+                  <span className="font-medium tabular-nums">${(pricing.price_per_product * pricing.min_products).toFixed(2)}</span>
                 </div>
-                {costoBase > 45 && (
+                {costoBase > pricing.price_per_product * pricing.min_products && (
                   <div className="flex justify-between gap-4 text-primary-foreground/90">
                     <span>Productos extra ({productosExtra}):</span>
-                    <span className="tabular-nums">+ ${(costoBase - 45).toFixed(2)}</span>
+                    <span className="tabular-nums">+ ${(costoBase - pricing.price_per_product * pricing.min_products).toFixed(2)}</span>
                   </div>
                 )}
-                {productosExtra > 0 && costoBase >= 90 && (
+                {productosExtra > 0 && costoBase >= pricing.price_per_product * pricing.max_products && (
                   <div className="text-xs text-primary-foreground/70 italic">
-                    Precio base máximo alcanzado ($90). Puedes seguir agregando productos sin costo base adicional.
+                    Precio base máximo alcanzado (${(pricing.price_per_product * pricing.max_products).toFixed(2)}). Puedes seguir agregando productos sin costo base adicional.
                   </div>
                 )}
                 {costoPreguntas > 0 && (
