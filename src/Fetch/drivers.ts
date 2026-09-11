@@ -9,6 +9,7 @@ export interface DriverDTO {
     i_status: number // 1 = activo, 2 = suspendido
     dt_location_updated: string | null
     dt_register: string
+    i_active_routes_today?: number
 }
 
 export const getDrivers = () =>

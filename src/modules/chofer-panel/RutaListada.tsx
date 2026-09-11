@@ -5,6 +5,7 @@ import { Loader2, Navigation, History, CheckCircle2, Circle, Plus } from 'lucide
 
 import { Button, Badge } from '@/components'
 import { getMyRoutes, updateDriverLocation, DriverRouteStopDTO } from '@/Fetch/driverPanel'
+import { useDriverRouteSelection } from '@/stores/driverRouteSelection'
 
 // Formula de haversine, para ordenar de la parada mas cercana a la mas lejana.
 function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -20,18 +21,25 @@ function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
 export default function RutaListada() {
   const navigate = useNavigate()
   const [stops, setStops] = useState<DriverRouteStopDTO[]>([])
+  const [routeName, setRouteName] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const selectedRouteId = useDriverRouteSelection((s) => s.selectedRouteId)
 
   const loadRoutes = () => {
     setLoading(true)
     getMyRoutes()
       .then((res) => {
         const today = new Date().toISOString().slice(0, 10)
-        const todaysStops = res.data
-          .filter((r) => r.route_date.slice(0, 10) === today)
-          .flatMap((r) => r.stops)
-        setStops(todaysStops)
+        const todaysRoutes = res.data.filter((r) => r.route_date.slice(0, 10) === today)
+        if (selectedRouteId) {
+          const route = todaysRoutes.find((r) => r.id_route === selectedRouteId)
+          setStops(route?.stops ?? [])
+          setRouteName(route?.route_template?.name ?? null)
+        } else {
+          setStops(todaysRoutes.flatMap((r) => r.stops))
+          setRouteName(null)
+        }
       })
       .catch(() => toast.error('Error al cargar tu ruta'))
       .finally(() => setLoading(false))
@@ -49,7 +57,7 @@ export default function RutaListada() {
         () => {},
       )
     }
-  }, [])
+  }, [selectedRouteId])
 
   const sortedStops = useMemo(() => {
     if (!myLocation) return stops
@@ -85,7 +93,7 @@ export default function RutaListada() {
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-1">
-        <h1 className="text-lg font-bold text-foreground">Tu ruta de hoy</h1>
+        <h1 className="text-lg font-bold text-foreground">{routeName ?? 'Tu ruta de hoy'}</h1>
         <Button variant="outline" size="sm" onClick={() => navigate('/chofer/nueva-tienda')}>
           <Plus size={14} className="mr-1.5" /> Nueva tienda
         </Button>

@@ -37,6 +37,7 @@ export interface RouteDTO {
     id_driver: number
     route_date: string
     is_active: boolean
+    is_finished: boolean
     dt_register: string
     id_schedule?: number | null
     schedule?: { id_schedule: number; day_of_week: number; interval_weeks: number } | null

@@ -203,6 +203,11 @@ export default function RutasCreadas() {
               <span className={`inline-block text-xs px-2 py-0.5 rounded-full ${route.is_active ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
                 {route.is_active ? "Activa" : "Desactivada"}
               </span>
+              {route.is_finished && (
+                <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-info/10 text-info ml-1.5">
+                  Finalizada
+                </span>
+              )}
             </div>
           ))}
         </div>

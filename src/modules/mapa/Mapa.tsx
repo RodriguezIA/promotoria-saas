@@ -582,7 +582,9 @@ export default function Mapa() {
                 <SelectTrigger><SelectValue placeholder="Selecciona un chofer" /></SelectTrigger>
                 <SelectContent>
                   {drivers.map((d) => (
-                    <SelectItem key={d.id_driver} value={String(d.id_driver)}>{d.name}</SelectItem>
+                    <SelectItem key={d.id_driver} value={String(d.id_driver)}>
+                      {d.name}{d.i_active_routes_today ? ` — ${d.i_active_routes_today} ruta${d.i_active_routes_today !== 1 ? 's' : ''} activa${d.i_active_routes_today !== 1 ? 's' : ''} hoy` : ''}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>

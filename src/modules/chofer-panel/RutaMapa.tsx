@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react'
 
 import { useJsApiLoader, GOOGLE_MAPS_CONFIG } from '@/lib'
 import { getMyRoutes, updateDriverLocation, DriverRouteStopDTO } from '@/Fetch/driverPanel'
+import { useDriverRouteSelection } from '@/stores/driverRouteSelection'
 
 const MAP_CONTAINER_STYLE = { width: '100%', height: '100%' }
 const DEFAULT_CENTER = { lat: 25.7460, lng: -100.2792 }
@@ -15,16 +16,21 @@ export default function RutaMapa() {
   const navigate = useNavigate()
   const [stops, setStops] = useState<DriverRouteStopDTO[]>([])
   const [loading, setLoading] = useState(true)
+  const [map, setMap] = useState<google.maps.Map | null>(null)
+  const selectedRouteId = useDriverRouteSelection((s) => s.selectedRouteId)
 
   useEffect(() => {
     setLoading(true)
     getMyRoutes()
       .then((res) => {
         const today = new Date().toISOString().slice(0, 10)
-        const todaysStops = res.data
-          .filter((r) => r.route_date.slice(0, 10) === today)
-          .flatMap((r) => r.stops)
-        setStops(todaysStops)
+        const todaysRoutes = res.data.filter((r) => r.route_date.slice(0, 10) === today)
+        if (selectedRouteId) {
+          const route = todaysRoutes.find((r) => r.id_route === selectedRouteId)
+          setStops(route?.stops ?? [])
+        } else {
+          setStops(todaysRoutes.flatMap((r) => r.stops))
+        }
       })
       .catch(() => toast.error('Error al cargar tu ruta'))
       .finally(() => setLoading(false))
@@ -35,7 +41,7 @@ export default function RutaMapa() {
         () => {},
       )
     }
-  }, [])
+  }, [selectedRouteId])
 
   const stopsWithCoords = stops.filter((s) => s.store.address?.latitude && s.store.address?.longitude)
 
@@ -45,6 +51,20 @@ export default function RutaMapa() {
     const lng = stopsWithCoords.reduce((sum, s) => sum + (s.store.address!.longitude ?? 0), 0) / stopsWithCoords.length
     return { lat, lng }
   }, [stopsWithCoords])
+
+  // El mapa a veces se queda en blanco si el contenedor todavia no tenia su
+  // tamano final justo cuando Google Maps se inicializo (por ejemplo, justo
+  // al entrar a esta pantalla). Forzar un "resize" despues de un instante
+  // hace que vuelva a medir el contenedor y se pinte bien, sin que el
+  // chofer tenga que salir y volver a entrar para verlo.
+  useEffect(() => {
+    if (!map) return
+    const timeout = setTimeout(() => {
+      google.maps.event.trigger(map, 'resize')
+      map.setCenter(mapCenter)
+    }, 200)
+    return () => clearTimeout(timeout)
+  }, [map, mapCenter])
 
   return (
     <div className="h-[calc(100vh-4rem)] relative">
@@ -58,6 +78,8 @@ export default function RutaMapa() {
           mapContainerStyle={MAP_CONTAINER_STYLE}
           center={mapCenter}
           zoom={stopsWithCoords.length > 0 ? 12 : 6}
+          onLoad={setMap}
+          onUnmount={() => setMap(null)}
         >
           {stopsWithCoords.map((stop) => (
             <OverlayView

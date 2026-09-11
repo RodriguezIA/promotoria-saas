@@ -57,6 +57,8 @@ export interface DriverRouteStopDTO {
 export interface DriverRouteDTO {
     id_route: number
     route_date: string
+    is_finished: boolean
+    route_template: { id_route_template: number; name: string } | null
     stops: DriverRouteStopDTO[]
 }
 
