@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Trash2, Store, ClipboardList, Check, Loader2, ChevronDown, ChevronUp, X } from 'lucide-react'
+import { Plus, Trash2, Store, ClipboardList, Check, Loader2, ChevronDown, ChevronUp, X, Download, Upload } from 'lucide-react'
 
 import { useAuthStore } from '@/stores'
 import { api, ApiResponse } from '@/lib'
@@ -243,6 +243,71 @@ export const CrearPedido = () => {
         item.id_request === id_request ? { ...item, storesSeleccionadas: [] } : item,
       ),
     )
+  }
+
+  // Agrega al pedido las tiendas cuyo ID viene marcado en el Excel importado,
+  // sin perder las que ya estaban seleccionadas por otro medio.
+  const seleccionarTiendasPorIds = (id_request: number, ids: number[]) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id_request === id_request
+          ? { ...item, storesSeleccionadas: Array.from(new Set([...item.storesSeleccionadas, ...ids])) }
+          : item,
+      ),
+    )
+  }
+
+  const handleExportarExcel = async (id_request: number) => {
+    const tiendas = getTiendasFiltradas(id_request)
+    if (tiendas.length === 0) {
+      toast.error('No hay tiendas con este filtro para exportar')
+      return
+    }
+    const XLSX = await import('xlsx')
+    const item = items.find((i) => i.id_request === id_request)
+    const rows = tiendas.map((s) => ({
+      'ID Tienda': s.id_store,
+      Nombre: s.name,
+      Dirección: `${s.address?.street ?? ''} ${s.address?.ext_number ?? ''}`.trim(),
+      Canal: s.sales_channel?.name ?? '',
+      Estado: s.address?.state?.name ?? '',
+      Municipio: s.address?.city?.name ?? '',
+      Incluir: item?.storesSeleccionadas.includes(s.id_store) ? 'SI' : '',
+    }))
+    const sheet = XLSX.utils.json_to_sheet(rows)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Tiendas')
+    XLSX.writeFile(workbook, `tiendas_solicitud_${id_request}.xlsx`)
+    toast.success('Excel exportado. Marca "SI" en la columna Incluir y vuelve a subirlo.')
+  }
+
+  const handleImportarExcel = async (id_request: number, file: File) => {
+    try {
+      const XLSX = await import('xlsx')
+      const buffer = await file.arrayBuffer()
+      const workbook = XLSX.read(buffer, { type: 'array' })
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet)
+
+      const idsIncluidos = rows
+        .filter((row) => {
+          const valor = String(row['Incluir'] ?? '').trim().toUpperCase()
+          return valor === 'SI' || valor === 'SÍ' || valor === 'X' || valor === '1'
+        })
+        .map((row) => Number(row['ID Tienda']))
+        .filter((id) => !Number.isNaN(id))
+
+      if (idsIncluidos.length === 0) {
+        toast.error('No se encontró ninguna tienda marcada como "SI" en la columna Incluir')
+        return
+      }
+
+      const idsValidos = idsIncluidos.filter((id) => stores.some((s) => s.id_store === id))
+      seleccionarTiendasPorIds(id_request, idsValidos)
+      toast.success(`${idsValidos.length} tienda(s) agregada(s) desde el Excel`)
+    } catch {
+      toast.error('Error al leer el archivo. Verifica que sea el mismo formato exportado.')
+    }
   }
 
   // --- Cálculos ---
@@ -548,13 +613,33 @@ export const CrearPedido = () => {
                                   {tiendasFiltradas.length} tienda{tiendasFiltradas.length !== 1 ? 's' : ''} con este filtro
                                 </span>
                               </div>
-                              <div className="flex gap-2">
+                              <div className="flex gap-2 flex-wrap">
                                 <Button variant="outline" size="sm" onClick={() => seleccionarTodasFiltradas(item.id_request)}>
                                   Seleccionar filtradas
                                 </Button>
                                 <Button variant="outline" size="sm" onClick={() => limpiarTiendas(item.id_request)}>
                                   Limpiar todo
                                 </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleExportarExcel(item.id_request)}>
+                                  <Download size={14} className="mr-1" /> Exportar Excel
+                                </Button>
+                                <label>
+                                  <Button variant="outline" size="sm" asChild>
+                                    <span className="cursor-pointer">
+                                      <Upload size={14} className="mr-1" /> Importar Excel
+                                    </span>
+                                  </Button>
+                                  <input
+                                    type="file"
+                                    accept=".xlsx,.xls"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0]
+                                      if (file) handleImportarExcel(item.id_request, file)
+                                      e.target.value = ''
+                                    }}
+                                  />
+                                </label>
                                 <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => removerRequest(item.id_request)}>
                                   <Trash2 size={16} className="mr-1" /> Quitar
                                 </Button>

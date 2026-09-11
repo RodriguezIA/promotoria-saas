@@ -41,8 +41,9 @@ export default function MisPrepedidos() {
 
   const filteredPreorders = useMemo(() => {
     return preorders.filter((p) => {
-      if (fechaDesde && p.preferred_date < fechaDesde) return false;
-      if (fechaHasta && p.preferred_date > fechaHasta) return false;
+      const fechaPreorder = p.preferred_date.slice(0, 10);
+      if (fechaDesde && fechaPreorder < fechaDesde) return false;
+      if (fechaHasta && fechaPreorder > fechaHasta) return false;
       if (surtidoFilter === "surtido" && p.id_status !== 1) return false;
       if (surtidoFilter === "sin_surtir" && p.id_status !== 0) return false;
       if (estadoFilter !== "todos" && p.task.store.state !== estadoFilter) return false;
