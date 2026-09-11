@@ -165,7 +165,12 @@ export default function RutasCreadas() {
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Truck size={16} className="text-muted-foreground" />
-                  <h3 className="font-bold text-foreground">{route.driver.name}</h3>
+                  <div>
+                    {route.route_template?.name && (
+                      <p className="text-xs text-muted-foreground leading-none mb-0.5">{route.route_template.name}</p>
+                    )}
+                    <h3 className="font-bold text-foreground">{route.driver.name}</h3>
+                  </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   {updatingId === route.id_route && <Loader2 size={12} className="animate-spin text-muted-foreground" />}

@@ -228,29 +228,40 @@ export default function Mapa() {
       toast.error('Selecciona al menos una tienda')
       return
     }
-    if (repeatAutomatically && !routeName.trim()) {
-      toast.error('Ponle un nombre a la ruta para poder repetirla automático')
+    if (!routeName.trim()) {
+      toast.error('Ponle un nombre a la ruta')
       return
     }
     setSavingRoute(true)
     try {
+      const storeIds = selectedStops.map((s) => s.id_store)
+      let id_route_template: number | undefined
       let id_schedule: number | undefined
-      if (repeatAutomatically && user?.id_client) {
+
+      // Toda ruta que se organiza queda guardada como reutilizable (con su
+      // nombre), se repita automatico o no -- asi aparece en "Rutas
+      // Creadas" y se puede adjuntar despues.
+      if (user?.id_client) {
         try {
-          const storeIds = selectedStops.map((s) => s.id_store)
-          let templateId: number
           if (attachTemplateId) {
             const updated = await updateRouteTemplate(Number(attachTemplateId), { name: routeName.trim(), storeIds })
-            templateId = updated.data.id_route_template
+            id_route_template = updated.data.id_route_template
           } else {
             const created = await createRouteTemplate({ id_client: user.id_client, name: routeName.trim(), storeIds })
-            templateId = created.data.id_route_template
+            id_route_template = created.data.id_route_template
           }
+        } catch {
+          toast.error('No se pudo guardar la ruta como reutilizable, pero seguimos con la ruta de hoy')
+        }
+      }
+
+      if (repeatAutomatically && user?.id_client && id_route_template) {
+        try {
           const dayOfWeekJs = new Date(routeDate + 'T00:00:00').getDay()
           const dayOfWeek = dayOfWeekJs === 0 ? 7 : dayOfWeekJs
           const schedule = await createRouteSchedule({
             id_client: user.id_client,
-            id_route_template: templateId,
+            id_route_template,
             id_driver: Number(routeDriverId),
             day_of_week: dayOfWeek,
             interval_weeks: Number(repeatIntervalWeeks),
@@ -266,6 +277,7 @@ export default function Mapa() {
         id_driver: Number(routeDriverId),
         route_date: routeDate,
         id_schedule,
+        id_route_template,
         stops: selectedStops.map((s) => ({ id_store: s.id_store, id_preorder: s.id_preorder ?? undefined })),
       })
 
@@ -612,8 +624,7 @@ export default function Mapa() {
                     : '¿Repetir esto automático a este chofer?'}
                 </Label>
               </div>
-              {repeatAutomatically && (
-                <div className="space-y-2">
+              <div className="space-y-2">
                   <div>
                     <Label className="text-xs">¿Cada cuánto?</Label>
                     <Select value={repeatIntervalWeeks} onValueChange={setRepeatIntervalWeeks}>
@@ -629,7 +640,6 @@ export default function Mapa() {
                     Se le va a generar sola esta ruta a este chofer {INTERVALOS_SEMANAS.find((i) => String(i.value) === repeatIntervalWeeks)?.label.toLowerCase()}, todos los {routeDayName || 'días que elijas'}. Al día siguiente de cada entrega se desactiva sola en "Rutas Creadas" hasta la próxima vez, a menos que la reactives a mano.
                   </p>
                 </div>
-              )}
             </div>
           </div>
           <DialogFooter>
