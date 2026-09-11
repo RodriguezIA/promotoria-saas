@@ -1,21 +1,19 @@
 import { useState } from "react"
-import { Route as RouteIcon, Map, ListChecks } from "lucide-react"
+import { Route as RouteIcon, ListChecks } from "lucide-react"
 
 import { PageWrapper, PageHeader } from "@/components"
 import Mapa from "@/modules/mapa/Mapa"
-import CrearRuta from "./CrearRuta"
 import RutasCreadas from "./RutasCreadas"
 
-type Tab = "crear" | "organizar" | "creadas"
+type Tab = "crear" | "creadas"
 
 const TABS: { id: Tab; label: string; icon: typeof RouteIcon }[] = [
   { id: "crear", label: "Crear Ruta", icon: RouteIcon },
-  { id: "organizar", label: "Organizar Ruta", icon: Map },
   { id: "creadas", label: "Rutas Creadas", icon: ListChecks },
 ]
 
 export default function Logistica() {
-  const [tab, setTab] = useState<Tab>("organizar")
+  const [tab, setTab] = useState<Tab>("crear")
 
   return (
     <div className="p-4 sm:p-6 space-y-4">
@@ -38,8 +36,7 @@ export default function Logistica() {
         })}
       </div>
 
-      {tab === "crear" && <CrearRuta />}
-      {tab === "organizar" && <Mapa />}
+      {tab === "crear" && <Mapa />}
       {tab === "creadas" && (
         <PageWrapper>
           <PageHeader title="Rutas Creadas" subtitle="Historial de rutas que ya organizaste, con su chofer y la última vez que se usaron" />

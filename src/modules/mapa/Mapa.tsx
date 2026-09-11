@@ -30,7 +30,7 @@ import { getStockMapData, getStockMinimumsByStore, setStockMinimum } from '@/Fet
 import { getProductsByClient } from '@/Fetch/products'
 import { getDrivers, DriverDTO } from '@/Fetch/drivers'
 import { getPendingPreorders, createRoute, PendingPreorderDTO } from '@/Fetch/delivery-routes'
-import { getRouteTemplates, RouteTemplateDTO, estimateRouteSales, RouteSalesEstimateDTO } from '@/Fetch/routeTemplates'
+import { getRouteTemplates, RouteTemplateDTO, estimateRouteSales, RouteSalesEstimateDTO, createRouteTemplate, updateRouteTemplate } from '@/Fetch/routeTemplates'
 import { createRouteSchedule, INTERVALOS_SEMANAS } from '@/Fetch/routeSchedules'
 import { StoreMarker } from './components/StoreMarker'
 import { PromoterMarker } from './components/PromoterMarker'
@@ -131,6 +131,7 @@ export default function Mapa() {
   const [attachTemplateId, setAttachTemplateId] = useState<string>('')
   const [repeatAutomatically, setRepeatAutomatically] = useState(false)
   const [repeatIntervalWeeks, setRepeatIntervalWeeks] = useState('1')
+  const [routeName, setRouteName] = useState('')
   const [routeEstimate, setRouteEstimate] = useState<RouteSalesEstimateDTO | null>(null)
   const [loadingRouteEstimate, setLoadingRouteEstimate] = useState(false)
 
@@ -159,6 +160,7 @@ export default function Mapa() {
     setAttachTemplateId('')
     setRepeatAutomatically(false)
     setRepeatIntervalWeeks('1')
+    setRouteName('')
     setShowRouteSetup(true)
   }
 
@@ -220,32 +222,48 @@ export default function Mapa() {
       toast.error('Selecciona al menos una tienda')
       return
     }
+    if (repeatAutomatically && !routeName.trim()) {
+      toast.error('Ponle un nombre a la ruta para poder repetirla automático')
+      return
+    }
     setSavingRoute(true)
     try {
-      await createRoute({
-        id_driver: Number(routeDriverId),
-        route_date: routeDate,
-        stops: selectedStops.map((s) => ({ id_store: s.id_store, id_preorder: s.id_preorder ?? undefined })),
-      })
-      if (repeatAutomatically && attachTemplateId && user?.id_client) {
+      let id_schedule: number | undefined
+      if (repeatAutomatically && user?.id_client) {
         try {
+          const storeIds = selectedStops.map((s) => s.id_store)
+          let templateId: number
+          if (attachTemplateId) {
+            const updated = await updateRouteTemplate(Number(attachTemplateId), { name: routeName.trim(), storeIds })
+            templateId = updated.data.id_route_template
+          } else {
+            const created = await createRouteTemplate({ id_client: user.id_client, name: routeName.trim(), storeIds })
+            templateId = created.data.id_route_template
+          }
           const dayOfWeekJs = new Date(routeDate + 'T00:00:00').getDay()
           const dayOfWeek = dayOfWeekJs === 0 ? 7 : dayOfWeekJs
-          await createRouteSchedule({
+          const schedule = await createRouteSchedule({
             id_client: user.id_client,
-            id_route_template: Number(attachTemplateId),
+            id_route_template: templateId,
             id_driver: Number(routeDriverId),
             day_of_week: dayOfWeek,
             interval_weeks: Number(repeatIntervalWeeks),
             anchor_date: routeDate,
           })
-          toast.success('Ruta creada y programada para repetirse automáticamente')
+          id_schedule = schedule.data.id_schedule
         } catch {
-          toast.error('La ruta se creó, pero no se pudo programar la repetición automática')
+          toast.error('No se pudo programar la repetición automática, pero seguimos con la ruta de hoy')
         }
-      } else {
-        toast.success('Ruta creada y asignada al chofer')
       }
+
+      await createRoute({
+        id_driver: Number(routeDriverId),
+        route_date: routeDate,
+        id_schedule,
+        stops: selectedStops.map((s) => ({ id_store: s.id_store, id_preorder: s.id_preorder ?? undefined })),
+      })
+
+      toast.success(id_schedule ? 'Ruta creada y programada para repetirse automáticamente' : 'Ruta creada y asignada al chofer')
       cancelRouteBuilding()
       loadPendingPreorders()
     } catch (e: any) {
@@ -343,7 +361,7 @@ export default function Mapa() {
 
   return (
     <PageWrapper>
-      <PageHeader title="Organizar Ruta" subtitle="Ubicación de tiendas, promotores activos, inventario y rutas de entrega en vivo" />
+      <PageHeader title="Crear Ruta" subtitle="Ubicación de tiendas, promotores activos, inventario y rutas de entrega en vivo" />
 
       <div className="flex justify-end gap-2 mb-3">
         {!buildingRoute && (
@@ -352,7 +370,7 @@ export default function Mapa() {
               <ListChecks size={16} className="mr-1.5" /> Asignar mínimos por lote
             </Button>
             <Button size="sm" onClick={openRouteSetup}>
-              <RouteIcon size={16} className="mr-1.5" /> Organizar ruta
+              <RouteIcon size={16} className="mr-1.5" /> Crear ruta
             </Button>
           </>
         )}
@@ -533,7 +551,7 @@ export default function Mapa() {
       <Dialog open={showRouteSetup} onOpenChange={setShowRouteSetup}>
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
-            <DialogTitle>Organizar ruta de entrega</DialogTitle>
+            <DialogTitle>Crear ruta de entrega</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
@@ -568,11 +586,6 @@ export default function Mapa() {
                   ))}
                 </SelectContent>
               </Select>
-              {routeTemplates.length === 0 && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  No tienes rutas creadas todavía. Ve al menú "Crear Ruta" para armar una.
-                </p>
-              )}
               {attachTemplateId && (
                 <p className="text-xs text-muted-foreground mt-1">
                   Se van a marcar las tiendas de esa ruta de una vez. Podrás agregar más tiendas o quitar antes de confirmar.
@@ -580,15 +593,19 @@ export default function Mapa() {
               )}
             </div>
 
-            {attachTemplateId && (
-              <div className="border border-border rounded-lg p-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Checkbox checked={repeatAutomatically} onCheckedChange={(v) => setRepeatAutomatically(!!v)} />
-                  <Label className="cursor-pointer" onClick={() => setRepeatAutomatically((v) => !v)}>
-                    Repetir esto automático a este chofer
-                  </Label>
-                </div>
-                {repeatAutomatically && (
+            <div className="border border-border rounded-lg p-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <Checkbox checked={repeatAutomatically} onCheckedChange={(v) => setRepeatAutomatically(!!v)} />
+                <Label className="cursor-pointer" onClick={() => setRepeatAutomatically((v) => !v)}>
+                  Repetir esto automático a este chofer
+                </Label>
+              </div>
+              {repeatAutomatically && (
+                <div className="space-y-2">
+                  <div>
+                    <Label className="text-xs">Nombre de la ruta</Label>
+                    <Input value={routeName} onChange={(e) => setRouteName(e.target.value)} placeholder="Ej. Ruta Centro" />
+                  </div>
                   <div>
                     <Label className="text-xs">¿Cada cuántas semanas?</Label>
                     <Select value={repeatIntervalWeeks} onValueChange={setRepeatIntervalWeeks}>
@@ -599,13 +616,13 @@ export default function Mapa() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Se le va a generar sola esta ruta a este chofer cada {repeatIntervalWeeks === '1' ? 'semana' : `${repeatIntervalWeeks} semanas`}, el mismo día de la semana que elijas abajo.
-                    </p>
                   </div>
-                )}
-              </div>
-            )}
+                  <p className="text-xs text-muted-foreground">
+                    Se le va a generar sola esta ruta a este chofer cada {repeatIntervalWeeks === '1' ? 'semana' : `${repeatIntervalWeeks} semanas`}, el mismo día de la semana de la fecha que elegiste arriba. Al día siguiente de cada entrega se desactiva sola en "Rutas Creadas" hasta la próxima vez, a menos que la reactives a mano.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setShowRouteSetup(false)}>Cancelar</Button>
