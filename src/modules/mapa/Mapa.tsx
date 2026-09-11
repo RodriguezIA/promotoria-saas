@@ -29,6 +29,7 @@ import { getStockMapData, getStockMinimumsByStore, setStockMinimum } from '@/Fet
 import { getProductsByClient } from '@/Fetch/products'
 import { getDrivers, DriverDTO } from '@/Fetch/drivers'
 import { getPendingPreorders, createRoute, PendingPreorderDTO } from '@/Fetch/delivery-routes'
+import { getRouteTemplates, RouteTemplateDTO } from '@/Fetch/routeTemplates'
 import { StoreMarker } from './components/StoreMarker'
 import { PromoterMarker } from './components/PromoterMarker'
 import { StoreOrderHistory } from './components/StoreOrderHistory'
@@ -124,11 +125,17 @@ export default function Mapa() {
   const [savingRoute, setSavingRoute] = useState(false)
   const [routeSearch, setRouteSearch] = useState('')
   const [routeFilter, setRouteFilter] = useState<'todas' | 'con_pedido' | 'sin_pedido' | 'red' | 'yellow' | 'green'>('todas')
+  const [routeTemplates, setRouteTemplates] = useState<RouteTemplateDTO[]>([])
+  const [attachTemplateId, setAttachTemplateId] = useState<string>('')
 
   const openRouteSetup = () => {
     getDrivers().then((res) => setDrivers(res.data)).catch(() => toast.error('Error al cargar los choferes'))
+    if (user?.id_client) {
+      getRouteTemplates(user.id_client).then((res) => setRouteTemplates(res.data ?? [])).catch(() => {})
+    }
     setRouteDriverId('')
     setRouteDate(new Date().toISOString().slice(0, 10))
+    setAttachTemplateId('')
     setShowRouteSetup(true)
   }
 
@@ -138,10 +145,31 @@ export default function Mapa() {
       return
     }
     setShowRouteSetup(false)
-    setSelectedStops([])
     setActiveFilter(null)
     setRouteSearch('')
     setRouteFilter('todas')
+
+    if (attachTemplateId) {
+      const template = routeTemplates.find((t) => String(t.id_route_template) === attachTemplateId)
+      if (template) {
+        const prefilled: SelectedStop[] = template.stores
+          .map((ts) => stores.find((s) => s.id_store === ts.id_store))
+          .filter((s): s is MapStoreDTO => !!s)
+          .map((s) => ({
+            id_store: s.id_store,
+            id_preorder: pendingByStore.get(s.id_store)?.[0]?.id_preorder ?? null,
+            store_name: s.name,
+            semaphore: s.semaphore ?? null,
+          }))
+        setSelectedStops(prefilled)
+        const faltantes = template.stores.length - prefilled.length
+        if (faltantes > 0) {
+          toast.error(`${faltantes} tienda(s) de "${template.name}" ya no existen o no están disponibles`)
+        }
+      }
+    } else {
+      setSelectedStops([])
+    }
     setBuildingRoute(true)
   }
 
@@ -274,7 +302,7 @@ export default function Mapa() {
 
   return (
     <PageWrapper>
-      <PageHeader title="Logística" subtitle="Ubicación de tiendas, promotores activos, inventario y rutas de entrega en vivo" />
+      <PageHeader title="Organizar Ruta" subtitle="Ubicación de tiendas, promotores activos, inventario y rutas de entrega en vivo" />
 
       <div className="flex justify-end gap-2 mb-3">
         {!buildingRoute && (
@@ -475,6 +503,29 @@ export default function Mapa() {
             <div>
               <Label>Fecha de la ruta</Label>
               <Input type="date" value={routeDate} onChange={(e) => setRouteDate(e.target.value)} />
+            </div>
+            <div>
+              <Label>¿Adjuntar una ruta ya creada? (opcional)</Label>
+              <Select value={attachTemplateId} onValueChange={setAttachTemplateId}>
+                <SelectTrigger><SelectValue placeholder="No, armar una ruta en específico" /></SelectTrigger>
+                <SelectContent>
+                  {routeTemplates.map((t) => (
+                    <SelectItem key={t.id_route_template} value={String(t.id_route_template)}>
+                      {t.name} ({t.stores.length} tiendas)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {routeTemplates.length === 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  No tienes rutas creadas todavía. Ve al menú "Crear Ruta" para armar una.
+                </p>
+              )}
+              {attachTemplateId && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Se van a marcar las tiendas de esa ruta de una vez. Podrás agregar más tiendas o quitar antes de confirmar.
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>

@@ -20,6 +20,7 @@ import { ProductPage, ProductoDetalle, ProductoForm } from '@/modules/productos'
 import { Establecimientos, Establecimiento, EstablecimientoDetalle } from '@/modules/establecimientos'
 import CanalesVenta from '@/modules/canales-venta/CanalesVenta'
 import { Mapa, AsignarMinimos } from '@/modules/mapa'
+import CrearRuta from '@/modules/logistica/CrearRuta'
 import { MisPrepedidos } from '@/modules/prepedidos'
 import { Choferes } from '@/modules/choferes'
 import { CrearSolicitud, EditarSolicitud, SolicitudDetalle, SolicitudesList } from '@/modules/solicitudes'
@@ -86,6 +87,7 @@ export default function AppRouter() {
           <Route path="tareas" element={<TareasListado />} />
           <Route path="tareas/:id_task" element={<TareaDetalle />} />
           <Route path="mapa" element={<Mapa />} />
+          <Route path="crear-ruta" element={<CrearRuta />} />
           <Route path="mis-prepedidos" element={<MisPrepedidos />} />
           <Route path="choferes" element={<Choferes />} />
           <Route path="mapa/asignar-minimos" element={<AsignarMinimos />} />
