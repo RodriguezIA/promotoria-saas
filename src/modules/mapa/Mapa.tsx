@@ -739,7 +739,7 @@ function StoreDetailPanel({
           {pending.map((p) => (
             <div key={p.id_preorder} className="text-sm mb-2 last:mb-0">
               <p className="text-muted-foreground text-xs mb-1">
-                Para el {new Date(p.preferred_date).toLocaleDateString('es-MX')} · {p.preferred_time === 'MAÑANA' ? 'por la mañana' : 'por la tarde'}
+                Para el {new Date(p.preferred_date).toLocaleDateString('es-MX', { timeZone: 'UTC' })} · {p.preferred_time === 'MAÑANA' ? 'por la mañana' : 'por la tarde'}
               </p>
               {p.items.map((item) => (
                 <p key={item.id_item}>

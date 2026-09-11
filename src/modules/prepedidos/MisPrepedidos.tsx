@@ -71,7 +71,7 @@ export default function MisPrepedidos() {
         Tienda: p.task.store.name,
         Estado: p.task.store.state ?? "",
         Municipio: p.task.store.city ?? "",
-        "Fecha preferida": new Date(p.preferred_date).toLocaleDateString("es-MX"),
+        "Fecha preferida": new Date(p.preferred_date).toLocaleDateString("es-MX", { timeZone: "UTC" }),
         Turno: TIME_LABEL[p.preferred_time] ?? p.preferred_time,
         Estatus: p.id_status === 1 ? "Surtido" : "Sin surtir",
         Promotor: p.task.promoter ? `${p.task.promoter.name} ${p.task.promoter.lastname ?? ""}`.trim() : "",
@@ -216,7 +216,7 @@ export default function MisPrepedidos() {
                 <div className="flex items-center gap-3 text-sm">
                   <span className="flex items-center gap-1.5 text-muted-foreground">
                     <Calendar size={14} />
-                    {new Date(p.preferred_date).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    {new Date(p.preferred_date).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}
                   </span>
                   <span className="flex items-center gap-1.5 text-muted-foreground">
                     {p.preferred_time === 'MAÑANA' ? <Sun size={14} /> : <Moon size={14} />}

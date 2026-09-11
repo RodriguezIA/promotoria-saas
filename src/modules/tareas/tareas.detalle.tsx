@@ -433,7 +433,7 @@ export function TareaDetalle() {
               </div>
               <div className="flex flex-wrap gap-4 mb-4 text-sm">
                 <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <Calendar size={14} /> {formatDate(preorder.preferred_date)}
+                  <Calendar size={14} /> {new Date(preorder.preferred_date).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}
                 </span>
                 <span className="flex items-center gap-1.5 text-muted-foreground">
                   {preorder.preferred_time === "MAÑANA" ? <Sun size={14} /> : <Moon size={14} />}
