@@ -338,11 +338,13 @@ export default function Mapa() {
               Selecciona las tiendas desde el mapa o la lista, en el orden en que se van a visitar.
             </Badge>
             {selectedStops.length > 0 && (
-              <Badge className="bg-success/10 text-success border-success/20 gap-1.5">
+              <Badge className={`gap-1.5 ${routeEstimate?.can_estimate === false ? 'bg-warning/10 text-warning-foreground dark:text-warning border-warning/20' : 'bg-success/10 text-success border-success/20'}`}>
                 {loadingRouteEstimate ? (
                   <Loader2 size={12} className="animate-spin" />
+                ) : routeEstimate?.can_estimate ? (
+                  <>Venta estimada: {new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(routeEstimate.total ?? 0)}</>
                 ) : routeEstimate ? (
-                  <>Venta estimada: {new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(routeEstimate.total)}</>
+                  <>{routeEstimate.missing_count} tienda{routeEstimate.missing_count !== 1 ? 's' : ''} sin info reciente, no hay estimado</>
                 ) : null}
               </Badge>
             )}
