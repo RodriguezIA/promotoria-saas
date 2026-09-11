@@ -257,28 +257,16 @@ export const CrearPedido = () => {
     )
   }
 
-  const handleExportarExcel = async (id_request: number) => {
-    const tiendas = getTiendasFiltradas(id_request)
-    if (tiendas.length === 0) {
-      toast.error('No hay tiendas con este filtro para exportar')
-      return
-    }
+  const handleExportarExcel = async () => {
     const XLSX = await import('xlsx')
-    const item = items.find((i) => i.id_request === id_request)
-    const rows = tiendas.map((s) => ({
-      'ID Tienda': s.id_store,
-      Nombre: s.name,
-      Dirección: `${s.address?.street ?? ''} ${s.address?.ext_number ?? ''}`.trim(),
-      Canal: s.sales_channel?.name ?? '',
-      Estado: s.address?.state?.name ?? '',
-      Municipio: s.address?.city?.name ?? '',
-      Incluir: item?.storesSeleccionadas.includes(s.id_store) ? 'SI' : '',
-    }))
+    const rows = [
+      { 'Nombre de tienda': 'Ejemplo: Oxxo Cedeco' },
+    ]
     const sheet = XLSX.utils.json_to_sheet(rows)
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, sheet, 'Tiendas')
-    XLSX.writeFile(workbook, `tiendas_solicitud_${id_request}.xlsx`)
-    toast.success('Excel exportado. Marca "SI" en la columna Incluir y vuelve a subirlo.')
+    XLSX.writeFile(workbook, `formato_tiendas.xlsx`)
+    toast.success('Formato descargado. Escribe el nombre de cada tienda (borra el ejemplo) y vuelve a subirlo.')
   }
 
   const handleImportarExcel = async (id_request: number, file: File) => {
@@ -289,22 +277,30 @@ export const CrearPedido = () => {
       const sheet = workbook.Sheets[workbook.SheetNames[0]]
       const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet)
 
-      const idsIncluidos = rows
-        .filter((row) => {
-          const valor = String(row['Incluir'] ?? '').trim().toUpperCase()
-          return valor === 'SI' || valor === 'SÍ' || valor === 'X' || valor === '1'
-        })
-        .map((row) => Number(row['ID Tienda']))
-        .filter((id) => !Number.isNaN(id))
+      const nombresBuscados = rows
+        .map((row) => String(row['Nombre de tienda'] ?? '').trim())
+        .filter((nombre) => nombre.length > 0 && !nombre.toLowerCase().startsWith('ejemplo'))
 
-      if (idsIncluidos.length === 0) {
-        toast.error('No se encontró ninguna tienda marcada como "SI" en la columna Incluir')
+      if (nombresBuscados.length === 0) {
+        toast.error('No se encontró ningún nombre de tienda en el archivo')
         return
       }
 
-      const idsValidos = idsIncluidos.filter((id) => stores.some((s) => s.id_store === id))
-      seleccionarTiendasPorIds(id_request, idsValidos)
-      toast.success(`${idsValidos.length} tienda(s) agregada(s) desde el Excel`)
+      const idsEncontrados: number[] = []
+      const noEncontrados: string[] = []
+      for (const nombre of nombresBuscados) {
+        const match = stores.find((s) => s.name.trim().toLowerCase() === nombre.toLowerCase())
+        if (match) idsEncontrados.push(match.id_store)
+        else noEncontrados.push(nombre)
+      }
+
+      if (idsEncontrados.length > 0) {
+        seleccionarTiendasPorIds(id_request, idsEncontrados)
+        toast.success(`${idsEncontrados.length} tienda(s) agregada(s) desde el Excel`)
+      }
+      if (noEncontrados.length > 0) {
+        toast.error(`No se encontró${noEncontrados.length === 1 ? '' : 'ron'}: ${noEncontrados.join(', ')}`)
+      }
     } catch {
       toast.error('Error al leer el archivo. Verifica que sea el mismo formato exportado.')
     }
@@ -620,7 +616,7 @@ export const CrearPedido = () => {
                                 <Button variant="outline" size="sm" onClick={() => limpiarTiendas(item.id_request)}>
                                   Limpiar todo
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={() => handleExportarExcel(item.id_request)}>
+                                <Button variant="outline" size="sm" onClick={() => handleExportarExcel()}>
                                   <Download size={14} className="mr-1" /> Exportar Excel
                                 </Button>
                                 <label>
