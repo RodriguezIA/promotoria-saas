@@ -140,6 +140,26 @@ export default function Mapa() {
   }, [routeDate])
   const [routeEstimate, setRouteEstimate] = useState<RouteSalesEstimateDTO | null>(null)
   const [loadingRouteEstimate, setLoadingRouteEstimate] = useState(false)
+  const [storeEstimates, setStoreEstimates] = useState<Map<number, number>>(new Map())
+
+  // Estimado de venta por CADA tienda (no solo las seleccionadas), para que
+  // el cliente pueda ir armando la ruta viendo cuales tiendas le conviene
+  // mas agregar, tanto en el mapa como en la lista.
+  useEffect(() => {
+    if (!buildingRoute || stores.length === 0) {
+      setStoreEstimates(new Map())
+      return
+    }
+    estimateRouteSales(stores.map((s) => s.id_store))
+      .then((res) => {
+        const map = new Map<number, number>()
+        for (const s of res.data.stores) {
+          if (s.has_minimums && !s.is_stale && s.estimated_value > 0) map.set(s.id_store, s.estimated_value)
+        }
+        setStoreEstimates(map)
+      })
+      .catch(() => {})
+  }, [buildingRoute, stores])
 
   useEffect(() => {
     if (!buildingRoute || selectedStops.length === 0) {
@@ -522,6 +542,7 @@ export default function Mapa() {
                     selected={selectedStore?.id_store === store.id_store}
                     hasPendingOrder={pendingByStore.has(store.id_store)}
                     routeOrder={buildingRoute && stopIndex >= 0 ? stopIndex + 1 : null}
+                    estimatedValue={buildingRoute ? storeEstimates.get(store.id_store) : undefined}
                     onClick={() =>
                       buildingRoute ? toggleStop(store) : setSelectedStore(store)
                     }
@@ -543,6 +564,7 @@ export default function Mapa() {
             stores={visibleStores}
             pendingByStore={pendingByStore}
             selectedStops={selectedStops}
+            storeEstimates={storeEstimates}
             onToggle={toggleStop}
             search={routeSearch}
             onSearchChange={setRouteSearch}
@@ -664,6 +686,7 @@ function RouteListPicker({
   stores,
   pendingByStore,
   selectedStops,
+  storeEstimates,
   onToggle,
   search,
   onSearchChange,
@@ -677,6 +700,7 @@ function RouteListPicker({
   stores: MapStoreDTO[]
   pendingByStore: Map<number, PendingPreorderDTO[]>
   selectedStops: SelectedStop[]
+  storeEstimates: Map<number, number>
   onToggle: (store: MapStoreDTO) => void
   search: string
   onSearchChange: (value: string) => void
@@ -798,6 +822,11 @@ function RouteListPicker({
                   </div>
                   {hasPending && (
                     <p className="text-xs text-warning-foreground dark:text-warning mt-0.5">Tiene pedido pendiente</p>
+                  )}
+                  {storeEstimates.has(store.id_store) && (
+                    <p className="text-xs text-success font-semibold mt-0.5">
+                      Venta estimada: ${storeEstimates.get(store.id_store)!.toFixed(0)}
+                    </p>
                   )}
                 </button>
               </li>

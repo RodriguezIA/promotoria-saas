@@ -16,9 +16,11 @@ interface StoreMarkerProps {
     hasPendingOrder?: boolean
     /** Cuando se esta armando una ruta: si esta tienda ya fue palomeada, y en que numero de la ruta. */
     routeOrder?: number | null
+    /** Cuanto podria generar de venta esta tienda (si tiene minimos configurados y su info no esta atrasada). */
+    estimatedValue?: number | null
 }
 
-export function StoreMarker({ store, onClick, selected, hasPendingOrder, routeOrder }: StoreMarkerProps) {
+export function StoreMarker({ store, onClick, selected, hasPendingOrder, routeOrder, estimatedValue }: StoreMarkerProps) {
     const MARKER_SIZE = 52
     const borderColor = routeOrder
         ? '#2F7654'
@@ -67,6 +69,11 @@ export function StoreMarker({ store, onClick, selected, hasPendingOrder, routeOr
                         title="Tiene un pedido pendiente de surtir"
                     >
                         <PackageSearch size={11} />
+                    </span>
+                )}
+                {estimatedValue != null && estimatedValue > 0 && (
+                    <span className="absolute left-1/2 -translate-x-1/2 -bottom-5 whitespace-nowrap px-1.5 py-0.5 rounded-full bg-success text-white text-[10px] font-bold shadow">
+                        ${estimatedValue >= 1000 ? `${(estimatedValue / 1000).toFixed(1)}k` : estimatedValue.toFixed(0)}
                     </span>
                 )}
             </button>
