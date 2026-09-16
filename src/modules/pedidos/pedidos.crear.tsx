@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Trash2, Store, ClipboardList, Check, Loader2, ChevronDown, ChevronUp, X, Download, Upload } from 'lucide-react'
+import { Plus, Trash2, Store, ClipboardList, Check, Loader2, ChevronDown, ChevronUp, X, Download, Upload, MapPin } from 'lucide-react'
 
 import { useAuthStore } from '@/stores'
 import { api, ApiResponse } from '@/lib'
@@ -44,6 +44,7 @@ export const CrearPedido = () => {
   const [clientes, setClientes] = useState<ClientListDTO[]>([])
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null)
   const [loadingClientes, setLoadingClientes] = useState(false)
+  const [actualizandoUbicaciones, setActualizandoUbicaciones] = useState(false)
 
   // --- Datos del cliente ---
   const [requests, setRequests] = useState<RequestDTO[]>([])
@@ -257,6 +258,22 @@ export const CrearPedido = () => {
     )
   }
 
+  const handleActualizarUbicaciones = async () => {
+    setActualizandoUbicaciones(true)
+    try {
+      const res = await api.post<ApiResponse<{ total: number; sent: number }>>('/promoters/refresh-locations', {})
+      if (res.ok) {
+        toast.success(`Se avisó a ${res.data.sent} de ${res.data.total} promotor(es) activo(s)`)
+      } else {
+        toast.error(res.message || 'Error al avisar a los promotores')
+      }
+    } catch (e: any) {
+      toast.error(e?.message || 'Error al avisar a los promotores')
+    } finally {
+      setActualizandoUbicaciones(false)
+    }
+  }
+
   const handleExportarExcel = async () => {
     const XLSX = await import('xlsx')
     const rows = [
@@ -377,6 +394,20 @@ export const CrearPedido = () => {
         title="Crear Pedido"
         subtitle="Asigna tiendas a solicitudes para generar una orden de servicio"
         icon={ClipboardList}
+        actions={
+          <Button
+            variant="outline"
+            onClick={handleActualizarUbicaciones}
+            disabled={actualizandoUbicaciones}
+          >
+            {actualizandoUbicaciones ? (
+              <Loader2 className="animate-spin mr-2" size={16} />
+            ) : (
+              <MapPin className="mr-2" size={16} />
+            )}
+            Actualizar ubicaciones de promotores
+          </Button>
+        }
       />
 
       {/* Selector de Cliente */}
