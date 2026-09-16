@@ -1,7 +1,7 @@
 import { toast } from "sonner"
 import { useState, useEffect } from "react"
 import { useNavigate, useParams, useLocation } from "react-router-dom"
-import { ArrowLeft, Package, FileText, Save, AlertCircle, ImagePlus, X, Loader2, Boxes, DollarSign } from "lucide-react"
+import { ArrowLeft, Package, FileText, Save, AlertCircle, ImagePlus, X, Loader2, Boxes, DollarSign, ScanBarcode } from "lucide-react"
 
 
 import { ProductDTO } from "@/dtos"
@@ -29,16 +29,20 @@ export default function ProductoForm() {
   const [loadingData, setLoadingData] = useState(isEditMode)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [barcodeImageFile, setBarcodeImageFile] = useState<File | null>(null)
+  const [barcodeImagePreview, setBarcodeImagePreview] = useState<string | null>(null)
+  const [barcodeImageChanged, setBarcodeImageChanged] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    vc_sku: "",
     i_stock: "",
     b_allow_backorder: false,
     i_backorder_days: "",
     f_store_price: "",
   })
   const [originalData, setOriginalData] = useState({
-    id_product: 0, name: "", description: "", vc_image: "",
+    id_product: 0, name: "", description: "", vc_image: "", vc_sku: "",
     i_stock: "", b_allow_backorder: false, i_backorder_days: "", f_store_price: "",
   })
 
@@ -52,6 +56,7 @@ export default function ProductoForm() {
       const loaded = {
         name: product.name || "",
         description: product.description || "",
+        vc_sku: product.vc_sku || "",
         i_stock: product.i_stock != null ? String(product.i_stock) : "",
         b_allow_backorder: product.b_allow_backorder ?? false,
         i_backorder_days: product.i_backorder_days != null ? String(product.i_backorder_days) : "",
@@ -68,6 +73,9 @@ export default function ProductoForm() {
       if (product.vc_image) {
         setImagePreview(product.vc_image);
       }
+      if (product.vc_barcode_image) {
+        setBarcodeImagePreview(product.vc_barcode_image);
+      }
     } catch (error) {
       console.error("Error cargando producto:", error);
       toast.error("Error al cargar el producto");
@@ -81,11 +89,13 @@ export default function ProductoForm() {
     return (
       formData.name !== originalData.name ||
       formData.description !== originalData.description ||
+      formData.vc_sku !== originalData.vc_sku ||
       formData.i_stock !== originalData.i_stock ||
       formData.b_allow_backorder !== originalData.b_allow_backorder ||
       formData.i_backorder_days !== originalData.i_backorder_days ||
       formData.f_store_price !== originalData.f_store_price ||
-      imageChanged
+      imageChanged ||
+      barcodeImageChanged
     );
   };
 
@@ -141,6 +151,36 @@ export default function ProductoForm() {
     setImageChanged(true);
   };
 
+  const handleBarcodeImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Solo se permiten archivos de imagen");
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("La imagen no debe superar los 5MB");
+        return;
+      }
+
+      setBarcodeImageFile(file);
+      setBarcodeImageChanged(true);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBarcodeImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeBarcodeImage = () => {
+    setBarcodeImagePreview(null);
+    setBarcodeImageFile(null);
+    setBarcodeImageChanged(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -160,6 +200,7 @@ export default function ProductoForm() {
           id_client: resolvedClientId!,
           name: formData.name,
           description: formData.description || undefined,
+          vc_sku: formData.vc_sku.trim() || null,
           i_stock: formData.i_stock !== "" ? Number(formData.i_stock) : null,
           b_allow_backorder: formData.b_allow_backorder,
           i_backorder_days: formData.b_allow_backorder && formData.i_backorder_days !== "" ? Number(formData.i_backorder_days) : null,
@@ -170,6 +211,12 @@ export default function ProductoForm() {
           const formatImage = new FormData();
           formatImage.append('file', imageFile)
           await api.upload<ApiResponse>(`/products/upload-image/${resolvedClientId}/${originalData.id_product}`, formatImage)
+        }
+
+        if (barcodeImageChanged && barcodeImageFile) {
+          const formatBarcode = new FormData();
+          formatBarcode.append('file', barcodeImageFile)
+          await api.upload<ApiResponse>(`/products/upload-barcode-image/${resolvedClientId}/${originalData.id_product}`, formatBarcode)
         }
 
         toast.success("Producto actualizado exitosamente");
@@ -188,13 +235,20 @@ export default function ProductoForm() {
         fd.append('id_client', String(resolvedClientId));
         fd.append('name', formData.name);
         if (formData.description) fd.append('description', formData.description);
+        if (formData.vc_sku.trim()) fd.append('vc_sku', formData.vc_sku.trim());
         if (formData.i_stock !== "") fd.append('i_stock', formData.i_stock);
         fd.append('b_allow_backorder', String(formData.b_allow_backorder));
         if (formData.b_allow_backorder && formData.i_backorder_days !== "") fd.append('i_backorder_days', formData.i_backorder_days);
         if (formData.f_store_price !== "") fd.append('f_store_price', formData.f_store_price);
         if (imageFile) fd.append('file', imageFile);
 
-        await api.upload<ApiResponse<ProductDTO>>('/products', fd);
+        const created = await api.upload<ApiResponse<ProductDTO>>('/products', fd);
+
+        if (barcodeImageFile) {
+          const formatBarcode = new FormData();
+          formatBarcode.append('file', barcodeImageFile)
+          await api.upload<ApiResponse>(`/products/upload-barcode-image/${resolvedClientId}/${created.data.id_product}`, formatBarcode)
+        }
 
         toast.success("Producto creado exitosamente");
         navigate(`/productos/`);
@@ -407,6 +461,84 @@ export default function ProductoForm() {
                 placeholder="Describe las características del producto..."
                 className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors resize-none"
               />
+            </div>
+          </div>
+
+          {/* Código de identificación (SKU / código de barras) */}
+          <div className="bg-white rounded-lg border border-border p-6">
+            <div className="flex items-center gap-2 mb-2">
+              <ScanBarcode size={20} className="text-muted-foreground" />
+              <h2 className="text-lg font-medium text-foreground">
+                Código de identificación
+              </h2>
+            </div>
+            <p className="text-sm text-muted-foreground mb-6">
+              Sirve para que el promotor confirme, escaneando con la cámara, que tiene enfrente el producto correcto antes de revisarlo. Puedes poner el SKU en texto, subir una foto del código de barras, o ambos — es opcional.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  SKU o código de barras (texto)
+                </label>
+                <input
+                  type="text"
+                  name="vc_sku"
+                  value={formData.vc_sku}
+                  onChange={handleChange}
+                  placeholder="Ej: 7501234567890"
+                  className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Este es el valor contra el que se compara cuando el promotor escanea.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Foto del código de barras / QR
+                </label>
+
+                {barcodeImagePreview ? (
+                  <div className="relative w-40 h-40">
+                    <img
+                      src={barcodeImagePreview}
+                      alt="Preview código de barras"
+                      className="w-full h-full object-cover rounded-lg border border-border"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeBarcodeImage}
+                      className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
+                    >
+                      <X size={14} />
+                    </button>
+                    <label className="absolute bottom-2 right-2 p-2 bg-white/90 rounded-lg cursor-pointer hover:bg-white transition-colors shadow-sm">
+                      <ImagePlus size={16} className="text-muted-foreground" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBarcodeImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-input rounded-lg cursor-pointer hover:border-ring transition-colors">
+                    <ImagePlus size={32} className="text-muted-foreground/70 mb-2" />
+                    <span className="text-sm text-muted-foreground">Subir foto</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBarcodeImageChange}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  Solo es de referencia visual para ti, el promotor nunca la ve.
+                </p>
+              </div>
             </div>
           </div>
 

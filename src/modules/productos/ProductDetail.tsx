@@ -1,7 +1,7 @@
 import { toast } from "sonner"
 import { useState, useEffect } from "react"
 import { Link, useParams, useNavigate } from "react-router-dom"
-import { ArrowLeft, Package, FileText, Edit2, Trash2, Clock, ImageOff, Loader2 } from "lucide-react"
+import { ArrowLeft, Package, FileText, Edit2, Trash2, Clock, ImageOff, Loader2, ScanBarcode } from "lucide-react"
 
 
 import { ProductDTO } from "@/dtos"
@@ -212,6 +212,32 @@ export default function ProductoDetalle() {
 
           {/* Columna lateral */}
           <div className="space-y-6">
+            {/* Código de identificación */}
+            {(product.vc_sku || product.vc_barcode_image) && (
+              <div className="bg-white rounded-xl border border-border p-6">
+                <h3 className="font-semibold text-foreground flex items-center gap-2 mb-4">
+                  <ScanBarcode size={18} className="text-muted-foreground/70" />
+                  Código de identificación
+                </h3>
+                {product.vc_sku && (
+                  <div className="mb-4">
+                    <p className="text-sm text-muted-foreground">SKU / código de barras</p>
+                    <p className="font-medium text-foreground">{product.vc_sku}</p>
+                  </div>
+                )}
+                {product.vc_barcode_image && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">Foto del código</p>
+                    <img
+                      src={product.vc_barcode_image}
+                      alt="Código de barras"
+                      className="w-full max-w-[160px] rounded-lg border border-border object-cover"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Fechas */}
             <div className="bg-white rounded-xl border border-border p-6">
               <h3 className="font-semibold text-foreground flex items-center gap-2 mb-4">

@@ -4,6 +4,8 @@ export interface ProductDTO {
   name: string;
   description: string | null;
   vc_image: string | null;
+  vc_sku?: string | null;
+  vc_barcode_image?: string | null;
   vc_folio?: string | null;
   i_status: number;
   i_stock?: number | null;
