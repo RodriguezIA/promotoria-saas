@@ -441,10 +441,10 @@ export function PedidoDetalle() {
               {tasks.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Pendientes</span><span className="font-medium text-foreground">{pendientes}</span>
+                    <span>Pendientes por aceptar</span><span className="font-medium text-foreground">{pendientes}</span>
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>En progreso</span><span className="font-medium text-foreground">{enProgreso}</span>
+                    <span>Aceptadas</span><span className="font-medium text-foreground">{enProgreso}</span>
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Completadas</span><span className="font-medium text-foreground">{completadas}</span>
@@ -454,7 +454,7 @@ export function PedidoDetalle() {
                   </div>
                   {canceladas > 0 && (
                     <div className="flex justify-between text-xs text-destructive">
-                      <span>Canceladas</span><span className="font-medium">{canceladas}</span>
+                      <span>Rechazadas</span><span className="font-medium">{canceladas}</span>
                     </div>
                   )}
                 </div>
@@ -551,13 +551,13 @@ export function PedidoDetalle() {
                         </span>
 
                         <div className="flex flex-col items-end gap-0.5 text-sm">
-                          <span className="text-[11px] text-muted-foreground">Promotor que realizó la tarea</span>
+                          <span className="text-[11px] text-muted-foreground">Promotor que aceptó la tarea</span>
                           <div className="flex items-center gap-1.5">
                             <User size={14} className="text-muted-foreground" />
                             {promotorNombre ? (
                               <span className="font-medium text-foreground">{promotorNombre}</span>
                             ) : (
-                              <span className="text-xs font-medium text-warning-foreground dark:text-warning bg-warning/15 px-2 py-0.5 rounded-full">Sin asignar</span>
+                              <span className="text-xs font-medium text-warning-foreground dark:text-warning bg-warning/15 px-2 py-0.5 rounded-full">En espera de promotor para aceptar tarea</span>
                             )}
                           </div>
                         </div>

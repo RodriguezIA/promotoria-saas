@@ -163,26 +163,18 @@ export function PedidosList() {
       accessorKey: "vc_tasks_status",
       header: "Estado",
       cell: ({ row }) => {
-        const status = (row.original as any).vc_tasks_status as string | undefined ?? "Pendientes";
+        const status = (row.original as any).vc_tasks_status as string | undefined ?? "Activo";
         const styles: Record<string, string> = {
-          Pendientes: "bg-muted text-muted-foreground",
-          "En progreso": "bg-info/10 text-info",
-          Completadas: "bg-warning/15 text-warning-foreground dark:text-warning",
-          Finalizadas: "bg-success/10 text-success",
-          Cancelado: "bg-destructive/10 text-destructive",
-          Rechazado: "bg-destructive/10 text-destructive",
+          Activo: "bg-success/10 text-success",
+          Finalizado: "bg-muted text-muted-foreground",
         };
         const dotStyles: Record<string, string> = {
-          Pendientes: "bg-muted-foreground",
-          "En progreso": "bg-info",
-          Completadas: "bg-warning",
-          Finalizadas: "bg-success",
-          Cancelado: "bg-destructive",
-          Rechazado: "bg-destructive",
+          Activo: "bg-success",
+          Finalizado: "bg-muted-foreground",
         };
         return (
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-sm rounded-full ${styles[status] ?? styles.Pendientes}`}>
-            <div className={`w-1.5 h-1.5 rounded-full ${dotStyles[status] ?? dotStyles.Pendientes}`} />
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-sm rounded-full ${styles[status] ?? styles.Activo}`}>
+            <div className={`w-1.5 h-1.5 rounded-full ${dotStyles[status] ?? dotStyles.Activo}`} />
             {status}
           </span>
         );
