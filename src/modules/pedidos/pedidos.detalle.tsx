@@ -369,6 +369,7 @@ export function PedidoDetalle() {
   const enProgreso = tasks.filter((t) => t.id_status >= 2 && t.id_status <= 5).length
   const completadas = tasks.filter((t) => t.id_status === 6).length
   const terminadas = tasks.filter((t) => t.id_status === 7).length
+  const canceladas = tasks.filter((t) => t.id_status === 8 || t.id_status === 9 || t.id_status === 0).length
 
   return (
     <PageWrapper>
@@ -451,6 +452,11 @@ export function PedidoDetalle() {
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Finalizada</span><span className="font-medium text-foreground">{terminadas}</span>
                   </div>
+                  {canceladas > 0 && (
+                    <div className="flex justify-between text-xs text-destructive">
+                      <span>Canceladas</span><span className="font-medium">{canceladas}</span>
+                    </div>
+                  )}
                 </div>
               )}
 
