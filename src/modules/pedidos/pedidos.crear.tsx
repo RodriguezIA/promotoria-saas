@@ -49,6 +49,8 @@ export const CrearPedido = () => {
   // --- Datos del cliente ---
   const [requests, setRequests] = useState<RequestDTO[]>([])
   const [stores, setStores] = useState<StoreDTO[]>([])
+  const [storeFilterMode, setStoreFilterMode] = useState<'app' | 'mine'>('app')
+  const [clientName, setClientName] = useState('')
   const [loadingDatos, setLoadingDatos] = useState(false)
 
   // --- Items del pedido ---
@@ -96,7 +98,7 @@ export const CrearPedido = () => {
       try {
         const [resRequests, resStores] = await Promise.all([
           api.get<ApiResponse<{ data: RequestDTO[] }>>(`/requests?id_client=${selectedClientId}`),
-          api.get<ApiResponse<StoreDTO[]>>(`/stores/`),
+          api.get<ApiResponse<StoreDTO[]>>(storeFilterMode === 'mine' ? `/stores/?mine=1` : `/stores/`),
         ])
 
         if (resRequests.ok && resRequests.data?.data) {
@@ -121,6 +123,24 @@ export const CrearPedido = () => {
     }
 
     fetchData()
+  }, [selectedClientId])
+
+  // Cuando cambia el filtro Tiendas de la app / Tiendas tuyas, solo se
+  // vuelve a pedir la lista de tiendas -- sin resetear lo que el cliente ya
+  // llevaba armado (solicitudes y tiendas seleccionadas).
+  useEffect(() => {
+    if (!selectedClientId) return
+    api.get<ApiResponse<StoreDTO[]>>(storeFilterMode === 'mine' ? `/stores/?mine=1` : `/stores/`)
+      .then((res) => setStores(res.ok && res.data ? res.data : []))
+      .catch(() => setStores([]))
+  }, [storeFilterMode])
+
+  // --- Nombre del cliente (para la etiqueta "Tiendas <nombre>") ---
+  useEffect(() => {
+    if (!selectedClientId) return
+    api.get<ApiResponse<{ name?: string }>>(`/clients/${selectedClientId}`)
+      .then((res) => setClientName(res.ok ? (res.data?.name || 'tuyas') : 'tuyas'))
+      .catch(() => setClientName('tuyas'))
   }, [selectedClientId])
 
   // --- Handlers ---
@@ -587,6 +607,30 @@ export const CrearPedido = () => {
 
                         {abierta && (
                           <CardContent className="p-4 space-y-4">
+                            {/* Tiendas de la app (directorio compartido) vs Tiendas del cliente (se van formando solas conforme hace pedidos) */}
+                            <div className="flex items-center gap-1 bg-muted/40 rounded-lg p-1 w-fit">
+                              <button
+                                type="button"
+                                onClick={() => setStoreFilterMode('app')}
+                                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${storeFilterMode === 'app' ? 'bg-white shadow-sm font-medium text-foreground' : 'text-muted-foreground'}`}
+                              >
+                                Tiendas de la app
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setStoreFilterMode('mine')}
+                                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${storeFilterMode === 'mine' ? 'bg-white shadow-sm font-medium text-foreground' : 'text-muted-foreground'}`}
+                              >
+                                Tiendas {clientName || 'tuyas'}
+                              </button>
+                            </div>
+
+                            {storeFilterMode === 'mine' && stores.length === 0 ? (
+                              <div className="text-sm text-muted-foreground bg-muted/30 rounded-lg p-4">
+                                Por el momento no tienes ninguna tienda tuya. Haz tu primer pedido asignando tiendas de la app, y se irán asignando a tus tiendas.
+                              </div>
+                            ) : (
+                              <>
                             {/* Filtro en cascada: Canal de venta -> Estado -> Municipio */}
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                               <div>
@@ -719,6 +763,8 @@ export const CrearPedido = () => {
                                   )
                                 })}
                               </div>
+                            )}
+                              </>
                             )}
                           </CardContent>
                         )}

@@ -55,7 +55,7 @@ export const getAdminDashboardStats = async (
   id_client: number
 ): Promise<AdminDashboardStats> => {
   const [storesRes, promotersRes, ordersRes] = await Promise.allSettled([
-    fetch(`${API_URL}/admin/stores/${id_client}`, { headers: authHeaders() }),
+    fetch(`${API_URL}/stores?mine=1`, { headers: authHeaders() }),
     fetch(`${API_URL}/admin/promoters`, { headers: authHeaders() }),
     fetch(`${API_URL}/admin/orders/client/${id_client}`, { headers: authHeaders() }),
   ]);
